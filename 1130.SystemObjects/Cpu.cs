@@ -39,7 +39,7 @@ namespace _1130.SystemObjects
             Iar++;
             if (Format)
             {
-                throw new Exception("Long form not yet implemented.");
+                throw new Exception("Long form not yet implemented. See commented code that is not yet tested.");
                 // Modifiers, Address, IA, Reset displacement; iar++
             }
             else
