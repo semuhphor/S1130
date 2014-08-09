@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Fakes;
 
