@@ -1,0 +1,554 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>S1130.SystemObjects.Fakes</name>
+    </assembly>
+    <members>
+        <member name="T:S1130.SystemObjects.Fakes.ShimCpu">
+            <summary>Shim type of S1130.SystemObjects.Cpu</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimCpu.#ctor">
+            <summary>Initializes a new shim instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimCpu.#ctor(S1130.SystemObjects.Cpu)">
+            <summary>Initializes a new shim for the given instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimCpu.BehaveAsCurrent">
+            <summary>Assigns the &apos;Current&apos; behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimCpu.BehaveAsNotImplemented">
+            <summary>Assigns the &apos;NotImplemented&apos; behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimCpu.Bind(S1130.SystemObjects.ISystemState)">
+            <summary>Binds the members of the interface to the shim.</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AccGet">
+            <summary>Sets the shim of Cpu.get_Acc()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AccSetUInt16">
+            <summary>Sets the shim of Cpu.set_Acc(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AddressGet">
+            <summary>Sets the shim of Cpu.get_Address()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AtIarGet">
+            <summary>Sets the shim of Cpu.get_AtIar()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AtIarSetUInt16">
+            <summary>Sets the shim of Cpu.set_AtIar(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.Behavior">
+            <summary>Assigns the behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.ConstructorISystemState">
+            <summary>Sets the shim of Cpu.Cpu(ISystemState state)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.DisplacementGet">
+            <summary>Sets the shim of Cpu.get_Displacement()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.ExecuteInstruction">
+            <summary>Sets the shim of Cpu.ExecuteInstruction()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.ExtGet">
+            <summary>Sets the shim of Cpu.get_Ext()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.ExtSetUInt16">
+            <summary>Sets the shim of Cpu.set_Ext(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.FormatGet">
+            <summary>Sets the shim of Cpu.get_Format()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.GetBase">
+            <summary>Sets the shim of Cpu.GetBase()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.GetEffectiveAddress">
+            <summary>Sets the shim of Cpu.GetEffectiveAddress()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.IarGet">
+            <summary>Sets the shim of Cpu.get_Iar()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.IarSetUInt16">
+            <summary>Sets the shim of Cpu.set_Iar(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.IndirectAddressGet">
+            <summary>Sets the shim of Cpu.get_IndirectAddress()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.ItemGetInt32">
+            <summary>Sets the shim of Cpu.get_Item(Int32 address)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.ItemSetInt32UInt16">
+            <summary>Sets the shim of Cpu.set_Item(Int32 address, UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.MemoryGet">
+            <summary>Sets the shim of Cpu.get_Memory()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.MemorySizeGet">
+            <summary>Sets the shim of Cpu.get_MemorySize()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.ModifiersGet">
+            <summary>Sets the shim of Cpu.get_Modifiers()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.NextInstruction">
+            <summary>Sets the shim of Cpu.NextInstruction()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.OpcodeGet">
+            <summary>Sets the shim of Cpu.get_Opcode()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.TagGet">
+            <summary>Sets the shim of Cpu.get_Tag()</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.ShimCpu.AllInstances">
+            <summary>Define shims for all instances members</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.AccGet">
+            <summary>Sets the shim of Cpu.get_Acc()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.AccSetUInt16">
+            <summary>Sets the shim of Cpu.set_Acc(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.AddressGet">
+            <summary>Sets the shim of Cpu.get_Address()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.AtIarGet">
+            <summary>Sets the shim of Cpu.get_AtIar()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.AtIarSetUInt16">
+            <summary>Sets the shim of Cpu.set_AtIar(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.DisplacementGet">
+            <summary>Sets the shim of Cpu.get_Displacement()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.ExecuteInstruction">
+            <summary>Sets the shim of Cpu.ExecuteInstruction()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.ExtGet">
+            <summary>Sets the shim of Cpu.get_Ext()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.ExtSetUInt16">
+            <summary>Sets the shim of Cpu.set_Ext(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.FormatGet">
+            <summary>Sets the shim of Cpu.get_Format()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.GetBase">
+            <summary>Sets the shim of Cpu.GetBase()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.GetEffectiveAddress">
+            <summary>Sets the shim of Cpu.GetEffectiveAddress()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.IarGet">
+            <summary>Sets the shim of Cpu.get_Iar()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.IarSetUInt16">
+            <summary>Sets the shim of Cpu.set_Iar(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.IndirectAddressGet">
+            <summary>Sets the shim of Cpu.get_IndirectAddress()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.ItemGetInt32">
+            <summary>Sets the shim of Cpu.get_Item(Int32 address)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.ItemSetInt32UInt16">
+            <summary>Sets the shim of Cpu.set_Item(Int32 address, UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.MemoryGet">
+            <summary>Sets the shim of Cpu.get_Memory()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.MemorySizeGet">
+            <summary>Sets the shim of Cpu.get_MemorySize()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.ModifiersGet">
+            <summary>Sets the shim of Cpu.get_Modifiers()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.NextInstruction">
+            <summary>Sets the shim of Cpu.NextInstruction()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.OpcodeGet">
+            <summary>Sets the shim of Cpu.get_Opcode()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimCpu.AllInstances.TagGet">
+            <summary>Sets the shim of Cpu.get_Tag()</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.ShimInstructionBuilder">
+            <summary>Shim type of S1130.SystemObjects.InstructionBuilder</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimInstructionBuilder.#ctor">
+            <summary>Initializes a new shim instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimInstructionBuilder.#ctor(S1130.SystemObjects.InstructionBuilder)">
+            <summary>Initializes a new shim for the given instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimInstructionBuilder.BehaveAsCurrent">
+            <summary>Assigns the &apos;Current&apos; behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimInstructionBuilder.BehaveAsNotImplemented">
+            <summary>Assigns the &apos;NotImplemented&apos; behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimInstructionBuilder.Behavior">
+            <summary>Assigns the behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimInstructionBuilder.BuildShortInstructionsUInt32UInt32">
+            <summary>Sets the shim of InstructionBuilder.BuildShort(Instructions instruction, UInt32 tag, UInt32 displacement)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimInstructionBuilder.Constructor">
+            <summary>Sets the shim of InstructionBuilder.InstructionBuilder()</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.ShimInstructionBuilder.AllInstances">
+            <summary>Define shims for all instances members</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.ShimSystemState">
+            <summary>Shim type of S1130.SystemObjects.SystemState</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimSystemState.#ctor">
+            <summary>Initializes a new shim instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimSystemState.#ctor(S1130.SystemObjects.SystemState)">
+            <summary>Initializes a new shim for the given instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimSystemState.BehaveAsCurrent">
+            <summary>Assigns the &apos;Current&apos; behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimSystemState.BehaveAsNotImplemented">
+            <summary>Assigns the &apos;NotImplemented&apos; behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.ShimSystemState.Bind(S1130.SystemObjects.ISystemState)">
+            <summary>Binds the members of the interface to the shim.</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AccGet">
+            <summary>Sets the shim of SystemState.get_Acc()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AccSetUInt16">
+            <summary>Sets the shim of SystemState.set_Acc(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AddressGet">
+            <summary>Sets the shim of SystemState.get_Address()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AddressSetUInt16">
+            <summary>Sets the shim of SystemState.set_Address(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.Behavior">
+            <summary>Assigns the behavior for all methods of the shimmed type</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.Constructor">
+            <summary>Sets the shim of SystemState.SystemState()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.DisplacementGet">
+            <summary>Sets the shim of SystemState.get_Displacement()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.DisplacementSetUInt16">
+            <summary>Sets the shim of SystemState.set_Displacement(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.ExtGet">
+            <summary>Sets the shim of SystemState.get_Ext()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.ExtSetUInt16">
+            <summary>Sets the shim of SystemState.set_Ext(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.FormatGet">
+            <summary>Sets the shim of SystemState.get_Format()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.FormatSetBoolean">
+            <summary>Sets the shim of SystemState.set_Format(Boolean value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.IarGet">
+            <summary>Sets the shim of SystemState.get_Iar()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.IarSetUInt16">
+            <summary>Sets the shim of SystemState.set_Iar(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.IndirectAddressGet">
+            <summary>Sets the shim of SystemState.get_IndirectAddress()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.IndirectAddressSetBoolean">
+            <summary>Sets the shim of SystemState.set_IndirectAddress(Boolean value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.ItemGetInt32">
+            <summary>Sets the shim of SystemState.get_Item(Int32 address)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.ItemSetInt32UInt16">
+            <summary>Sets the shim of SystemState.set_Item(Int32 address, UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.MemoryGet">
+            <summary>Sets the shim of SystemState.get_Memory()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.MemorySetUInt16Array">
+            <summary>Sets the shim of SystemState.set_Memory(UInt16[] value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.MemorySizeGet">
+            <summary>Sets the shim of SystemState.get_MemorySize()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.MemorySizeSetInt32">
+            <summary>Sets the shim of SystemState.set_MemorySize(Int32 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.ModifiersGet">
+            <summary>Sets the shim of SystemState.get_Modifiers()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.ModifiersSetUInt16">
+            <summary>Sets the shim of SystemState.set_Modifiers(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.NextInstruction">
+            <summary>Sets the shim of SystemState.NextInstruction()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.OpcodeGet">
+            <summary>Sets the shim of SystemState.get_Opcode()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.OpcodeSetUInt16">
+            <summary>Sets the shim of SystemState.set_Opcode(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.TagGet">
+            <summary>Sets the shim of SystemState.get_Tag()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.TagSetUInt16">
+            <summary>Sets the shim of SystemState.set_Tag(UInt16 value)</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances">
+            <summary>Define shims for all instances members</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.AccGet">
+            <summary>Sets the shim of SystemState.get_Acc()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.AccSetUInt16">
+            <summary>Sets the shim of SystemState.set_Acc(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.AddressGet">
+            <summary>Sets the shim of SystemState.get_Address()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.AddressSetUInt16">
+            <summary>Sets the shim of SystemState.set_Address(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.DisplacementGet">
+            <summary>Sets the shim of SystemState.get_Displacement()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.DisplacementSetUInt16">
+            <summary>Sets the shim of SystemState.set_Displacement(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.ExtGet">
+            <summary>Sets the shim of SystemState.get_Ext()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.ExtSetUInt16">
+            <summary>Sets the shim of SystemState.set_Ext(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.FormatGet">
+            <summary>Sets the shim of SystemState.get_Format()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.FormatSetBoolean">
+            <summary>Sets the shim of SystemState.set_Format(Boolean value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.IarGet">
+            <summary>Sets the shim of SystemState.get_Iar()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.IarSetUInt16">
+            <summary>Sets the shim of SystemState.set_Iar(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.IndirectAddressGet">
+            <summary>Sets the shim of SystemState.get_IndirectAddress()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.IndirectAddressSetBoolean">
+            <summary>Sets the shim of SystemState.set_IndirectAddress(Boolean value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.ItemGetInt32">
+            <summary>Sets the shim of SystemState.get_Item(Int32 address)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.ItemSetInt32UInt16">
+            <summary>Sets the shim of SystemState.set_Item(Int32 address, UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.MemoryGet">
+            <summary>Sets the shim of SystemState.get_Memory()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.MemorySetUInt16Array">
+            <summary>Sets the shim of SystemState.set_Memory(UInt16[] value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.MemorySizeGet">
+            <summary>Sets the shim of SystemState.get_MemorySize()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.MemorySizeSetInt32">
+            <summary>Sets the shim of SystemState.set_MemorySize(Int32 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.ModifiersGet">
+            <summary>Sets the shim of SystemState.get_Modifiers()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.ModifiersSetUInt16">
+            <summary>Sets the shim of SystemState.set_Modifiers(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.NextInstruction">
+            <summary>Sets the shim of SystemState.NextInstruction()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.OpcodeGet">
+            <summary>Sets the shim of SystemState.get_Opcode()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.OpcodeSetUInt16">
+            <summary>Sets the shim of SystemState.set_Opcode(UInt16 value)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.TagGet">
+            <summary>Sets the shim of SystemState.get_Tag()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.ShimSystemState.AllInstances.TagSetUInt16">
+            <summary>Sets the shim of SystemState.set_Tag(UInt16 value)</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.StubCpu">
+            <summary>Stub type of S1130.SystemObjects.Cpu</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubCpu.#ctor(S1130.SystemObjects.ISystemState)">
+            <summary>Initializes a new instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubCpu.InitializeStub">
+            <summary>Initializes a new instance of type StubCpu</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubCpu.CallBase">
+            <summary>Gets or sets a value that indicates if the base method should be called instead of the fallback behavior</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubCpu.InstanceBehavior">
+            <summary>Gets or sets the instance behavior.</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubCpu.InstanceObserver">
+            <summary>Gets or sets the instance observer.</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.StubISystemState">
+            <summary>Stub type of S1130.SystemObjects.ISystemState</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubISystemState.#ctor">
+            <summary>Initializes a new instance of type StubISystemState</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.AccGet">
+            <summary>Sets the stub of ISystemState.get_Acc()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.AccSetUInt16">
+            <summary>Sets the stub of ISystemState.set_Acc(UInt16 value)</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.AddressGet">
+            <summary>Sets the stub of ISystemState.get_Address()</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubISystemState.AttachBackingFieldToAcc">
+            <summary>Attaches delegates to emulate StubISystemState.Acc as a property with a backing field.</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubISystemState.AttachBackingFieldToExt">
+            <summary>Attaches delegates to emulate StubISystemState.Ext as a property with a backing field.</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubISystemState.AttachBackingFieldToIar">
+            <summary>Attaches delegates to emulate StubISystemState.Iar as a property with a backing field.</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.DisplacementGet">
+            <summary>Sets the stub of ISystemState.get_Displacement()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.ExtGet">
+            <summary>Sets the stub of ISystemState.get_Ext()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.ExtSetUInt16">
+            <summary>Sets the stub of ISystemState.set_Ext(UInt16 value)</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.FormatGet">
+            <summary>Sets the stub of ISystemState.get_Format()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.IarGet">
+            <summary>Sets the stub of ISystemState.get_Iar()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.IarSetUInt16">
+            <summary>Sets the stub of ISystemState.set_Iar(UInt16 value)</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.IndirectAddressGet">
+            <summary>Sets the stub of ISystemState.get_IndirectAddress()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.ItemGetInt32">
+            <summary>Sets the stub of ISystemState.get_Item(Int32 address)</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.ItemSetInt32UInt16">
+            <summary>Sets the stub of ISystemState.set_Item(Int32 address, UInt16 value)</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.MemoryGet">
+            <summary>Sets the stub of ISystemState.get_Memory()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.MemorySizeGet">
+            <summary>Sets the stub of ISystemState.get_MemorySize()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.ModifiersGet">
+            <summary>Sets the stub of ISystemState.get_Modifiers()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.NextInstruction">
+            <summary>Sets the stub of ISystemState.NextInstruction()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.OpcodeGet">
+            <summary>Sets the stub of ISystemState.get_Opcode()</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#NextInstruction">
+            <summary>Sets the stub of ISystemState.NextInstruction()</summary>
+        </member>
+        <member name="F:S1130.SystemObjects.Fakes.StubISystemState.TagGet">
+            <summary>Sets the stub of ISystemState.get_Tag()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Acc">
+            <summary>Sets the stub of ISystemState.get_Acc()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Address">
+            <summary>Sets the stub of ISystemState.get_Address()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Displacement">
+            <summary>Sets the stub of ISystemState.get_Displacement()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Ext">
+            <summary>Sets the stub of ISystemState.get_Ext()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Format">
+            <summary>Sets the stub of ISystemState.get_Format()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Iar">
+            <summary>Sets the stub of ISystemState.get_Iar()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#IndirectAddress">
+            <summary>Sets the stub of ISystemState.get_IndirectAddress()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.S1130#SystemObjects#ISystemState#Item(System.Int32)">
+            <summary>Sets the stub of ISystemState.get_Item(Int32 address)</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Memory">
+            <summary>Sets the stub of ISystemState.get_Memory()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#MemorySize">
+            <summary>Sets the stub of ISystemState.get_MemorySize()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Modifiers">
+            <summary>Sets the stub of ISystemState.get_Modifiers()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Opcode">
+            <summary>Sets the stub of ISystemState.get_Opcode()</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubISystemState.s1130so::S1130#SystemObjects#ISystemState#Tag">
+            <summary>Sets the stub of ISystemState.get_Tag()</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.StubInstructionBuilder">
+            <summary>Stub type of S1130.SystemObjects.InstructionBuilder</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubInstructionBuilder.#ctor">
+            <summary>Initializes a new instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubInstructionBuilder.InitializeStub">
+            <summary>Initializes a new instance of type StubInstructionBuilder</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubInstructionBuilder.CallBase">
+            <summary>Gets or sets a value that indicates if the base method should be called instead of the fallback behavior</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubInstructionBuilder.InstanceBehavior">
+            <summary>Gets or sets the instance behavior.</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubInstructionBuilder.InstanceObserver">
+            <summary>Gets or sets the instance observer.</summary>
+        </member>
+        <member name="T:S1130.SystemObjects.Fakes.StubSystemState">
+            <summary>Stub type of S1130.SystemObjects.SystemState</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubSystemState.#ctor">
+            <summary>Initializes a new instance</summary>
+        </member>
+        <member name="M:S1130.SystemObjects.Fakes.StubSystemState.InitializeStub">
+            <summary>Initializes a new instance of type StubSystemState</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubSystemState.CallBase">
+            <summary>Gets or sets a value that indicates if the base method should be called instead of the fallback behavior</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubSystemState.InstanceBehavior">
+            <summary>Gets or sets the instance behavior.</summary>
+        </member>
+        <member name="P:S1130.SystemObjects.Fakes.StubSystemState.InstanceObserver">
+            <summary>Gets or sets the instance observer.</summary>
+        </member>
+    </members>
+</doc>
