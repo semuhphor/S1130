@@ -19,21 +19,6 @@ namespace _1130.SystemObjects
         public ushort Address;
         public bool IndirectAddress;
         public ushort Modifiers;
-        public int EffectiveAddress { get { return GetEffectiveAddress(); } }
-
-        private int GetEffectiveAddress()
-        {
-            if (!Format) // short InstructionBuilder
-            {
-                return GetBase() + (short) Displacement;
-            }
-            return 0;
-        }
-
-        private int GetBase()
-        {
-            return ((int) (Tag == 0 ? Iar : this[Tag]));
-        }
 
         public void NextInstruction()
         {
