@@ -35,6 +35,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.QualityTools.Testing.Fakes, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="S1130.SystemObjects.Fakes">
+      <HintPath>FakesAssemblies\S1130.SystemObjects.Fakes.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -65,6 +69,9 @@
       <Project>{f77eb041-ee43-4d41-950b-e2b68d971e03}</Project>
       <Name>S1130.SystemObjects</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Fakes Include="Fakes\S1130.SystemObjects.fakes" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
