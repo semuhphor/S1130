@@ -1,11 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
+# Visual Studio Express 2013 for Windows Desktop
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "S1130.SystemObjects", "1130.SystemObjects\S1130.SystemObjects.csproj", "{F77EB041-EE43-4D41-950B-E2B68D971E03}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests.S1130.SystemObjects", "Tests\UnitTests.1130.SystemObjects\UnitTests.S1130.SystemObjects.csproj", "{069B202F-3D51-417E-9455-A9E61B11001F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{58A906D9-EA4F-4B35-ACE3-E4E8F33C8EFC}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
