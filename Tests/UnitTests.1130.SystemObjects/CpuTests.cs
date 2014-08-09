@@ -21,7 +21,17 @@ namespace UnitTests._1130.SystemObjects
         public void Execute_LD_Short_NoTag()
         {
             _state[_state.Iar] = InstructionBuilder.BuildShort(Instructions.Load, 0, 0x10);
-            _state[_state.Iar + 1 + 0x10 + 1] = 0x1234;
+            _state[_state.Iar + 1 + 0x10] = 0x1234;
+            _state.NextInstruction();
+            _cpu.ExecuteInstruction(_state);
+            Assert.AreEqual(0x1234, _state.Acc);
+        }
+        
+        [TestMethod]
+        public void Execute_LD_Short_NoTag()
+        {
+            _state[_state.Iar] = InstructionBuilder.BuildShort(Instructions.Load, 0, 0x10);
+            _state[_state.Iar + 1 + 0x10] = 0x1234;
             _state.NextInstruction();
             _cpu.ExecuteInstruction(_state);
             Assert.AreEqual(0x1234, _state.Acc);
