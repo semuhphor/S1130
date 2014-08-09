@@ -1,24 +1,30 @@
 ﻿using System;
 
-namespace _1130.SystemObjects
+namespace S1130.SystemObjects
 {
-    public class SystemState
+    public class SystemState : ISystemState
     {
         public const int DefaultMemorySize = 32768;
 
-        public ushort[] Memory = new ushort[DefaultMemorySize];
-        public int MemorySize = DefaultMemorySize;
-        public ushort Iar;
-        public ushort Acc;
-        public ushort Ext;
+        public SystemState()
+        {
+            MemorySize = DefaultMemorySize;
+            Memory = new ushort[DefaultMemorySize];
+        }
 
-        public ushort Opcode;
-        public bool Format;
-        public ushort Tag;
-        public ushort Displacement;
-        public ushort Address;
-        public bool IndirectAddress;
-        public ushort Modifiers;
+        public ushort[] Memory { get; set; } 
+        public int MemorySize { get; set; }
+        public ushort Iar { get; set; }
+        public ushort Acc { get; set; }
+        public ushort Ext { get; set; }
+
+        public ushort Opcode { get; set; }
+        public bool Format { get; set; }
+        public ushort Tag { get; set; }
+        public ushort Displacement { get; set; }
+        public ushort Address { get; set; }
+        public bool IndirectAddress { get; set; }
+        public ushort Modifiers { get; set; }
 
         public void NextInstruction()
         {
@@ -45,14 +51,6 @@ namespace _1130.SystemObjects
         {
             get { return Memory[address]; }
             set { Memory[address] = value; }
-        }
-    }
-
-    public class InstructionBuilder
-    {
-        public static ushort BuildShort(Instructions instruction, uint tag, uint displacement)
-        {
-            return (ushort) ((((uint) instruction << 11) | (tag << 8) | (displacement & 0xff)) & 0xffff);
         }
     }
 }

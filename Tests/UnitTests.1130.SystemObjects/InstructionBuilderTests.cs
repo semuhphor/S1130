@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using _1130.SystemObjects;
+using S1130.SystemObjects;
 
-namespace UnitTests._1130.SystemObjects
+namespace UnitTests.S1130.SystemObjects
 {
     [TestClass]
     public class InstructionBuilderTests
