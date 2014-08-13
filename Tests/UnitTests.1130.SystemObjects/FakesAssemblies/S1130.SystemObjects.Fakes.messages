@@ -1,3 +1,0 @@
-V:\Development\IBM\IBM1130\1130Emulator\Tests\UnitTests.1130.SystemObjects\Fakes\S1130.SystemObjects.fakes : warning : Cannot generate stub for S1130.SystemObjects.Instructions: type is a value type.
-V:\Development\IBM\IBM1130\1130Emulator\Tests\UnitTests.1130.SystemObjects\Fakes\S1130.SystemObjects.fakes : warning : Cannot generate shim for S1130.SystemObjects.ISystemState: type is an interface.
-V:\Development\IBM\IBM1130\1130Emulator\Tests\UnitTests.1130.SystemObjects\Fakes\S1130.SystemObjects.fakes : warning : Cannot generate shim for S1130.SystemObjects.Instructions: type is an enum.
