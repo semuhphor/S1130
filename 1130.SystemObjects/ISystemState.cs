@@ -1,3 +1,5 @@
+using System.Dynamic;
+
 namespace S1130.SystemObjects
 {
     public interface ISystemState
@@ -9,6 +11,8 @@ namespace S1130.SystemObjects
         ushort Acc { get; set; }
         ushort Ext { get; set; }
         ushort this[int address] { get; set; }
+
+        IndexRegisters Xr { get; }
 
         ushort Opcode { get;  }
         bool Format { get;  }

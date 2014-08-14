@@ -10,6 +10,7 @@ namespace S1130.SystemObjects
         {
             MemorySize = DefaultMemorySize;
             Memory = new ushort[DefaultMemorySize];
+            Xr = new IndexRegisters(this);
         }
 
         public ushort[] Memory { get; set; } 
@@ -18,6 +19,8 @@ namespace S1130.SystemObjects
         public ushort Acc { get; set; }
         public ushort Ext { get; set; }
 
+        public IndexRegisters IndexRegister { get; set; }
+        public IndexRegisters Xr { get; private set; }
         public ushort Opcode { get; set; }
         public bool Format { get; set; }
         public ushort Tag { get; set; }
@@ -25,8 +28,8 @@ namespace S1130.SystemObjects
         public ushort Address { get; set; }
         public bool IndirectAddress { get; set; }
         public ushort Modifiers { get; set; }
-
-        public void NextInstruction()
+        
+       public void NextInstruction()
         {
             var firstWord = Memory[Iar];
             Opcode = (ushort) ((firstWord & 0xF800) >> 11);

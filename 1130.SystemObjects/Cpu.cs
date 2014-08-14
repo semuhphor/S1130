@@ -88,6 +88,11 @@ namespace S1130.SystemObjects
             set { _state.Memory[address] = value; }
         }
 
+        public IndexRegisters Xr
+        {
+            get { return _state.Xr;  }
+        }
+
         #endregion
 
         public void NextInstruction()
