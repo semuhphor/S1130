@@ -74,7 +74,6 @@ namespace UnitTests.S1130.SystemObjects
         [TestMethod]
         public void EnusureCpuCallsStateNextInstruction()
         {
-            bool called = false;
             var fakeState = A.Fake<ISystemState>();
             var cpu = new Cpu(fakeState);
             cpu.NextInstruction();
