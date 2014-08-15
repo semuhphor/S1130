@@ -1,5 +1,4 @@
 using System;
-using System.Data;
 
 namespace S1130.SystemObjects
 {
@@ -39,7 +38,7 @@ namespace S1130.SystemObjects
             if (indexRegister > 3)
             {
                 throw new IndexOutOfRangeException(string.Format("Index register out of range {0}", indexRegister));
-            };
+            }
         }
     }
 }

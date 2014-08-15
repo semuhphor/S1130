@@ -22,8 +22,21 @@ namespace UnitTests.S1130.SystemObjects
             _state.NextInstruction();
             Assert.AreEqual(0x101, _state.Iar);
             Assert.AreEqual((int) Instructions.Load, _state.Opcode);
-            Assert.AreEqual(false, _state.Format);
+            Assert.AreEqual(false, _state.FormatLong);
             Assert.AreEqual(2, _state.Tag);
+            Assert.AreEqual(0x72, _state.Displacement);
+        }
+
+        [TestMethod]
+        public void NextInstruction_LongLoadInstructionIndirectWithXR3Test()
+        {
+           InstructionBuilder.BuildLongIndirectAtIar(Instructions.Load, 3, 0x72, _state);
+            _state.NextInstruction();
+            Assert.AreEqual(0x102, _state.Iar);
+            Assert.AreEqual((int) Instructions.Load, _state.Opcode);
+            Assert.AreEqual(true, _state.FormatLong);
+            Assert.AreEqual(true, _state.IndirectAddress);
+            Assert.AreEqual(3, _state.Tag);
             Assert.AreEqual(0x72, _state.Displacement);
         }
 

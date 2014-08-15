@@ -36,9 +36,9 @@ namespace S1130.SystemObjects
             get { return _state.Opcode; }
         }
 
-        public bool Format
+        public bool FormatLong
         {
-            get { return _state.Format; }
+            get { return _state.FormatLong; }
         }
 
         public ushort Tag
@@ -49,11 +49,6 @@ namespace S1130.SystemObjects
         public ushort Displacement
         {
             get { return _state.Displacement; }
-        }
-
-        public ushort Address
-        {
-            get { return _state.Address; }
         }
 
         public bool IndirectAddress
@@ -132,16 +127,17 @@ namespace S1130.SystemObjects
 
         public int GetEffectiveAddress()
         {
-            if (!Format) // short InstructionBuilder
+            var location = GetBase() + Displacement;
+            if (FormatLong && IndirectAddress) // long indirect
             {
-                return GetBase() + (short) Displacement;
+                location = this[location];
             }
-            return 0;
+            return location;
         }
 
         private int GetBase()
         {
-            return Tag == 0 ? Iar : this[Tag];
+            return (!FormatLong || Tag != 0) ? Xr[Tag] : 0;
         }
     }
 }

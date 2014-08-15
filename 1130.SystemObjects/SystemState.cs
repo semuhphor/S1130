@@ -22,29 +22,27 @@ namespace S1130.SystemObjects
         public IndexRegisters IndexRegister { get; set; }
         public IndexRegisters Xr { get; private set; }
         public ushort Opcode { get; set; }
-        public bool Format { get; set; }
+        public bool FormatLong { get; set; }
         public ushort Tag { get; set; }
         public ushort Displacement { get; set; }
-        public ushort Address { get; set; }
         public bool IndirectAddress { get; set; }
         public ushort Modifiers { get; set; }
         
        public void NextInstruction()
         {
-            var firstWord = Memory[Iar];
+            var firstWord = Memory[Iar++];
             Opcode = (ushort) ((firstWord & 0xF800) >> 11);
-            Format = (firstWord & 0x0400) != 0;
+            FormatLong = (firstWord & 0x0400) != 0;
             Tag = (ushort) ((firstWord & 0x0300) >> 8);
-            Iar++;
-            if (Format)
+            if (FormatLong)
             {
-                throw new Exception("Long form not yet implemented. See commented code that is not yet tested.");
-                // Modifiers, Address, IA, Reset displacement; iar++
+                Displacement = Memory[Iar++];
+                IndirectAddress = (firstWord & 0x80) != 0;
+                // Modifiers
             }
             else
             {
                 Displacement = (ushort) (firstWord & 0xff);
-                Address = 0;
                 IndirectAddress = false;
                 Modifiers = 0;
             }

@@ -15,10 +15,9 @@ namespace S1130.SystemObjects
         IndexRegisters Xr { get; }
 
         ushort Opcode { get;  }
-        bool Format { get;  }
+        bool FormatLong { get;  }
         ushort Tag { get;  }
         ushort Displacement { get;  }
-        ushort Address { get;  }
         bool IndirectAddress { get;  }
         ushort Modifiers { get;  }
 
