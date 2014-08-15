@@ -49,6 +49,4 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
             Assert.AreEqual(0x1234, InsCpu.Acc);
         }
     }
-
-
 }
