@@ -107,8 +107,8 @@ namespace S1130.SystemObjects
                     break;
                 case Instructions.LoadDouble:
                     effectiveAddress = GetEffectiveAddress();
-                    Acc = this[effectiveAddress++];
-                    Ext = this[effectiveAddress];
+                    Acc = this[effectiveAddress];
+                    Ext = this[effectiveAddress|1];
                     break;
                 case Instructions.Store:
                     effectiveAddress = GetEffectiveAddress();
@@ -116,8 +116,8 @@ namespace S1130.SystemObjects
                     break;
                 case Instructions.StoreDouble:
                     effectiveAddress = GetEffectiveAddress();
-                    this[effectiveAddress++] = Acc;
-                    this[effectiveAddress] = Ext;
+                    this[effectiveAddress|1] = Ext;
+                    this[effectiveAddress] = Acc;
                     break;
                 default:
                     throw new Exception("Unknown instruction");

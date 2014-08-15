@@ -9,10 +9,10 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_LDD_Short_NoTag()
         {
-            InsCpu[InsCpu.Iar] = InstructionBuilder.BuildShort(Instructions.LoadDouble, 0, 0x10);
-            int address = InsCpu.Iar + 1 + 0x10;
+            InsCpu[InsCpu.Iar] = InstructionBuilder.BuildShort(Instructions.LoadDouble, 0, 0x09);
+            int address = InsCpu.Iar + 1 + 0x09;
             InsCpu[address++] = 0x1234;
-            InsCpu[address] = 0x4567;
+            InsCpu[address]= 0x4567;
             InsCpu.NextInstruction();
             InsCpu.ExecuteInstruction();
             Assert.AreEqual(0x1234, InsCpu.Acc);
@@ -56,6 +56,19 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
             InsCpu.ExecuteInstruction();
             Assert.AreEqual(0x1234, InsCpu.Acc);
             Assert.AreEqual(0x4321, InsCpu.Ext);
+        }
+
+        [TestMethod]
+        public void Execute_LD_Short_NoTag_OddAddress()
+        {
+            InsCpu[InsCpu.Iar] = InstructionBuilder.BuildShort(Instructions.LoadDouble, 0, 0x10);
+            int address = InsCpu.Iar + 1 + 0x10;
+            InsCpu[address++] = 0x1234;
+            InsCpu[address] = 0x4567;
+            InsCpu.NextInstruction();
+            InsCpu.ExecuteInstruction();
+            Assert.AreEqual(0x1234, InsCpu.Acc);
+            Assert.AreEqual(0x1234, InsCpu.Ext);
         }
     }
 }
