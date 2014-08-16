@@ -5,10 +5,13 @@ namespace S1130.SystemObjects
     public class Cpu : ISystemState
     {
         private readonly ISystemState _state;
+        private readonly IInstructionSet _instructionSet;
+
 
         public Cpu(ISystemState state)
         {
             _state = state;
+            _instructionSet = new InstructionSet();
         }
 
         #region Properties (reference to ISystemState)
@@ -95,49 +98,9 @@ namespace S1130.SystemObjects
             _state.NextInstruction();
         }
 
-        public ISystemState ExecuteInstruction()
+        public void ExecuteInstruction()
         {
-            var instruction = (Instructions) Opcode;
-            int effectiveAddress;
-
-            switch (instruction)
-            {
-                case Instructions.Load:
-                    Acc = this[GetEffectiveAddress()];
-                    break;
-                case Instructions.LoadDouble:
-                    effectiveAddress = GetEffectiveAddress();
-                    Acc = this[effectiveAddress];
-                    Ext = this[effectiveAddress|1];
-                    break;
-                case Instructions.Store:
-                    effectiveAddress = GetEffectiveAddress();
-                    this[effectiveAddress] = Acc;
-                    break;
-                case Instructions.StoreDouble:
-                    effectiveAddress = GetEffectiveAddress();
-                    this[effectiveAddress|1] = Ext;
-                    this[effectiveAddress] = Acc;
-                    break;
-                default:
-                    throw new Exception("Unknown instruction");
-            }
-            return _state;
-        }
-
-        public int GetEffectiveAddress()
-        {
-            var location = GetBase() + Displacement;
-            if (FormatLong && IndirectAddress) // long indirect
-            {
-                location = this[location];
-            }
-            return location;
-        }
-
-        private int GetBase()
-        {
-            return (!FormatLong || Tag != 0) ? Xr[Tag] : 0;
+            _instructionSet.Execute(_state);
         }
     }
 }

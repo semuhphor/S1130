@@ -19,14 +19,6 @@ namespace UnitTests.S1130.SystemObjects
         }
 
         [TestMethod]
-        public void EffectiveAddress()
-        {
-            _cpu.AtIar = InstructionBuilder.BuildShort(Instructions.Load, 0, 0x20);
-            _cpu.NextInstruction();
-            Assert.AreEqual(_cpu.Iar + 0x20, _cpu.GetEffectiveAddress());
-        }
-
-        [TestMethod]
         public void AccProperty()
         {
             _cpu.Acc = 0x1234;

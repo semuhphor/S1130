@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
+using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
@@ -9,7 +10,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_STD_Short_NoTag()
         {
-            InsCpu.AtIar = InstructionBuilder.BuildShort(Instructions.StoreDouble, 0, 0x09);
+            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x09);
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
             InsCpu.NextInstruction();
@@ -22,7 +23,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_ST_Long_NoTag()
         {
-            InstructionBuilder.BuildLongAtIar(Instructions.StoreDouble, 0, 0x400, InsCpu);
+            InstructionBuilder.BuildLongAtIar(OpCodes.StoreDouble, 0, 0x400, InsCpu);
             InsCpu.Acc = 0xbfbf;
             InsCpu.Ext = 0xfbfb;
             InsCpu.NextInstruction();
@@ -34,7 +35,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_ST_Long_Xr3()
         {
-            InstructionBuilder.BuildLongAtIar(Instructions.StoreDouble, 3, 0x350, InsCpu);
+            InstructionBuilder.BuildLongAtIar(OpCodes.StoreDouble, 3, 0x350, InsCpu);
             InsCpu.NextInstruction();
             InsCpu.Xr[3] = 0x100;
             InsCpu.Acc = 0x1234;
@@ -47,7 +48,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_ST_Long_Indirect_XR1()
         {
-            InstructionBuilder.BuildLongIndirectAtIar(Instructions.StoreDouble, 1, 0x400, InsCpu);
+            InstructionBuilder.BuildLongIndirectAtIar(OpCodes.StoreDouble, 1, 0x400, InsCpu);
             InsCpu.NextInstruction();
             InsCpu.Xr[1] = 0x100;
             InsCpu[0x500] = 0x600;
@@ -61,7 +62,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_STD_Short_NoTag_OddAddress()
         {
-            InsCpu.AtIar = InstructionBuilder.BuildShort(Instructions.StoreDouble, 0, 0x10);
+            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x10);
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
             InsCpu.NextInstruction();

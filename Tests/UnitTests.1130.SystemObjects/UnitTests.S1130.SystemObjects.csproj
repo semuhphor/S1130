@@ -55,6 +55,7 @@
     <Compile Include="InstructionBuilderTests.cs" />
     <Compile Include="InstructionTests\InstructionTestBase.cs" />
     <Compile Include="InstructionTests\LoadDoubleTests.cs" />
+    <Compile Include="InstructionTests\LoadIndexTests.cs" />
     <Compile Include="InstructionTests\LoadTests.cs" />
     <Compile Include="InstructionTests\StoreDoubleTests.cs" />
     <Compile Include="InstructionTests\StoreTests.cs" />

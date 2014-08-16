@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
+using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects
 {
@@ -9,8 +10,8 @@ namespace UnitTests.S1130.SystemObjects
         [TestMethod]
         public void BuildShortTest_ShortLoads()
         {
-            Assert.AreEqual(0xc07f, InstructionBuilder.BuildShort(Instructions.Load, 0, 0x7f));
-            Assert.AreEqual(0xc344, InstructionBuilder.BuildShort(Instructions.Load, 3, 0x44));
+            Assert.AreEqual(0xc07f, InstructionBuilder.BuildShort(OpCodes.Load, 0, 0x7f));
+            Assert.AreEqual(0xc344, InstructionBuilder.BuildShort(OpCodes.Load, 3, 0x44));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
+using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
@@ -9,7 +10,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_ST_Short_NoTag()
         {
-            InsCpu.AtIar = InstructionBuilder.BuildShort(Instructions.Store, 0, 0x10);
+            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Store, 0, 0x10);
             InsCpu.Acc = 0x2345;
             InsCpu.NextInstruction();
             InsCpu.ExecuteInstruction();
@@ -19,7 +20,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_ST_Long_NoTag()
         {
-            InstructionBuilder.BuildLongAtIar(Instructions.Store, 0, 0x400, InsCpu);
+            InstructionBuilder.BuildLongAtIar(OpCodes.Store, 0, 0x400, InsCpu);
             InsCpu.Acc = 0xbfbf;
             InsCpu.NextInstruction();
             InsCpu.ExecuteInstruction();
@@ -29,7 +30,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_ST_Long_Xr3()
         {
-            InstructionBuilder.BuildLongAtIar(Instructions.Store, 3, 0x350, InsCpu);
+            InstructionBuilder.BuildLongAtIar(OpCodes.Store, 3, 0x350, InsCpu);
             InsCpu.NextInstruction();
             InsCpu.Xr[3] = 0x100;
             InsCpu.Acc = 0x1234;
@@ -40,7 +41,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         [TestMethod]
         public void Execute_ST_Long_Indirect_XR1()
         {
-            InstructionBuilder.BuildLongIndirectAtIar(Instructions.Store, 1, 0x400, InsCpu);
+            InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Store, 1, 0x400, InsCpu);
             InsCpu.NextInstruction();
             InsCpu.Xr[1] = 0x100;
             InsCpu[0x500] = 0x600;
