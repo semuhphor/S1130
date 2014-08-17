@@ -11,8 +11,19 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_ST_Short_NoTag()
         {
             InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Store, 0, 0x10);
-            InsCpu.Acc = 0x2345;
             InsCpu.NextInstruction();
+            InsCpu.Acc = 0x2345;
+            InsCpu.ExecuteInstruction();
+            Assert.AreEqual(0x2345, InsCpu[InsCpu.Iar + 0x10]);
+        }
+
+        [TestMethod]
+        public void Execute_ST_Short_NoTag_HighAddress()
+        {
+	        InsCpu.Iar = 0x7f00;
+            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Store, 0, 0x10);
+            InsCpu.NextInstruction();
+            InsCpu.Acc = 0x2345;
             InsCpu.ExecuteInstruction();
             Assert.AreEqual(0x2345, InsCpu[InsCpu.Iar + 0x10]);
         }
@@ -21,8 +32,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_ST_Long_NoTag()
         {
             InstructionBuilder.BuildLongAtIar(OpCodes.Store, 0, 0x400, InsCpu);
-            InsCpu.Acc = 0xbfbf;
             InsCpu.NextInstruction();
+            InsCpu.Acc = 0xbfbf;
             InsCpu.ExecuteInstruction();
             Assert.AreEqual(0xbfbf, InsCpu[0x400]);
         }

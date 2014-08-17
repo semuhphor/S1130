@@ -42,7 +42,8 @@ namespace S1130.SystemObjects
             }
             else
             {
-                Displacement = (ushort) (firstWord & 0xff);
+	            ushort mask = (firstWord & 0x80) == 0 ? (ushort) 0 : (ushort) 0xff00;
+				Displacement = (ushort) (firstWord & 0xff);
                 IndirectAddress = false;
                 Modifiers = 0;
             }

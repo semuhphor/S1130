@@ -11,9 +11,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_STD_Short_NoTag()
         {
             InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x09);
+            InsCpu.NextInstruction();
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
-            InsCpu.NextInstruction();
             InsCpu.ExecuteInstruction();
             int effectiveAddress = InsCpu.Iar + 0x09;
             Assert.AreEqual(0x2345, InsCpu[effectiveAddress++]);
@@ -24,9 +24,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_ST_Long_NoTag()
         {
             InstructionBuilder.BuildLongAtIar(OpCodes.StoreDouble, 0, 0x400, InsCpu);
+            InsCpu.NextInstruction();
             InsCpu.Acc = 0xbfbf;
             InsCpu.Ext = 0xfbfb;
-            InsCpu.NextInstruction();
             InsCpu.ExecuteInstruction();
             Assert.AreEqual(0xbfbf, InsCpu[0x400]);
             Assert.AreEqual(0xfbfb, InsCpu[0x401]);
@@ -63,9 +63,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_STD_Short_NoTag_OddAddress()
         {
             InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x10);
+            InsCpu.NextInstruction();
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
-            InsCpu.NextInstruction();
             InsCpu.ExecuteInstruction();
             var effectiveAddress = InsCpu.Iar + 0x10;
             Assert.AreEqual(0x2345, InsCpu[effectiveAddress++]);

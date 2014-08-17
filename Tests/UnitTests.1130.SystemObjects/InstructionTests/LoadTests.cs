@@ -7,14 +7,46 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
     [TestClass]
     public class LoadTests : InstructionTestBase
     {
-        [TestMethod]
-        public void Execute_LD_Short_NoTag()
+		[TestMethod]
+		public void Execute_LD_Short_NoTag()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Load, 0, 0x10);
+			InsCpu.NextInstruction();
+			InsCpu[InsCpu.Iar + 0x10] = 0x1234;
+			InsCpu.ExecuteInstruction();
+			Assert.AreEqual(0x1234, InsCpu.Acc);
+		}
+
+		[TestMethod]
+		public void Execute_LD_Short_NoTag_HighAddress()
+		{
+			InsCpu.Iar = 0x7fe0;
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Load, 0, 0x04);
+			InsCpu.NextInstruction();
+			InsCpu[InsCpu.Iar + 0x04] = 0x1234;
+			InsCpu.ExecuteInstruction();
+			Assert.AreEqual(0x1234, InsCpu.Acc);
+		}
+
+		[TestMethod]
+        public void Execute_LD_Short_NoTag_NegativeDisplacement()
         {
-            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Load, 0, 0x10);
+            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Load, 0, 0xe0);
             InsCpu.NextInstruction();
-            InsCpu[InsCpu.Iar + 0x10] = 0x1234;
+	        InsCpu[InsCpu.Iar + GetOffsetFor(0xe0)] = 0x82e0;
             InsCpu.ExecuteInstruction();
-            Assert.AreEqual(0x1234, InsCpu.Acc);
+            Assert.AreEqual(0x82e0, InsCpu.Acc);
+        }
+
+        [TestMethod]
+        public void Execute_LD_Short_Xr2()
+        {
+            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Load, 2, 0x10);
+            InsCpu.NextInstruction();
+	        InsCpu.Xr[2] = 0x400;
+			InsCpu[InsCpu.Xr[2] + 0x10] = 0x1222;
+            InsCpu.ExecuteInstruction();
+            Assert.AreEqual(0x1222, InsCpu.Acc);
         }
 
         [TestMethod]

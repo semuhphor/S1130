@@ -8,7 +8,6 @@ namespace S1130.SystemObjects.Instructions
         public void Execute(ISystemState state)
         {
             state[GetEffectiveAddress(state)] = state.Acc;
-
         }
     }
 }

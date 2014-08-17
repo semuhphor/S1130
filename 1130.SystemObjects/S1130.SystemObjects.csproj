@@ -47,7 +47,9 @@
     <Compile Include="InstructionSet.cs" />
     <Compile Include="Instructions\InstructionBase.cs" />
     <Compile Include="Instructions\Load.cs" />
+    <Compile Include="Instructions\LoadIndex.cs" />
     <Compile Include="Instructions\OpCodes.cs" />
+    <Compile Include="Instructions\StoreIndex.cs" />
     <Compile Include="ISystemState.cs" />
     <Compile Include="Instructions\LoadDouble.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

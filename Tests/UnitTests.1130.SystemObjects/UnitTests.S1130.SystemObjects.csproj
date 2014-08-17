@@ -58,6 +58,7 @@
     <Compile Include="InstructionTests\LoadIndexTests.cs" />
     <Compile Include="InstructionTests\LoadTests.cs" />
     <Compile Include="InstructionTests\StoreDoubleTests.cs" />
+    <Compile Include="InstructionTests\StoreIndexTests.cs" />
     <Compile Include="InstructionTests\StoreTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SystemStateTests.cs" />

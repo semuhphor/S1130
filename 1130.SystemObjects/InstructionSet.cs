@@ -8,12 +8,10 @@ namespace S1130.SystemObjects
 {
     public class InstructionSet : InstructionBase, IInstructionSet
     {
-        private static readonly Dictionary<OpCodes, IInstruction> Instructions;
+        private static readonly Dictionary<OpCodes, IInstruction> Instructions = new Dictionary<OpCodes, IInstruction>();
 
         static InstructionSet()
         {
-            //if (Instructions != null) return;
-            Instructions = new Dictionary<OpCodes, IInstruction>();
             var assembly = Assembly.Load("S1130.SystemObjects");
             foreach (OpCodes opCode in Enum.GetValues(typeof (OpCodes)))
             {
