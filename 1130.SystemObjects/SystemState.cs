@@ -1,16 +1,15 @@
-﻿using System;
-
-namespace S1130.SystemObjects
+﻿namespace S1130.SystemObjects
 {
     public class SystemState : ISystemState
     {
         public const int DefaultMemorySize = 32768;
-
+	    private readonly IInstructionSet _instructionSet;
         public SystemState()
         {
             MemorySize = DefaultMemorySize;
             Memory = new ushort[DefaultMemorySize];
             Xr = new IndexRegisters(this);
+			_instructionSet = new InstructionSet();
         }
 
         public ushort[] Memory { get; set; } 
@@ -32,7 +31,7 @@ namespace S1130.SystemObjects
         {
             var firstWord = Memory[Iar++];
             Opcode = (ushort) ((firstWord & 0xF800) >> 11);
-            FormatLong = (firstWord & 0x0400) != 0;
+            FormatLong = (firstWord & 0x0400) != 0 && _instructionSet.MayBeLong(Opcode);
             Tag = (ushort) ((firstWord & 0x0300) >> 8);
             if (FormatLong)
             {
@@ -49,7 +48,12 @@ namespace S1130.SystemObjects
             }
         }
 
-        public ushort this[int address]
+	    public void ExecuteInstruction()
+	    {
+		    _instructionSet.Execute(this);
+	    }
+
+	    public ushort this[int address]
         {
             get { return Memory[address]; }
             set { Memory[address] = value; }

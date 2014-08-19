@@ -98,9 +98,9 @@ namespace S1130.SystemObjects
             _state.NextInstruction();
         }
 
-        public void ExecuteInstruction()
+	    public void ExecuteInstruction()
         {
-            _instructionSet.Execute(_state);
+            _state.ExecuteInstruction();
         }
     }
 }

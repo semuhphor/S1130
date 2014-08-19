@@ -22,5 +22,6 @@ namespace S1130.SystemObjects
         ushort Modifiers { get;  }
 
         void NextInstruction();
+	    void ExecuteInstruction();
     }
 }

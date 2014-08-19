@@ -2,6 +2,7 @@
 {
     public interface IInstructionSet
     {
+	    bool MayBeLong(int opcode);
         void Execute(ISystemState state);
     }
 }

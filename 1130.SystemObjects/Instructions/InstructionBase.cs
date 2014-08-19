@@ -1,7 +1,11 @@
-﻿namespace S1130.SystemObjects.Instructions
+﻿using System.Runtime.Remoting.Messaging;
+
+namespace S1130.SystemObjects.Instructions
 {
     public abstract class InstructionBase
     {
+		public virtual bool HasLongFormat { get { return true; }}
+
 	    private int GetEffectiveAddress(ISystemState state, int baseAddress)
 	    {
 			var location = baseAddress + GetOffset(state);
