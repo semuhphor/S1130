@@ -48,6 +48,7 @@
     <Compile Include="Instructions\InstructionBase.cs" />
     <Compile Include="Instructions\Load.cs" />
     <Compile Include="Instructions\LoadIndex.cs" />
+    <Compile Include="Instructions\LoadStatus.cs" />
     <Compile Include="Instructions\OpCodes.cs" />
     <Compile Include="Instructions\StoreIndex.cs" />
     <Compile Include="ISystemState.cs" />

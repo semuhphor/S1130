@@ -21,6 +21,9 @@ namespace S1130.SystemObjects
         bool IndirectAddress { get;  }
         ushort Modifiers { get;  }
 
+		bool Carry { get; set;  }
+		bool Overflow { get; set; }
+
         void NextInstruction();
 	    void ExecuteInstruction();
     }

@@ -26,6 +26,8 @@
         public ushort Displacement { get; set; }
         public bool IndirectAddress { get; set; }
         public ushort Modifiers { get; set; }
+        public bool Carry { get; set; }
+        public bool Overflow { get; set; }
         
        public void NextInstruction()
         {

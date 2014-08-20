@@ -86,6 +86,18 @@ namespace S1130.SystemObjects
             set { _state.Memory[address] = value; }
         }
 
+	    public bool Carry
+	    {
+			get { return _state.Carry; }
+			set { _state.Carry = value; }
+	    }
+
+	    public bool Overflow
+	    {
+			get { return _state.Overflow; }
+			set { _state.Overflow = value; }
+		}
+
         public IndexRegisters Xr
         {
             get { return _state.Xr;  }

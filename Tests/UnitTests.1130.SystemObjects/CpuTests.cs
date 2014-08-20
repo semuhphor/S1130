@@ -54,14 +54,32 @@ namespace UnitTests.S1130.SystemObjects
             Assert.AreEqual(0x3245, _cpu.AtIar);
         }
 
-        [TestMethod]
-        public void IndexProperty()
-        {
-            _cpu[0x100] = 0x1234;
-            Assert.AreEqual(0x1234, _state.Memory[0x100]);
-            _state[0x101] = 0x2345;
-            Assert.AreEqual(0x2345, _cpu[0x101]);
-        }
+		[TestMethod]
+		public void IndexProperty()
+		{
+			_cpu[0x100] = 0x1234;
+			Assert.AreEqual(0x1234, _state.Memory[0x100]);
+			_state[0x101] = 0x2345;
+			Assert.AreEqual(0x2345, _cpu[0x101]);
+		}
+
+		[TestMethod]
+		public void CarryProperty()
+		{
+			_cpu.Carry = true;
+			Assert.IsTrue(_cpu.Carry);
+			_state.Carry = false;
+			Assert.IsFalse(_cpu.Carry);
+		}
+
+		[TestMethod]
+		public void OverflowProperty()
+		{
+			_state.Overflow = true;
+			Assert.IsTrue(_cpu.Overflow);
+			_cpu.Overflow = false;
+			Assert.IsFalse(_cpu.Overflow);
+		}
 
         [TestMethod]
         public void EnusureCpuCallsStateNextInstruction()
