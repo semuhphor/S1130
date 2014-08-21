@@ -10,6 +10,6 @@
         ,LoadIndex = 0x0c
         ,StoreIndex = 0x0d
         ,LoadStatus = 0x04
-//        ,StoreStatus = 0x05
+        ,StoreStatus = 0x05
     };
 }

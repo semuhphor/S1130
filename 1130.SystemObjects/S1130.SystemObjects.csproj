@@ -51,6 +51,7 @@
     <Compile Include="Instructions\LoadStatus.cs" />
     <Compile Include="Instructions\OpCodes.cs" />
     <Compile Include="Instructions\StoreIndex.cs" />
+    <Compile Include="Instructions\StoreStatus.cs" />
     <Compile Include="ISystemState.cs" />
     <Compile Include="Instructions\LoadDouble.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

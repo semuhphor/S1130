@@ -4,7 +4,7 @@ using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
-    [TestClass]
+	[TestClass]
     public class StoreTests : InstructionTestBase
     {
         [TestMethod]
