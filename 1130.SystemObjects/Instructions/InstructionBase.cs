@@ -21,6 +21,11 @@ namespace S1130.SystemObjects.Instructions
 			return GetEffectiveAddress(state, state.FormatLong ? 0 : state.Iar);
 	    }
 
+		protected bool Is16BitSignBitOn(int value)
+		{
+			return (value & 0x8000) != 0;
+		}
+
         protected int GetEffectiveAddress(ISystemState state)
         {
 	        return GetEffectiveAddress(state, GetBase(state));
