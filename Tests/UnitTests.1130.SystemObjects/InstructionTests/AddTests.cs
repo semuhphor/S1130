@@ -12,14 +12,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
-			InsCpu.Acc = 1;
 			InsCpu[InsCpu.Iar + 0x10] = 0x0012;
-			InsCpu.Carry = true;
-			InsCpu.Overflow = false;
-			InsCpu.ExecuteInstruction();
-			Assert.AreEqual(0x0013, InsCpu.Acc);
-			Assert.IsFalse(InsCpu.Carry);
-			Assert.IsFalse(InsCpu.Overflow);
+			ExecAndTest(initialAcc: 0x0001, initialCarry: true, initialOverflow: false, expectedAcc: 0x0013, expectedCarry: false, expectedOverflow: false);
 		}
 
 		[TestMethod]
@@ -27,14 +21,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
-			InsCpu.Acc = 1;
 			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
-			InsCpu.Carry = false;
-			InsCpu.Overflow = false;
-			InsCpu.ExecuteInstruction();
-			Assert.AreEqual(0x0000, InsCpu.Acc);
-			Assert.IsTrue(InsCpu.Carry);
-			Assert.IsFalse(InsCpu.Overflow);
+			ExecAndTest(initialAcc: 0x0001, initialCarry: false, initialOverflow: false, expectedAcc: 0x0000, expectedCarry: true, expectedOverflow: false);
 		}
 
 		[TestMethod]
@@ -42,14 +30,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
-			InsCpu.Acc = 1;
 			InsCpu[InsCpu.Iar + 0x10] = 0x0001;
-			InsCpu.Carry = false;
-			InsCpu.Overflow = true;
-			InsCpu.ExecuteInstruction();
-			Assert.AreEqual(0x0002, InsCpu.Acc);
-			Assert.IsFalse(InsCpu.Carry);
-			Assert.IsTrue(InsCpu.Overflow);
+			ExecAndTest(initialAcc: 0x0001, initialCarry: false, initialOverflow: true, expectedAcc: 0x0002, expectedCarry: false, expectedOverflow: true);
 		}
 
 		[TestMethod]
@@ -57,14 +39,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
-			InsCpu.Acc = 0x4000;
 			InsCpu[InsCpu.Iar + 0x10] = 0x4000;
-			InsCpu.Carry = false;
-			InsCpu.Overflow = false;
-			InsCpu.ExecuteInstruction();
-			Assert.AreEqual(0x8000, InsCpu.Acc);
-			Assert.IsFalse(InsCpu.Carry);
-			Assert.IsTrue(InsCpu.Overflow);
+			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
 		}
 
 		[TestMethod]
@@ -72,14 +48,70 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
-			InsCpu.Acc = 0x0001;
 			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
-			InsCpu.Carry = false;
-			InsCpu.Overflow = false;
+			ExecAndTest(initialAcc: 0x0001, initialCarry: false, initialOverflow: false, expectedAcc: 0x0000, expectedCarry: true, expectedOverflow: false);
+		}
+
+		[TestMethod]
+		public void Execute_A_Short_XR3_ShouldOverflowNoCarry()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 3, 0x10);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[3] = 0x71f4;
+			InsCpu[InsCpu.Xr[3] + 0x10] = 0x4000;
+			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+		}
+
+		[TestMethod]
+		public void Execute_A_Short_XR3_NegativeOffset_ShouldOverflowNoCarry()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 3, 0xff);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[3] = 0x71f4;
+			InsCpu[InsCpu.Xr[3] - 1] = 0x4000;
+			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+		}
+
+		[TestMethod]
+		public void Execute_A_Long_XR3_ShouldOverflowNoCarry()
+		{
+			InstructionBuilder.BuildLongAtIar(OpCodes.Add, 3,  0x0010, InsCpu);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[3] = 0x71f4;
+			InsCpu[InsCpu.Xr[3] + 0x0010] = 0x4000;
+			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+		}
+
+		[TestMethod]
+		public void Execute_A_Long_XR3_NegativeOffset_ShouldOverflowNoCarry()
+		{
+			InstructionBuilder.BuildLongAtIar(OpCodes.Add, 3,  0xffff, InsCpu);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[3] = 0x71f4;
+			InsCpu[InsCpu.Xr[3] - 1] = 0x4000;
+			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+		}
+
+		[TestMethod]
+		public void Execute_A_Long_Indirect_XR1_NeitherOverflowNorCarry()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Add, 1,  0x0010, InsCpu);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[1] = 0x71f4;
+			InsCpu[InsCpu.Xr[1] + 0x0010] = 0x500;
+			InsCpu[0x500] = 0x254;
+			ExecAndTest(initialAcc: 0x4100, initialCarry: false, initialOverflow: false, expectedAcc: 0x4354, expectedCarry: false, expectedOverflow: false);
+		}
+
+		private void ExecAndTest(ushort expectedAcc, bool expectedCarry, bool expectedOverflow, ushort initialAcc, bool initialCarry, bool initialOverflow)
+		{
+			InsCpu.Acc = initialAcc;
+			InsCpu.Carry = initialCarry;
+			InsCpu.Overflow = initialOverflow;
 			InsCpu.ExecuteInstruction();
-			Assert.AreEqual(0x0000, InsCpu.Acc);
-			Assert.IsTrue(InsCpu.Carry);
-			Assert.IsFalse(InsCpu.Overflow);
+			Assert.AreEqual(expectedAcc, InsCpu.Acc);
+			Assert.AreEqual(expectedCarry, InsCpu.Carry);
+			Assert.AreEqual(expectedOverflow, InsCpu.Overflow);
 		}
 	}
 }
