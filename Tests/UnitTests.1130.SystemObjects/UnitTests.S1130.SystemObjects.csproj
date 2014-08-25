@@ -53,6 +53,7 @@
     <Compile Include="CpuTests.cs" />
     <Compile Include="IndexRegisterTests.cs" />
     <Compile Include="InstructionBuilderTests.cs" />
+    <Compile Include="InstructionTests\AddDoubleTests.cs" />
     <Compile Include="InstructionTests\AddTests.cs" />
     <Compile Include="InstructionTests\InstructionTestBase.cs" />
     <Compile Include="InstructionTests\LoadDoubleTests.cs" />

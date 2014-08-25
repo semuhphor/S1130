@@ -10,6 +10,7 @@ namespace S1130.SystemObjects
         ushort Iar { get; set; }
         ushort Acc { get; set; }
         ushort Ext { get; set; }
+		uint AccExt { get; set; }
         ushort this[int address] { get; set; }
 
         IndexRegisters Xr { get; }

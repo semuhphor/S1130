@@ -12,5 +12,6 @@
         ,LoadStatus = 0x04
         ,StoreStatus = 0x05
 		,Add = 0x10
+		,AddDouble = 0x11
     };
 }

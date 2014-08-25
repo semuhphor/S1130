@@ -103,6 +103,11 @@ namespace S1130.SystemObjects
             get { return _state.Xr;  }
         }
 
+	    public uint AccExt
+	    {
+			get { return _state.AccExt; }
+			set { _state.AccExt = value;  }
+	    }
         #endregion
 
         public void NextInstruction()

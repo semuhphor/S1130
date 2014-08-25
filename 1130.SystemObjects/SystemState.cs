@@ -18,7 +18,17 @@
         public ushort Acc { get; set; }
         public ushort Ext { get; set; }
 
-        public IndexRegisters IndexRegister { get; set; }
+	    public uint AccExt
+	    {
+		    get { return (uint) ((Acc << 16) | Ext); }
+		    set
+		    {
+			    Acc = (ushort) (value >> 16);
+			    Ext = (ushort) (value & 0xffff);
+		    }
+	    }
+
+	    public IndexRegisters IndexRegister { get; set; }
         public IndexRegisters Xr { get; private set; }
         public ushort Opcode { get; set; }
         public bool FormatLong { get; set; }

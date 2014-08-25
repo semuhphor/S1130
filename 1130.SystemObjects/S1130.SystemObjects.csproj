@@ -46,6 +46,7 @@
     <Compile Include="InstructionBuilder.cs" />
     <Compile Include="InstructionSet.cs" />
     <Compile Include="Instructions\Add.cs" />
+    <Compile Include="Instructions\AddDouble.cs" />
     <Compile Include="Instructions\InstructionBase.cs" />
     <Compile Include="Instructions\Load.cs" />
     <Compile Include="Instructions\LoadIndex.cs" />

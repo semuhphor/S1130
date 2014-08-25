@@ -17,7 +17,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Short_NoTag_Positive()
+		public void Execute_A_Short_NoTag_Positive_CarryNoOverflow()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
@@ -35,7 +35,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Short_NoTag_ShouldOverflowNoCarry()
+		public void Execute_A_Short_NoTag_OverflowNoCarry()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
@@ -44,7 +44,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Short_NoTag_ShouldCarryNoOverflow()
+		public void Execute_A_Short_NoTag_CarryNoOverflow()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 0, 0x10);
 			InsCpu.NextInstruction();
@@ -53,7 +53,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Short_XR3_ShouldOverflowNoCarry()
+		public void Execute_A_Short_XR3_OverflowNoCarry()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 3, 0x10);
 			InsCpu.NextInstruction();
@@ -63,7 +63,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Short_XR3_NegativeOffset_ShouldOverflowNoCarry()
+		public void Execute_A_Short_XR3_NegativeOffset_OverflowNoCarry()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Add, 3, 0xff);
 			InsCpu.NextInstruction();
@@ -73,7 +73,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Long_XR3_ShouldOverflowNoCarry()
+		public void Execute_A_Long_XR3_OverflowNoCarry()
 		{
 			InstructionBuilder.BuildLongAtIar(OpCodes.Add, 3,  0x0010, InsCpu);
 			InsCpu.NextInstruction();
@@ -83,7 +83,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Long_XR3_NegativeOffset_ShouldOverflowNoCarry()
+		public void Execute_A_Long_XR3_NegativeOffset_OverflowNoCarry()
 		{
 			InstructionBuilder.BuildLongAtIar(OpCodes.Add, 3,  0xffff, InsCpu);
 			InsCpu.NextInstruction();
@@ -93,7 +93,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_A_Long_Indirect_XR1_NeitherOverflowNorCarry()
+		public void Execute_A_Long_Indirect_XR1_NoOverflowNoCarry()
 		{
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Add, 1,  0x0010, InsCpu);
 			InsCpu.NextInstruction();
