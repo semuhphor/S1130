@@ -13,5 +13,6 @@
         ,StoreStatus = 0x05
 		,Add = 0x10
 		,AddDouble = 0x11
+		,Subtract = 0x12
     };
 }
