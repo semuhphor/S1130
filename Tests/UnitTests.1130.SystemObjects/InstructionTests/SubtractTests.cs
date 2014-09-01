@@ -58,8 +58,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Subtract, 3, 0x10);
 			InsCpu.NextInstruction();
 			InsCpu.Xr[3] = 0x71f4;
-			InsCpu[InsCpu.Xr[3] + 0x10] = 0x4000;
-			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+			InsCpu[InsCpu.Xr[3] + 0x10] = 0x0600;
+			ExecAndTest(initialAcc: 0x8500, initialCarry: false, initialOverflow: false, expectedAcc: 0x7f00, expectedCarry: false, expectedOverflow: true);
 		}
 
 		[TestMethod]
@@ -68,8 +68,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Subtract, 3, 0xff);
 			InsCpu.NextInstruction();
 			InsCpu.Xr[3] = 0x71f4;
-			InsCpu[InsCpu.Xr[3] - 1] = 0x4000;
-			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+			InsCpu[InsCpu.Xr[3] - 1] = 0x0100;
+			ExecAndTest(initialAcc: 0x8001, initialCarry: false, initialOverflow: false, expectedAcc: 0x7f01, expectedCarry: false, expectedOverflow: true);
 		}
 
 		[TestMethod]
@@ -78,8 +78,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InstructionBuilder.BuildLongAtIar(OpCodes.Subtract, 3,  0x0010, InsCpu);
 			InsCpu.NextInstruction();
 			InsCpu.Xr[3] = 0x71f4;
-			InsCpu[InsCpu.Xr[3] + 0x0010] = 0x4000;
-			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+			InsCpu[InsCpu.Xr[3] + 0x0010] = 0x0010;
+			ExecAndTest(initialAcc: 0x8000, initialCarry: false, initialOverflow: false, expectedAcc: 0x7ff0, expectedCarry: false, expectedOverflow: true);
 		}
 
 		[TestMethod]
@@ -88,8 +88,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InstructionBuilder.BuildLongAtIar(OpCodes.Subtract, 3,  0xffff, InsCpu);
 			InsCpu.NextInstruction();
 			InsCpu.Xr[3] = 0x71f4;
-			InsCpu[InsCpu.Xr[3] - 1] = 0x4000;
-			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
+			InsCpu[InsCpu.Xr[3] - 1] = 0x0001;
+			ExecAndTest(initialAcc: 0x8000, initialCarry: false, initialOverflow: false, expectedAcc: 0x7fff, expectedCarry: false, expectedOverflow: true);
 		}
 
 		[TestMethod]
@@ -100,7 +100,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Xr[1] = 0x71f4;
 			InsCpu[InsCpu.Xr[1] + 0x0010] = 0x500;
 			InsCpu[0x500] = 0x254;
-			ExecAndTest(initialAcc: 0x4100, initialCarry: false, initialOverflow: false, expectedAcc: 0x4354, expectedCarry: false, expectedOverflow: false);
+			ExecAndTest(initialAcc: 0x0255, initialCarry: false, initialOverflow: false, expectedAcc: 0x0001, expectedCarry: false, expectedOverflow: false);
 		}
 
 		private void ExecAndTest(ushort expectedAcc, bool expectedCarry, bool expectedOverflow, ushort initialAcc, bool initialCarry, bool initialOverflow)
