@@ -17,6 +17,24 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
+		public void Execute_M_Short_NoTag_PositiveOffset_ResultNegative()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Multiply, 0, 0x10);
+			InsCpu.NextInstruction();
+			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
+			ExecAndTest(initialAcc: 0x0001, expectedAccExt: 0xffffffff);
+		}
+
+		[TestMethod]
+		public void Execute_M_Short_NoTag_PositiveOffset_ResultPositive()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Multiply, 0, 0x10);
+			InsCpu.NextInstruction();
+			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
+			ExecAndTest(initialAcc: 0xffff, expectedAccExt: 0x00000001);
+		}
+
+		[TestMethod]
 		public void Execute_M_Short_Xr2_PositiveOffset()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Multiply, 2, 0x10);

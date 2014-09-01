@@ -72,5 +72,28 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.AreEqual(carryValue, InsCpu.Carry);
 			Assert.AreEqual(overflowValue, InsCpu.Overflow);
 		}
+
+		protected void ExecAndTest(ushort expectedAcc, ushort expectedExt, bool expectedOverflow, uint initialAccExt, bool initialOverflow)
+		{
+			var carryValue = RandomBool;
+			InsCpu.AccExt = initialAccExt;
+			InsCpu.Carry = carryValue;
+			InsCpu.Overflow = initialOverflow;
+			InsCpu.ExecuteInstruction();
+			Assert.AreEqual(expectedAcc, InsCpu.Acc);
+			Assert.AreEqual(expectedExt, InsCpu.Ext);
+			Assert.AreEqual(expectedOverflow, InsCpu.Overflow);
+			Assert.AreEqual(carryValue, InsCpu.Carry);
+		}
+
+		protected void ExecAndTestForOverflow(uint initialAccExt)
+		{
+			var carryValue = RandomBool;
+			InsCpu.Carry = carryValue;
+			InsCpu.AccExt = initialAccExt;
+			InsCpu.ExecuteInstruction();
+			Assert.IsTrue(InsCpu.Overflow);
+			Assert.AreEqual(carryValue, InsCpu.Carry);
+		}
 	}
 }
