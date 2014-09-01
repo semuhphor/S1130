@@ -55,11 +55,14 @@
     <Compile Include="InstructionBuilderTests.cs" />
     <Compile Include="InstructionTests\AddDoubleTests.cs" />
     <Compile Include="InstructionTests\AddTests.cs" />
+    <Compile Include="InstructionTests\AndTests.cs" />
+    <Compile Include="InstructionTests\EorTests.cs" />
     <Compile Include="InstructionTests\InstructionTestBase.cs" />
     <Compile Include="InstructionTests\LoadDoubleTests.cs" />
     <Compile Include="InstructionTests\LoadIndexTests.cs" />
     <Compile Include="InstructionTests\LoadStatusTests.cs" />
     <Compile Include="InstructionTests\LoadTests.cs" />
+    <Compile Include="InstructionTests\OrTests.cs" />
     <Compile Include="InstructionTests\StoreDoubleTests.cs" />
     <Compile Include="InstructionTests\StoreIndexTests.cs" />
     <Compile Include="InstructionTests\StoreStatusTests.cs" />

@@ -8,12 +8,14 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
     {
 	    private const ushort U1 = 1;
         protected Cpu InsCpu;
-
+		private readonly Random _rand = new Random();
 
 	    protected int GetOffsetFor(int x)
 	    {
 		    return (sbyte) x;
 	    }
+
+		protected bool RandomBool { get { return ((_rand.Next() & 1) == 0) ? true : false; } }
 
 	    [TestInitialize]
         public void BeforeEachTest()
@@ -43,6 +45,19 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		    Assert.AreEqual(expectedAcc, InsCpu.Acc);
 		    Assert.AreEqual(expectedCarry, InsCpu.Carry);
 		    Assert.AreEqual(expectedOverflow, InsCpu.Overflow);
+	    }
+
+	    protected void ExecAndTest(ushort expectedAcc, ushort initialAcc)
+	    {
+		    var overflowValue = RandomBool;
+		    var carryValue = RandomBool;
+		    InsCpu.Acc = initialAcc;
+		    InsCpu.Carry = carryValue;
+			InsCpu.Overflow = overflowValue;
+		    InsCpu.ExecuteInstruction();
+		    Assert.AreEqual(expectedAcc, InsCpu.Acc);
+		    Assert.AreEqual(carryValue, InsCpu.Carry);
+		    Assert.AreEqual(overflowValue, InsCpu.Overflow);
 	    }
     }
 }
