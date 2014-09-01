@@ -17,6 +17,7 @@
 		,SubtractDouble = 0x13
 		,And = 0x1c
 		,Or = 0x1d
-		,Eor = 0x1e
+		,ExclusiveOr = 0x1e
+//		,M = 0x14
     };
 }
