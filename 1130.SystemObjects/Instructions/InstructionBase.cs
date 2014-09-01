@@ -31,6 +31,11 @@ namespace S1130.SystemObjects.Instructions
 			return (value & 0x80000000) != 0;
 		}
 
+	    protected uint SignExtend(ushort value)
+	    {
+		    return (uint) (((value & 0x8000) == 0) ? 0 : ~0xffff) | value;
+	    }
+
         protected int GetEffectiveAddress(ISystemState state)
         {
 	        return GetEffectiveAddress(state, GetBase(state));

@@ -18,6 +18,6 @@
 		,And = 0x1c
 		,Or = 0x1d
 		,ExclusiveOr = 0x1e
-//		,M = 0x14
+		,Multiply = 0x14
     };
 }

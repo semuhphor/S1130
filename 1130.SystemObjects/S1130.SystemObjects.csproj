@@ -53,6 +53,7 @@
     <Compile Include="Instructions\Load.cs" />
     <Compile Include="Instructions\LoadIndex.cs" />
     <Compile Include="Instructions\LoadStatus.cs" />
+    <Compile Include="Instructions\Multiply.cs" />
     <Compile Include="Instructions\OpCodes.cs" />
     <Compile Include="Instructions\Or.cs" />
     <Compile Include="Instructions\StoreIndex.cs" />

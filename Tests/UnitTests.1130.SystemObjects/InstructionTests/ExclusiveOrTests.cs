@@ -5,7 +5,7 @@ using S1130.SystemObjects.Instructions;
 namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
 	[TestClass]
-	public class EorTests : InstructionTestBase
+	public class ExclusiveOrTests : InstructionTestBase
 	{
 		[TestMethod]
 		public void Execute_Eor_Short_NoTag_PositiveOffset()
