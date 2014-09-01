@@ -14,5 +14,6 @@
 		,Add = 0x10
 		,AddDouble = 0x11
 		,Subtract = 0x12
+		,SubtractDouble = 0x13
     };
 }

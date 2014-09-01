@@ -110,18 +110,5 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[0x0501] = 0x0040;
 			ExecAndTest(initialAcc: 0x0001, initialExt: 0x0002, initialCarry: false, initialOverflow: false, expectedAcc: 0x0021, expectedExt: 0x0042, expectedCarry: false, expectedOverflow: false);
 		}
-
-		private void ExecAndTest(ushort expectedAcc, ushort expectedExt, bool expectedCarry, bool expectedOverflow, ushort initialAcc, ushort initialExt, bool initialCarry, bool initialOverflow)
-		{
-			InsCpu.Acc = initialAcc;
-			InsCpu.Ext = initialExt;
-			InsCpu.Carry = initialCarry;
-			InsCpu.Overflow = initialOverflow;
-			InsCpu.ExecuteInstruction();
-			Assert.AreEqual(expectedAcc, InsCpu.Acc);
-			Assert.AreEqual(expectedExt, InsCpu.Ext);
-			Assert.AreEqual(expectedCarry, InsCpu.Carry);
-			Assert.AreEqual(expectedOverflow, InsCpu.Overflow);
-		}
 	}
 }

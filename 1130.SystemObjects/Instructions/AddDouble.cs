@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace S1130.SystemObjects.Instructions
+﻿namespace S1130.SystemObjects.Instructions
 {
 	public class AddDouble : InstructionBase, IInstruction
 	{
