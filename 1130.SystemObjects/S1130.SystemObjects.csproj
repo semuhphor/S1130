@@ -57,6 +57,7 @@
     <Compile Include="Instructions\Multiply.cs" />
     <Compile Include="Instructions\OpCodes.cs" />
     <Compile Include="Instructions\Or.cs" />
+    <Compile Include="Instructions\ShiftLeft.cs" />
     <Compile Include="Instructions\StoreIndex.cs" />
     <Compile Include="Instructions\StoreStatus.cs" />
     <Compile Include="Instructions\Subtract.cs" />

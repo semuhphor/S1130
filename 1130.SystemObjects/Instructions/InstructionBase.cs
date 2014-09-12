@@ -49,5 +49,10 @@ namespace S1130.SystemObjects.Instructions
         {
             return (!state.FormatLong || state.Tag != 0) ? state.Xr[state.Tag] : 0;
         }
+
+	    public int GetShiftDistance(ISystemState state)
+	    {
+		    return ((state.Tag == 0) ? state.Displacement : state.Xr[state.Tag]) & 0x3f;
+	    }
     }
 }

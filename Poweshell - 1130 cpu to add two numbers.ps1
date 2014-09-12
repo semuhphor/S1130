@@ -1,4 +1,4 @@
-﻿Add-Type -Path 'C:\Development\Playground\IBM1130Emulator\1130.SystemObjects\bin\Debug\S1130.SystemObjects.dll'
+﻿Add-Type -Path 'V:\Development\IBM\IBM1130\1130Emulator\1130.SystemObjects\bin\Debug\S1130.SystemObjects.dll'
 $state = New-Object S1130.SystemObjects.SystemState
 $cpu = New-Object S1130.SystemObjects.Cpu($state)
 $cpu[$cpu.Iar] = [S1130.SystemObjects.InstructionBuilder]::BuildShort([S1130.SystemObjects.Instructions.OpCodes]::Load, 0, 0x10)
