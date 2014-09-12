@@ -25,7 +25,16 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_NOOP_Carry()
+		public void Execute_SLA_ClearAcc_Carry()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x00);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[1] = 16;
+			ExecAndTest(initialAcc: 0x1234, initialCarry: true, initialOverflow: true, expectedAcc: 0x0000, expectedCarry: false, expectedOverflow: true);
+		}
+
+		[TestMethod]
+		public void Execute_NOOP()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
 			InsCpu.NextInstruction();
