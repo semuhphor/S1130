@@ -5,7 +5,7 @@ using S1130.SystemObjects.Instructions;
 namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
 	[TestClass]
-	public class ShiftLeftTests : InstructionTestBase
+	public class ShiftLeftAccTests : InstructionTestBase
 	{
 		[TestMethod]
 		public void Execute_SLA_NoCarry()
@@ -25,16 +25,24 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
-		public void Execute_SLA_ClearAcc_Carry()
+		public void Execute_SLA_ClearAcc_NoCarry()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x00);
 			InsCpu.NextInstruction();
-			InsCpu.Xr[1] = 16;
-			ExecAndTest(initialAcc: 0x1234, initialCarry: true, initialOverflow: true, expectedAcc: 0x0000, expectedCarry: false, expectedOverflow: true);
+			InsCpu.Xr[3] = 16;
+			ExecAndTest(initialAcc: 0x1234, initialCarry: true, expectedAcc: 0x0000, expectedCarry: false);
 		}
 
 		[TestMethod]
-		public void Execute_NOOP()
+		public void Execute_SLA_Full63BitShift_NoCarry()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 0, 0x3f);
+			InsCpu.NextInstruction();
+			ExecAndTest(initialAcc: 0x1234, initialCarry: true, expectedAcc: 0x0000, expectedCarry: false);
+		}
+
+		[TestMethod]
+		public void Execute_NOP()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
 			InsCpu.NextInstruction();

@@ -11,17 +11,23 @@ namespace S1130.SystemObjects.Instructions
 		{
 			var type = (state.Displacement & 0xc0) >> 6;
 			var distance = GetShiftDistance(state);
+			if (distance == 0) return;
 			ulong work = state.AccExt;
-
+			const uint mask16 = 0xffff;
+			const uint mask32 = 0xffffffff;
 			switch (type)
 			{
 				case 0: // SLA 
-					const uint  mask = 0xffff;
 					work >>= 16;
-					work &= mask;
+					work &= mask16;
 					work <<= distance;
-					state.Acc = (ushort) (work & mask);
+					state.Acc = (ushort) (work & mask16);
 					state.Carry = (work & 0x10000) != 0;
+					break;
+				case 2: // SLT
+					work <<= distance;
+					state.AccExt = (uint) (work & mask32);
+					state.Carry = (work & 0x100000000) != 0;
 					break;
 			}
 		}

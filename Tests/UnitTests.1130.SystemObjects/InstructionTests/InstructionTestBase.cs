@@ -36,18 +36,42 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		    Assert.AreEqual(expectedOverflow, InsCpu.Overflow);
 	    }
 
-	    protected void ExecAndTest(ushort expectedAcc, bool expectedCarry, bool expectedOverflow, ushort initialAcc, bool initialCarry, bool initialOverflow)
+	    protected virtual void ExecAndTest(ushort expectedAcc, ushort expectedExt, bool expectedCarry, ushort initialAcc, ushort initialExt, bool initialCarry)
 	    {
 		    InsCpu.Acc = initialAcc;
+		    InsCpu.Ext = initialExt;
 		    InsCpu.Carry = initialCarry;
-		    InsCpu.Overflow = initialOverflow;
+		    InsCpu.Overflow = true;
 		    InsCpu.ExecuteInstruction();
 		    Assert.AreEqual(expectedAcc, InsCpu.Acc);
+		    Assert.AreEqual(expectedExt, InsCpu.Ext);
 		    Assert.AreEqual(expectedCarry, InsCpu.Carry);
-		    Assert.AreEqual(expectedOverflow, InsCpu.Overflow);
+		    Assert.AreEqual(true, InsCpu.Overflow);
 	    }
 
-	    protected void ExecAndTest(ushort expectedAcc, ushort initialAcc)
+		protected void ExecAndTest(ushort expectedAcc, bool expectedCarry, bool expectedOverflow, ushort initialAcc, bool initialCarry, bool initialOverflow)
+		{
+			InsCpu.Acc = initialAcc;
+			InsCpu.Carry = initialCarry;
+			InsCpu.Overflow = initialOverflow;
+			InsCpu.ExecuteInstruction();
+			Assert.AreEqual(expectedAcc, InsCpu.Acc);
+			Assert.AreEqual(expectedCarry, InsCpu.Carry);
+			Assert.AreEqual(expectedOverflow, InsCpu.Overflow);
+		}
+
+		protected void ExecAndTest(ushort expectedAcc, bool expectedCarry, ushort initialAcc, bool initialCarry)
+		{
+			InsCpu.Acc = initialAcc;
+			InsCpu.Carry = initialCarry;
+			InsCpu.Overflow = true;
+			InsCpu.ExecuteInstruction();
+			Assert.AreEqual(expectedAcc, InsCpu.Acc);
+			Assert.AreEqual(expectedCarry, InsCpu.Carry);
+			Assert.AreEqual(true, InsCpu.Overflow);
+		}
+
+		protected void ExecAndTest(ushort expectedAcc, ushort initialAcc)
 	    {
 		    var overflowValue = RandomBool;
 		    var carryValue = RandomBool;
