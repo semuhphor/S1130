@@ -34,6 +34,15 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
+		public void Execute_SLT_IgnoresDisplacmentWithTag()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x02);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[3] = 0x0081;
+			ExecAndTest(initialAcc: 0x0000, initialExt: 0x0001, initialCarry: true, expectedAcc: 0x0000, expectedExt: 0x0002, expectedCarry: false);
+		}
+
+		[TestMethod]
 		public void Execute_SLT_Full63BitShift_NoCarry()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 0, 0xbf);

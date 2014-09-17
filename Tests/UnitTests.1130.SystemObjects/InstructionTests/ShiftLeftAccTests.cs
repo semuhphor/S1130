@@ -25,6 +25,15 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
+		public void Execute_SLA_IgnoreDisplacementWithTag()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x02);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[1] = 1;
+			ExecAndTest(initialAcc: 0x0001, initialCarry: true, initialOverflow: true, expectedAcc: 0x0002, expectedCarry: false, expectedOverflow: true);
+		}
+
+		[TestMethod]
 		public void Execute_SLA_ClearAcc_NoCarry()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x00);
