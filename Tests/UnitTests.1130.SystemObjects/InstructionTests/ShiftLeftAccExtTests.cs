@@ -21,7 +21,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
 			InsCpu.NextInstruction();
 			InsCpu.Xr[1] = 0x84;
-			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x2340, expectedExt: 0x0120, expectedCarry: true);
+			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x2340, expectedExt: 0x0240, expectedCarry: true);
 		}
 
 		[TestMethod]
@@ -29,8 +29,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x00);
 			InsCpu.NextInstruction();
-			InsCpu.Xr[3] = 0x96;
-			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x0000, expectedExt: 0x0120, expectedCarry: false);
+			InsCpu.Xr[3] = 0x90;
+			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x0024, expectedExt: 0x0000, expectedCarry: false);
 		}
 
 		[TestMethod]
@@ -38,7 +38,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 0, 0xbf);
 			InsCpu.NextInstruction();
-			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x0000, expectedExt: 0x0120, expectedCarry: false);
+			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x0000, expectedExt: 0x0000, expectedCarry: false);
 		}
 
 		[TestMethod]
@@ -47,7 +47,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x80);
 			InsCpu.NextInstruction();
 			InsCpu.Xr[1] = 0;
-			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x1234, expectedExt: 0x0120, expectedCarry: false);
+			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x1234, expectedExt: 0x0024, expectedCarry: true);
 		}
 	}
 }

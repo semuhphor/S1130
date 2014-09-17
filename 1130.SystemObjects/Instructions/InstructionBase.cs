@@ -2,8 +2,10 @@
 
 namespace S1130.SystemObjects.Instructions
 {
-    public abstract class InstructionBase
+   public abstract class InstructionBase
     {
+		public const uint Mask16 = 0xffff;
+		public const uint Mask32 = 0xffffffff;
 		public virtual bool HasLongFormat { get { return true; }}
 
 	    private int GetEffectiveAddress(ISystemState state, int baseAddress)

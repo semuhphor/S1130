@@ -47,7 +47,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
 			InsCpu.NextInstruction();
 			InsCpu.Xr[1] = 0;
-			ExecAndTest(initialAcc: 0x1234, initialCarry: true, initialOverflow: true, expectedAcc: 0x1234, expectedCarry: false, expectedOverflow: true);
+			ExecAndTest(initialAcc: 0x1234, initialCarry: true, initialOverflow: true, expectedAcc: 0x1234, expectedCarry: true, expectedOverflow: true);
 		}
 	}
 }

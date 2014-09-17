@@ -9,7 +9,7 @@
 		{
 			var effectiveAddress = GetEffectiveAddress(state);
 			long valueToSubtract = (state[effectiveAddress] << 16) & 0xffff0000;
-			valueToSubtract |= state[effectiveAddress | 1] & 0xffff;
+			valueToSubtract |= (ushort) (state[effectiveAddress | 1] &  0xffff);
 			long accExt = state.AccExt;
 			long result = accExt - valueToSubtract;
 			state.AccExt = (uint)(result & 0xffffffff);
