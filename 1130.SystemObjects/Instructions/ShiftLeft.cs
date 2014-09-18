@@ -43,6 +43,17 @@ namespace S1130.SystemObjects.Instructions
 					state.AccExt = (uint) (work & Mask32);
 					state.Carry = (work & 0x100000000) != 0;
 					break;
+				case 3:
+					state.Carry = false;
+					while (shiftInfo.ShiftCount > 0 && (work & 0x80000000) == 0)
+					{
+						work <<= 1;
+						shiftInfo.ShiftCount--;
+					}
+					state.AccExt = (uint)(work & Mask32);
+					state.Carry = (shiftInfo.ShiftCount != 0);
+					state.Xr[state.Tag] = shiftInfo.ShiftCount;
+					break;
 			}
 		}
 	}
