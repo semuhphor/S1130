@@ -67,6 +67,7 @@
     <Compile Include="InstructionTests\OrTests.cs" />
     <Compile Include="InstructionTests\ShiftLeftAccTests.cs" />
     <Compile Include="InstructionTests\ShiftLeftAccExtTests.cs" />
+    <Compile Include="InstructionTests\ShiftLeftAndCountAccTests.cs" />
     <Compile Include="InstructionTests\StoreDoubleTests.cs" />
     <Compile Include="InstructionTests\StoreIndexTests.cs" />
     <Compile Include="InstructionTests\StoreStatusTests.cs" />

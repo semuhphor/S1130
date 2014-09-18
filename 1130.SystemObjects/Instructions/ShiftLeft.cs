@@ -11,6 +11,10 @@ namespace S1130.SystemObjects.Instructions
 		{
 			var shiftInfo = ExtractShiftInfo(state); 
 			if (shiftInfo.ShiftCount == 0) return;
+			if (state.Tag == 0)
+			{
+				shiftInfo.Type &= 0x02; // Can't count if no tag specified
+			}
 			ulong work = state.AccExt;
 			switch (shiftInfo.Type)
 			{
@@ -20,6 +24,19 @@ namespace S1130.SystemObjects.Instructions
 					work <<= shiftInfo.ShiftCount;
 					state.Acc = (ushort) (work & Mask16);
 					state.Carry = (work & 0x10000) != 0;
+					break;
+				case 1: // SLCA
+					work >>= 16;
+					work &= Mask16;
+					state.Carry = false;
+					while (shiftInfo.ShiftCount > 0 && (work & 0x8000) == 0)
+					{
+						work <<= 1;
+						shiftInfo.ShiftCount--;
+					}
+					state.Acc = (ushort) (work & Mask16);
+					state.Carry = (shiftInfo.ShiftCount != 0);
+					state.Xr[state.Tag] = shiftInfo.ShiftCount;
 					break;
 				case 2: // SLT
 					work <<= shiftInfo.ShiftCount;
