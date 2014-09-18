@@ -26,6 +26,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[TestMethod]
+		public void Execute_SLCA_XR1_Counts_63Bits()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[1] = 0x7f;
+			ExecAndTest(initialAcc: 0x4000, initialCarry: false, expectedAcc: 0x8000, expectedCarry: true);
+			Assert.AreEqual(62, InsCpu.Xr[1]);
+		}
+
+		[TestMethod]
+		public void Execute_SLCA_XR1_Counts_63BitsFindsNothing()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
+			InsCpu.NextInstruction();
+			InsCpu.Xr[1] = 0x7f;
+			ExecAndTest(initialAcc: 0x0000, initialCarry: false, expectedAcc: 0x0000, expectedCarry: false);
+			Assert.AreEqual(0, InsCpu.Xr[1]);
+		}
+
+		[TestMethod]
 		public void Execute_SLCA_XR3_CountGoesZero_BitShiftsToHigh()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x00);
