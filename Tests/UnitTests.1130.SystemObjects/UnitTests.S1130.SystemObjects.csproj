@@ -65,10 +65,13 @@
     <Compile Include="InstructionTests\LoadTests.cs" />
     <Compile Include="InstructionTests\MultiplyTests.cs" />
     <Compile Include="InstructionTests\OrTests.cs" />
+    <Compile Include="InstructionTests\RotateTests.cs" />
     <Compile Include="InstructionTests\ShiftLeftAccExtAndCountTests.cs" />
     <Compile Include="InstructionTests\ShiftLeftAccTests.cs" />
     <Compile Include="InstructionTests\ShiftLeftAccExtTests.cs" />
     <Compile Include="InstructionTests\ShiftLeftAndCountAccTests.cs" />
+    <Compile Include="InstructionTests\ShiftRightAccExcTests.cs" />
+    <Compile Include="InstructionTests\ShiftRightAccTests.cs" />
     <Compile Include="InstructionTests\StoreDoubleTests.cs" />
     <Compile Include="InstructionTests\StoreIndexTests.cs" />
     <Compile Include="InstructionTests\StoreStatusTests.cs" />

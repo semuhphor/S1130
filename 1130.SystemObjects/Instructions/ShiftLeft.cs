@@ -43,7 +43,7 @@ namespace S1130.SystemObjects.Instructions
 					state.AccExt = (uint) (work & Mask32);
 					state.Carry = (work & 0x100000000) != 0;
 					break;
-				case 3:
+				case 3: // SLC
 					state.Carry = false;
 					while (shiftInfo.ShiftCount > 0 && (work & 0x80000000) == 0)
 					{

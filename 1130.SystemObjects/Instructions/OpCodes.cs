@@ -21,5 +21,6 @@
 		,Multiply = 0x14
 		,Divide = 0x15
 		,ShiftLeft = 0x02
+		,ShiftRight = 0x03
     };
 }
