@@ -20,7 +20,7 @@ namespace S1130.SystemObjects
         public static void BuildLongAtIar(OpCodes opCode, uint tag, ushort displacement, ISystemState state)
         {
             state[state.Iar] = BuildShort(opCode, tag, 0);
-            state[state.Iar] |= Constants.FormatLong; // Format Long & Indirect Addressing
+            state[state.Iar] |= Constants.FormatLong; // Format Long 
             state[state.Iar+1] = displacement;
         }
 
@@ -28,5 +28,22 @@ namespace S1130.SystemObjects
 	    {
 			return (ushort)((((ushort)opCode << Constants.InstructionShift) | (tag << Constants.TagShift) | ((ushort) modifiers & Constants.DisplacementMask)) & ushort.MaxValue);
 		}
-    }
+
+		public static void BuildLongBranchAtIar(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state)
+		{
+			state[state.Iar] = BuildShort(opCode, tag, 0);
+			state[state.Iar] |= Constants.FormatLong; // Format Long
+			state[state.Iar] |= modifiers; // put in modifiers
+			state[state.Iar + 1] = displacement;
+		}
+
+		public static void BuildLongIndirectBranchAtIar(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state)
+		{
+			state[state.Iar] = BuildShort(opCode, tag, 0);
+			state[state.Iar] |= Constants.FormatLong | Constants.Indirect; // Format Long & Indirect Addressing
+			state[state.Iar] |= modifiers; // put in modifiers
+			state[state.Iar + 1] = displacement;
+		}
+
+	}
 }

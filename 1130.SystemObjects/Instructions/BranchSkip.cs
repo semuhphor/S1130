@@ -15,7 +15,7 @@ namespace S1130.SystemObjects.Instructions
 				{															// a.yes
 					return;													// .. take no action
 				}
-				state.Iar = state[GetEffectiveAddress(state)];				// branch to address
+				state.Iar = (ushort) GetEffectiveAddress(state);			// branch to address
 			}
 			else															// otherwise..
 			{																// .. short format
