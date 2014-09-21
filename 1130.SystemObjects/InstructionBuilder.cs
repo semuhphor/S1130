@@ -1,4 +1,5 @@
-﻿using S1130.SystemObjects.Instructions;
+﻿using System.Reflection.Emit;
+using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
 
 namespace S1130.SystemObjects
 {
@@ -22,5 +23,10 @@ namespace S1130.SystemObjects
             state[state.Iar] |= Constants.FormatLong; // Format Long & Indirect Addressing
             state[state.Iar+1] = displacement;
         }
+
+	    public static ushort BuildShortBranch(OpCodes opCode, uint tag, byte modifiers)
+	    {
+			return (ushort)((((ushort)opCode << Constants.InstructionShift) | (tag << Constants.TagShift) | ((ushort) modifiers & Constants.DisplacementMask)) & ushort.MaxValue);
+		}
     }
 }

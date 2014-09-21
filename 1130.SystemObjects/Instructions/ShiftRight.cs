@@ -2,8 +2,8 @@ namespace S1130.SystemObjects.Instructions
 {
 	public class ShiftRight : ShiftInstructionBase, IInstruction
 	{
-		public OpCodes OpCode { get { return OpCodes.ShiftLeft; } }
-		public string OpName { get { return "SL"; } }
+		public OpCodes OpCode { get { return OpCodes.ShiftRight; } }
+		public string OpName { get { return "SR"; } }
 
 		public new bool HasLongFormat { get { return false; } }
 

@@ -45,18 +45,16 @@
             Opcode = (ushort) ((firstWord & 0xF800) >> 11);
             FormatLong = (firstWord & 0x0400) != 0 && _instructionSet.MayBeLong(Opcode);
             Tag = (ushort) ((firstWord & 0x0300) >> 8);
+			Modifiers = (ushort) (firstWord & 0xff);
             if (FormatLong)
             {
                 Displacement = Memory[Iar++];
                 IndirectAddress = (firstWord & 0x80) != 0;
-                // Modifiers
             }
             else
             {
-	            // ushort mask = (firstWord & 0x80) == 0 ? (ushort) 0 : (ushort) 0xff00;
-				Displacement = (ushort) (firstWord & 0xff);
+				Displacement = Modifiers;
                 IndirectAddress = false;
-                Modifiers = 0;
             }
         }
 

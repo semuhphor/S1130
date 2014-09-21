@@ -22,5 +22,6 @@
 		,Divide = 0x15
 		,ShiftLeft = 0x02
 		,ShiftRight = 0x03
+		,BranchSkip = 0x09
     };
 }
