@@ -57,6 +57,7 @@
     <Compile Include="InstructionTests\AddTests.cs" />
     <Compile Include="InstructionTests\AndTests.cs" />
     <Compile Include="InstructionTests\BranchAnsSkipTests.cs" />
+    <Compile Include="InstructionTests\BranchAnsStoreIarTests.cs" />
     <Compile Include="InstructionTests\DivideTests.cs" />
     <Compile Include="InstructionTests\ExclusiveOrTests.cs" />
     <Compile Include="InstructionTests\InstructionTestBase.cs" />

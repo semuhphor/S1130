@@ -50,6 +50,7 @@
     <Compile Include="Instructions\And.cs" />
     <Compile Include="Instructions\BranchInstructionBase.cs" />
     <Compile Include="Instructions\BranchSkip.cs" />
+    <Compile Include="Instructions\BranchStore.cs" />
     <Compile Include="Instructions\Divide.cs" />
     <Compile Include="Instructions\ExclusiveOr.cs" />
     <Compile Include="Instructions\InstructionBase.cs" />

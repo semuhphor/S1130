@@ -23,5 +23,6 @@
 		,ShiftLeft = 0x02
 		,ShiftRight = 0x03
 		,BranchSkip = 0x09
+		,BranchStore = 0x08
     };
 }
