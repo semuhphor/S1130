@@ -15,7 +15,7 @@ namespace S1130.SystemObjects.Instructions
 
 			if (state.FormatLong)											// q. long format?
 			{																// a. yes..
-				var effectiveAddress = GetEffectiveAddress(state);			// .. Get effective Address
+				var effectiveAddress = state.Displacement;					// .. Get effective Address
 				if (state.Tag != 0)											// q. is target XR?
 				{															// a. yes ... 
 					newValue = oldValue = state.Xr[state.Tag];				// .. get old value

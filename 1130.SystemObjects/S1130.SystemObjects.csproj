@@ -68,6 +68,7 @@
     <Compile Include="Instructions\StoreStatus.cs" />
     <Compile Include="Instructions\Subtract.cs" />
     <Compile Include="Instructions\SubtractDouble.cs" />
+    <Compile Include="Instructions\Wait.cs" />
     <Compile Include="ISystemState.cs" />
     <Compile Include="Instructions\LoadDouble.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

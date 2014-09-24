@@ -26,7 +26,7 @@ namespace S1130.SystemObjects
 
 	    public static ushort BuildShortBranch(OpCodes opCode, uint tag, byte modifiers)
 	    {
-			return (ushort)((((ushort)opCode << Constants.InstructionShift) | (tag << Constants.TagShift) | ((ushort) modifiers & Constants.DisplacementMask)) & ushort.MaxValue);
+			return (ushort)((((ushort)opCode << Constants.InstructionShift) | (ushort) (tag << Constants.TagShift) | (ushort)modifiers & Constants.DisplacementMask) & ushort.MaxValue);
 		}
 
 		public static void BuildLongBranchAtIar(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state)

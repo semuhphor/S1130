@@ -65,6 +65,7 @@
     <Compile Include="InstructionTests\LoadIndexTests.cs" />
     <Compile Include="InstructionTests\LoadStatusTests.cs" />
     <Compile Include="InstructionTests\LoadTests.cs" />
+    <Compile Include="InstructionTests\ModifyIndexTests.cs" />
     <Compile Include="InstructionTests\MultiplyTests.cs" />
     <Compile Include="InstructionTests\OrTests.cs" />
     <Compile Include="InstructionTests\RotateTests.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="InstructionTests\StoreTests.cs" />
     <Compile Include="InstructionTests\SubtractDoubleTests.cs" />
     <Compile Include="InstructionTests\SubtractTests.cs" />
+    <Compile Include="InstructionTests\WaitTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SystemStateTests.cs" />
   </ItemGroup>

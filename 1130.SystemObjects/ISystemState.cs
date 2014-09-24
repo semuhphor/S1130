@@ -24,6 +24,7 @@ namespace S1130.SystemObjects
 
 		bool Carry { get; set;  }
 		bool Overflow { get; set; }
+		bool Wait { get; set; }
 
         void NextInstruction();
 	    void ExecuteInstruction();

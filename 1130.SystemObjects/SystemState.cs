@@ -38,6 +38,7 @@
         public ushort Modifiers { get; set; }
         public bool Carry { get; set; }
         public bool Overflow { get; set; }
+		public bool Wait { get; set; }
         
        public void NextInstruction()
         {

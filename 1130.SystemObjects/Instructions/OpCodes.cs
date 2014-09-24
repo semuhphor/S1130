@@ -25,5 +25,6 @@
 		,BranchSkip = 0x09
 		,BranchStore = 0x08
 		,ModifyIndex = 0x0e
+		,Wait = 0x06
     };
 }

@@ -98,6 +98,12 @@ namespace S1130.SystemObjects
 			set { _state.Overflow = value; }
 		}
 
+	    public bool Wait
+	    {
+			get { return _state.Wait; }
+			set { _state.Wait = value; }
+		}
+
         public IndexRegisters Xr
         {
             get { return _state.Xr;  }
