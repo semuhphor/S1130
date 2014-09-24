@@ -47,6 +47,7 @@ namespace S1130.SystemObjects.Instructions
 		{
 			return state.FormatLong ? state.Displacement : +(sbyte) state.Displacement;
 		}
+
         private int GetBase(ISystemState state)
         {
             return (!state.FormatLong || state.Tag != 0) ? state.Xr[state.Tag] : 0;
