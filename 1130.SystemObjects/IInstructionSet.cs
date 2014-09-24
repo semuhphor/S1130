@@ -4,5 +4,6 @@
     {
 	    bool MayBeLong(int opcode);
         void Execute(ISystemState state);
+	    IInstruction GetInstruction(ISystemState systemState);
     }
 }

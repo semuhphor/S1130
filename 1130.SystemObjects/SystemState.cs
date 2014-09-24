@@ -1,4 +1,6 @@
-﻿namespace S1130.SystemObjects
+﻿using System.Security.Permissions;
+
+namespace S1130.SystemObjects
 {
     public class SystemState : ISystemState
     {
@@ -58,6 +60,11 @@
                 IndirectAddress = false;
             }
         }
+
+	    public IInstruction GetInstruction()
+	    {
+		    return _instructionSet.GetInstruction(this);
+	    }
 
 	    public void ExecuteInstruction()
 	    {

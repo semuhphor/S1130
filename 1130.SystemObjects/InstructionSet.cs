@@ -35,5 +35,10 @@ namespace S1130.SystemObjects
         {
             Instructions[state.Opcode].Execute(state);
         }
+
+	    public IInstruction GetInstruction(ISystemState state)
+	    {
+		    return Instructions[state.Opcode];
+	    }
     }
 }

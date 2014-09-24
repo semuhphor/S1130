@@ -1,10 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.ComponentModel;
+using System.Reflection.Emit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
-using S1130.SystemObjects.Instructions;
+using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
 
 namespace UnitTests.S1130.SystemObjects
 {
-    [TestClass]
+	[TestClass]
     public class SystemStateTests
     {
         private SystemState _state;

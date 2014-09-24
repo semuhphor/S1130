@@ -1,5 +1,4 @@
-﻿using System.Reflection.Emit;
-using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
+﻿using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
 
 namespace S1130.SystemObjects
 {
@@ -10,40 +9,64 @@ namespace S1130.SystemObjects
             return (ushort) ((((uint) opCode << Constants.InstructionShift) | (tag << Constants.TagShift) | (displacement & Constants.DisplacementMask)) & ushort.MaxValue);
         }
 
-        public static void BuildLongIndirectAtIar(OpCodes opCode, uint tag, ushort displacement, ISystemState state)
+        public static void BuildShortAtAddress(OpCodes opCode, uint tag, uint displacement, ISystemState state, ushort address)
         {
-            state[state.Iar] = BuildShort(opCode, tag, 0);
-            state[state.Iar] |= Constants.FormatLong | Constants.Indirect; // Format Long & Indirect Addressing
-            state[state.Iar+1] = displacement;
+            state[address] = (ushort) ((((uint) opCode << Constants.InstructionShift) | (tag << Constants.TagShift) | (displacement & Constants.DisplacementMask)) & ushort.MaxValue);
         }
 
-        public static void BuildLongAtIar(OpCodes opCode, uint tag, ushort displacement, ISystemState state)
+        public static void BuildLongIndirectAtAddress(OpCodes opCode, uint tag, ushort displacement, ISystemState state, ushort address)
         {
-            state[state.Iar] = BuildShort(opCode, tag, 0);
-            state[state.Iar] |= Constants.FormatLong; // Format Long 
-            state[state.Iar+1] = displacement;
+            state[address] = BuildShort(opCode, tag, 0);
+            state[address] |= Constants.FormatLong | Constants.Indirect; // Format Long & Indirect Addressing
+            state[address+1] = displacement;
+        }
+
+        public static void BuildLongAtAddress(OpCodes opCode, uint tag, ushort displacement, ISystemState state, ushort address)
+        {
+            state[address] = BuildShort(opCode, tag, 0);
+            state[address] |= Constants.FormatLong; // Format Long 
+            state[address+1] = displacement;
         }
 
 	    public static ushort BuildShortBranch(OpCodes opCode, uint tag, byte modifiers)
 	    {
-			return (ushort)((((ushort)opCode << Constants.InstructionShift) | (ushort) (tag << Constants.TagShift) | (ushort)modifiers & Constants.DisplacementMask) & ushort.MaxValue);
+			return (ushort)((((ushort)opCode << Constants.InstructionShift) | (ushort) (tag << Constants.TagShift) | modifiers & Constants.DisplacementMask) & ushort.MaxValue);
+		}
+
+		public static void BuildLongBranchAtAddress(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state, ushort address)
+		{
+			state[address] = BuildShort(opCode, tag, 0);
+			state[address] |= Constants.FormatLong; // Format Long
+			state[address] |= modifiers; // put in modifiers
+			state[address + 1] = displacement;
+		}
+
+		public static void BuildLongIndirectBranchAtAddress(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state, ushort address)
+		{
+			state[address] = BuildShort(opCode, tag, 0);
+			state[address] |= Constants.FormatLong | Constants.Indirect; // Format Long & Indirect Addressing
+			state[address] |= modifiers; // put in modifiers
+			state[address + 1] = displacement;
+		}
+
+		public static void BuildLongIndirectAtIar(OpCodes opCode, uint tag, ushort displacement, ISystemState state)
+		{
+			BuildLongIndirectAtAddress(opCode, tag, displacement, state, state.Iar);
+		}
+
+		public static void BuildLongAtIar(OpCodes opCode, uint tag, ushort displacement, ISystemState state)
+		{
+			BuildLongAtAddress(opCode, tag, displacement, state, state.Iar);
 		}
 
 		public static void BuildLongBranchAtIar(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state)
 		{
-			state[state.Iar] = BuildShort(opCode, tag, 0);
-			state[state.Iar] |= Constants.FormatLong; // Format Long
-			state[state.Iar] |= modifiers; // put in modifiers
-			state[state.Iar + 1] = displacement;
+			BuildLongBranchAtAddress(opCode, tag, modifiers, displacement, state, state.Iar);
 		}
 
-		public static void BuildLongIndirectBranchAtIar(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state)
-		{
-			state[state.Iar] = BuildShort(opCode, tag, 0);
-			state[state.Iar] |= Constants.FormatLong | Constants.Indirect; // Format Long & Indirect Addressing
-			state[state.Iar] |= modifiers; // put in modifiers
-			state[state.Iar + 1] = displacement;
-		}
-
+	    public static void BuildLongIndirectBranchAtIar(OpCodes opCode, uint tag, ushort modifiers, ushort displacement, ISystemState state)
+	    {
+		    BuildLongIndirectBranchAtAddress(opCode, tag, modifiers, displacement, state, state.Iar);
+	    }
 	}
 }

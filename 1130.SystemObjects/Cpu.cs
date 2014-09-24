@@ -125,5 +125,10 @@ namespace S1130.SystemObjects
         {
             _state.ExecuteInstruction();
         }
+
+	    public IInstruction GetInstruction()
+	    {
+		    return _state.GetInstruction();
+	    }
     }
 }

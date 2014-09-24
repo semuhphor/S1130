@@ -28,5 +28,6 @@ namespace S1130.SystemObjects
 
         void NextInstruction();
 	    void ExecuteInstruction();
+	    IInstruction GetInstruction();
     }
 }
