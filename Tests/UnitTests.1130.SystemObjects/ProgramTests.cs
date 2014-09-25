@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Instructions;
@@ -32,6 +33,28 @@ namespace UnitTests.S1130.SystemObjects
 			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, _cpu, location);						// 0x0107: Wait. End of program
 			Assert.AreEqual(32, RunUntilWait());
 			Assert.AreEqual(10, _cpu.Acc);
+		}
+
+		[TestMethod]
+		public void DoAMillionAdds()
+		{
+			var location = _cpu.Iar;
+			_cpu[0x81] = 20;
+			_cpu[0x82] = 1;
+			InstructionBuilder.BuildLongAtAddress(OpCodes.Add, 0, 0x82, _cpu, location);					// 0x0101: add one to ACC
+			location += 2; // ... increment for long instruction
+			InstructionBuilder.BuildLongAtAddress(OpCodes.LoadIndex, 0, 0x100, _cpu, location);				// 0x0101: Branch to 0x100
+			var numberOfInstructions = 0;
+			var watch = Stopwatch.StartNew();
+			while (numberOfInstructions < 2000000)
+			{
+				_cpu.NextInstruction();
+				//Console.Out.WriteLine("{0:x4}: {1}, Acc: {2:x4} XR1: {3:x4}", _cpu.Iar, _cpu.GetInstruction().OpCode, _cpu.Acc, _cpu.Xr[1]);
+				_cpu.ExecuteInstruction();
+				numberOfInstructions++;
+			}
+			watch.Stop();
+			Console.Out.WriteLine(watch.ElapsedMilliseconds);
 		}
 
 		private int RunUntilWait()
