@@ -26,5 +26,6 @@
 		,BranchStore = 0x08
 		,ModifyIndex = 0x0e
 		,Wait = 0x06
+		,ExecuteInputOuput = 0x01
     };
 }

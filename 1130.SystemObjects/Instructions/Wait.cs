@@ -1,6 +1,6 @@
 namespace S1130.SystemObjects.Instructions
 {
-	public class Wait : ShiftInstructionBase, IInstruction
+	public class Wait : InstructionBase, IInstruction
 	{
 		public OpCodes OpCode { get { return OpCodes.Wait; } }
 		public string OpName { get { return "WAIT"; } }

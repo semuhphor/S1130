@@ -2,10 +2,11 @@
 
 namespace S1130.SystemObjects
 {
-    public class SystemState : ISystemState
+	public class SystemState : ISystemState
     {
         public const int DefaultMemorySize = 32768;
 	    private readonly IInstructionSet _instructionSet;
+
         public SystemState()
         {
             MemorySize = DefaultMemorySize;
@@ -16,7 +17,8 @@ namespace S1130.SystemObjects
 
         public ushort[] Memory { get; set; } 
         public int MemorySize { get; set; }
-        public ushort Iar { get; set; }
+		public ushort ConsoleSwitches { get; set; }
+		public ushort Iar { get; set; }
         public ushort Acc { get; set; }
         public ushort Ext { get; set; }
 

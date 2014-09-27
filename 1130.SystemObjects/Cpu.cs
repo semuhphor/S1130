@@ -74,7 +74,13 @@ namespace S1130.SystemObjects
             get { return _state.MemorySize; }
         }
 
-        public ushort Iar
+	    public ushort ConsoleSwitches 
+		{
+		    get { return _state.ConsoleSwitches; }
+		    set { _state.ConsoleSwitches = value; }
+	    }
+
+	    public ushort Iar
         {
             get { return _state.Iar; }
             set { _state.Iar = value; }

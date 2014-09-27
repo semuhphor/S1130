@@ -7,6 +7,7 @@ namespace S1130.SystemObjects
         ushort[] Memory { get; }
         int MemorySize { get; }
 
+		ushort ConsoleSwitches { get; set; }
         ushort Iar { get; set; }
         ushort Acc { get; set; }
         ushort Ext { get; set; }

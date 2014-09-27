@@ -39,10 +39,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleEntrySwitches.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Cpu.cs" />
+    <Compile Include="IDevice.cs" />
+    <Compile Include="IInputOutputSystem.cs" />
     <Compile Include="IInstruction.cs" />
     <Compile Include="IInstructionSet.cs" />
+    <Compile Include="InputOutputSystem.cs" />
     <Compile Include="InstructionBuilder.cs" />
     <Compile Include="InstructionSet.cs" />
     <Compile Include="Instructions\Add.cs" />
@@ -53,6 +57,7 @@
     <Compile Include="Instructions\BranchStore.cs" />
     <Compile Include="Instructions\Divide.cs" />
     <Compile Include="Instructions\ExclusiveOr.cs" />
+    <Compile Include="Instructions\ExecuteInputOutput.cs" />
     <Compile Include="Instructions\InstructionBase.cs" />
     <Compile Include="Instructions\Load.cs" />
     <Compile Include="Instructions\LoadIndex.cs" />

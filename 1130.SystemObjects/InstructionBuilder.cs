@@ -1,4 +1,6 @@
-﻿using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
+﻿using System.Data;
+using System.Net.Sockets;
+using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
 
 namespace S1130.SystemObjects
 {
@@ -48,6 +50,12 @@ namespace S1130.SystemObjects
 			state[address] |= modifiers; // put in modifiers
 			state[address + 1] = displacement;
 		}
+
+	    public static void BuildIoccAt(IDevice device, DevFuction func, byte modifier, ushort memAddr, ISystemState state, ushort ioccAddr)
+	    {
+		    state[ioccAddr++] = memAddr;
+			state[ioccAddr] = (ushort) ((((device.DeviceCode & 0x1f) << 11) | (((int)func & 0x7) << 8) | modifier) & 0xffff);
+	    }
 
 		public static void BuildLongIndirectAtIar(OpCodes opCode, uint tag, ushort displacement, ISystemState state)
 		{
