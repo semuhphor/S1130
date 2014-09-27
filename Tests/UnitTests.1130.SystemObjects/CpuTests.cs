@@ -89,5 +89,15 @@ namespace UnitTests.S1130.SystemObjects
             cpu.NextInstruction();
             A.CallTo(() => fakeState.NextInstruction()).MustHaveHappened();
         }
+
+	    [TestMethod]
+	    public void InvalidOpCode()
+	    {
+		    _cpu.AtIar = 0x0000;
+			_cpu.NextInstruction();
+			_cpu.ExecuteInstruction();
+			Assert.AreEqual(0x101, _cpu.Iar);
+			Assert.IsTrue(_cpu.Wait);
+	    }
     }
 }

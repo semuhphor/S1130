@@ -49,7 +49,6 @@ namespace UnitTests.S1130.SystemObjects
 			while (numberOfInstructions < 2000000)
 			{
 				_cpu.NextInstruction();
-				//Console.Out.WriteLine("{0:x4}: {1}, Acc: {2:x4} XR1: {3:x4}", _cpu.Iar, _cpu.GetInstruction().OpCode, _cpu.Acc, _cpu.Xr[1]);
 				_cpu.ExecuteInstruction();
 				numberOfInstructions++;
 			}

@@ -32,9 +32,17 @@ namespace S1130.SystemObjects
 	    }
 
 	    public void Execute(ISystemState state)
-        {
-            Instructions[state.Opcode].Execute(state);
-        }
+	    {
+		    var instruction = Instructions[state.Opcode];
+		    if (instruction != null)
+		    {
+			    instruction.Execute(state);
+		    }
+		    else
+		    {
+			    state.Wait = true;
+		    }
+	    }
 
 	    public IInstruction GetInstruction(ISystemState state)
 	    {
