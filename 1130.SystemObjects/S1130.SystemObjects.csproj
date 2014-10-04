@@ -42,10 +42,13 @@
     <Compile Include="ConsoleEntrySwitches.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Cpu.cs" />
+    <Compile Include="DevFuction.cs" />
+    <Compile Include="DeviceBase.cs" />
     <Compile Include="IDevice.cs" />
     <Compile Include="IInputOutputSystem.cs" />
     <Compile Include="IInstruction.cs" />
     <Compile Include="IInstructionSet.cs" />
+    <Compile Include="IInterruptingDevice.cs" />
     <Compile Include="InputOutputSystem.cs" />
     <Compile Include="InstructionBuilder.cs" />
     <Compile Include="InstructionSet.cs" />
@@ -74,6 +77,7 @@
     <Compile Include="Instructions\Subtract.cs" />
     <Compile Include="Instructions\SubtractDouble.cs" />
     <Compile Include="Instructions\Wait.cs" />
+    <Compile Include="InterruptingDeviceBase.cs" />
     <Compile Include="ISystemState.cs" />
     <Compile Include="Instructions\LoadDouble.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -81,6 +85,9 @@
     <Compile Include="Instructions\StoreDouble.cs" />
     <Compile Include="SystemState.cs" />
     <Compile Include="IndexRegisters.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="InterruptManagement\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

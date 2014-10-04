@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace S1130.SystemObjects
 {
@@ -120,9 +122,39 @@ namespace S1130.SystemObjects
 			get { return _state.AccExt; }
 			set { _state.AccExt = value;  }
 	    }
+
+	    public ConcurrentQueue<IInterruptingDevice>[] InterruptQueues
+	    {
+		    get { return _state.InterruptQueues; }
+	    }
+
+	    public ConcurrentStack<IInterruptingDevice> CurrentDevice
+	    {
+		    get { return _state.CurrentDevice; }
+	    }
+
+	    public int? Interrupt
+	    {
+		    get { return _state.Interrupt; }
+	    }
         #endregion
 
-        public void NextInstruction()
+	    public void AddInterrupt(IInterruptingDevice device)
+	    {
+			_state.AddInterrupt(device);
+	    }
+
+	    public void HandleInterrupt()
+	    {
+		    _state.HandleInterrupt();
+	    }
+
+	    public void ClearCurrentInterrupt()
+	    {
+		    _state.ClearCurrentInterrupt();
+	    }
+
+	    public void NextInstruction()
         {
             _state.NextInstruction();
         }
@@ -136,5 +168,6 @@ namespace S1130.SystemObjects
 	    {
 		    return _state.GetInstruction();
 	    }
+
     }
 }

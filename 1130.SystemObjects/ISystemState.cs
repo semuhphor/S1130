@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Dynamic;
 
 namespace S1130.SystemObjects
@@ -26,9 +28,15 @@ namespace S1130.SystemObjects
 		bool Carry { get; set;  }
 		bool Overflow { get; set; }
 		bool Wait { get; set; }
+		int? Interrupt { get;  }
+	    void AddInterrupt(IInterruptingDevice device);
+	    void HandleInterrupt();
+	    void ClearCurrentInterrupt();
 
         void NextInstruction();
 	    void ExecuteInstruction();
 	    IInstruction GetInstruction();
+	    ConcurrentQueue<IInterruptingDevice>[] InterruptQueues { get; }
+		ConcurrentStack<IInterruptingDevice> CurrentDevice { get; } 
     }
 }
