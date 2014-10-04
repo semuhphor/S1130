@@ -11,6 +11,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		protected class DummyDevice : InterruptingDeviceBase
 		{
 			private readonly int _interruptLevel;
+			public bool InterruptCompleted;
 			public DummyDevice(int interruptLevel)
 			{
 				_interruptLevel = interruptLevel;
@@ -24,6 +25,11 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			public override int InterruptLevelStatusWordBit
 			{
 				get { throw new NotImplementedException(); }
+			}
+
+			public override void InterruptComplete()
+			{
+				InterruptCompleted = true;
 			}
 		}
 

@@ -4,5 +4,6 @@
 	{
 		int InterruptLevel { get; }
 		int InterruptLevelStatusWordBit { get; }
+		void InterruptComplete();
 	}
 }

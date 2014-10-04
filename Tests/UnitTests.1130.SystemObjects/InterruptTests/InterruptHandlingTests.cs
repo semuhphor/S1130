@@ -55,8 +55,12 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestMethod]
 		public void ShouldClearOutCurrentInterrupt()
 		{
+			var dummyDevice = new DummyDevice(4);						// set up device to handle
+			InsCpu.InterruptQueues[4].Enqueue(dummyDevice);				// set up the interrupting device
 			InsCpu.HandleInterrupt();									// handle the interrupt
+			Assert.IsFalse(dummyDevice.InterruptCompleted);				// .. interrupt still not complete
 			InsCpu.ClearCurrentInterrupt();								// now clear it (ignore BOSC... that's 1130 processing)
+			Assert.IsTrue(dummyDevice.InterruptCompleted);				// .. interrupt is now complete
 			Assert.IsNull(InsCpu.Interrupt);							// .. no interrupt active
 			Assert.IsTrue(InsCpu.InterruptQueues[4].IsEmpty);			// .. no device on interrupt 4
 			Assert.IsTrue(InsCpu.CurrentDevice.IsEmpty);				// .. and none currently active
