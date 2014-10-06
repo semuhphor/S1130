@@ -125,7 +125,6 @@ namespace S1130.SystemObjects
 			IInterruptingDevice device;		
 			if (CurrentDevice.TryPop(out device))
 			{
-				device.InterruptComplete();
 				InterruptQueues[device.InterruptLevel].TryDequeue(out device);
 			}
 		}
