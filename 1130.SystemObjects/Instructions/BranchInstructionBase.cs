@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace S1130.SystemObjects.Instructions
+﻿namespace S1130.SystemObjects.Instructions
 {
 	public abstract class BranchInstructionBase : InstructionBase
 	{
@@ -18,35 +16,35 @@ namespace S1130.SystemObjects.Instructions
 		 * The use of the condition being met is left up to the specific instruction.
 		 */
 
-		protected bool TestCondition(ISystemState state)
+		protected bool TestCondition(ICpu cpu)
 		{
-			if ((state.Modifiers & Overflow) != 0)		// q. checking overflow state?
+			if ((cpu.Modifiers & Overflow) != 0)		// q. checking overflow cpu?
 			{											// a. yes .. 
-				if (!state.Overflow)					// q. overflow off?
+				if (!cpu.Overflow)					// q. overflow off?
 				{										// a. yes...
 					return true;						// .. condition met
 				}
-				state.Overflow = false;					// since overflow is on... reset it after test
+				cpu.Overflow = false;					// since overflow is on... reset it after test
 			}
 
-			if ((state.Modifiers & Carry) != 0)			// q. check carry?
+			if ((cpu.Modifiers & Carry) != 0)			// q. check carry?
 			{											// a. yes ..
-				if (!state.Carry)						// q. carry off?
+				if (!cpu.Carry)						// q. carry off?
 				{										// a. yes..
 					return true;						// .. condition met
 				}
 			}
 
-			if ((state.Modifiers & Even) != 0)			// q. Checking for even?
+			if ((cpu.Modifiers & Even) != 0)			// q. Checking for even?
 			{											// a. yes ..
-				if ((state.Acc & 1) == 0)				// q. Acc even?
+				if ((cpu.Acc & 1) == 0)				// q. Acc even?
 				{										// a. yes ..
 					return true;						// .. condition met
 				}
 			}
 
-			var acc = (short)state.Acc;					// get sign
-			if ((state.Modifiers & Plus) != 0)			// q. Checking for Positive?
+			var acc = (short)cpu.Acc;					// get sign
+			if ((cpu.Modifiers & Plus) != 0)			// q. Checking for Positive?
 			{											// a. yes ..
 				if (acc > 0)							// q. Acc positive?
 				{										// a. yes ..
@@ -54,7 +52,7 @@ namespace S1130.SystemObjects.Instructions
 				}
 			}
 
-			if ((state.Modifiers & Minus) != 0)			// q. Checking for Negative?
+			if ((cpu.Modifiers & Minus) != 0)			// q. Checking for Negative?
 			{											// a. yes ..
 				if (acc < 0)							// q. Acc minus?
 				{										// a. yes ..
@@ -62,7 +60,7 @@ namespace S1130.SystemObjects.Instructions
 				}
 			}
 
-			if ((state.Modifiers & Zero) != 0)			// q. Checking for zero?
+			if ((cpu.Modifiers & Zero) != 0)			// q. Checking for zero?
 			{											// a. yes ..
 				if (acc == 0)							// q. Acc zero?
 				{										// a. yes ..

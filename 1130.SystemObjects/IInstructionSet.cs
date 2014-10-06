@@ -3,7 +3,7 @@
     public interface IInstructionSet
     {
 	    bool MayBeLong(int opcode);
-        void Execute(ISystemState state);
-	    IInstruction GetInstruction(ISystemState systemState);
+        void Execute(ICpu cpu);
+	    IInstruction GetInstruction(ICpu cpu);
     }
 }

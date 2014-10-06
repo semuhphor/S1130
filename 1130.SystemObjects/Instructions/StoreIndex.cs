@@ -5,9 +5,9 @@ namespace S1130.SystemObjects.Instructions
 		public OpCodes OpCode { get { return OpCodes.StoreIndex; } }
 		public string OpName { get { return "STX"; } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			state[GetEffectiveAddressNoXr(state)] = state.Xr[state.Tag];
+			cpu[GetEffectiveAddressNoXr(cpu)] = cpu.Xr[cpu.Tag];
 		}
 	}
 }

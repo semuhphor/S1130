@@ -5,16 +5,16 @@
 		public OpCodes OpCode { get { return OpCodes.Subtract; }  }
 		public string OpName { get { return "S";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{	
-			var valueToSubtract = state[GetEffectiveAddress(state)];
-			var oldAcc = state.Acc;
+			var valueToSubtract = cpu[GetEffectiveAddress(cpu)];
+			var oldAcc = cpu.Acc;
 			var result = (uint) oldAcc - valueToSubtract;
-			state.Acc = (ushort) (result & 0xffff);
-			state.Carry = (result & 0x10000) != 0;
-			if (!state.Overflow)
+			cpu.Acc = (ushort) (result & 0xffff);
+			cpu.Carry = (result & 0x10000) != 0;
+			if (!cpu.Overflow)
 			{
-				state.Overflow = Is16BitSignBitOn((oldAcc ^ valueToSubtract) & (oldAcc ^ state.Acc));
+				cpu.Overflow = Is16BitSignBitOn((oldAcc ^ valueToSubtract) & (oldAcc ^ cpu.Acc));
 			}
 		}
 	}

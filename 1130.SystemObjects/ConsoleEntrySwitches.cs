@@ -3,13 +3,13 @@
 	public class ConsoleEntrySwitches : DeviceBase, IDevice
 	{
 		public override byte DeviceCode { get { return 0x07; } }
-		public override void ExecuteIocc(ISystemState state, ushort ioccAddress)
+		public override void ExecuteIocc(ICpu cpu, ushort ioccAddress)
 		{
-			DecodeIocc(state, ioccAddress);
+			DecodeIocc(cpu, ioccAddress);
 			switch (Func)
 			{
 				case DevFuction.Read:
-					state[Address] = state.ConsoleSwitches;
+					cpu[Address] = cpu.ConsoleSwitches;
 					break;
 			}
 		}

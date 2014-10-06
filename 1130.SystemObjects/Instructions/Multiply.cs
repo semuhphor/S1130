@@ -5,9 +5,9 @@ namespace S1130.SystemObjects.Instructions
 		public OpCodes OpCode { get { return OpCodes.Multiply; }  }
 		public string OpName { get { return "M";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			state.AccExt = SignExtend(state.Acc) * SignExtend(state[GetEffectiveAddress(state)]);
+			cpu.AccExt = SignExtend(cpu.Acc) * SignExtend(cpu[GetEffectiveAddress(cpu)]);
 		}
 	}
 }

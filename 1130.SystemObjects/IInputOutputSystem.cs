@@ -2,6 +2,6 @@
 {
 	public interface IInputOutputSystem
 	{
-		void ExecuteIocc(ISystemState state, ushort ioccAddress);
+		void ExecuteIocc(ICpu cpu, ushort ioccAddress);
 	}
 }

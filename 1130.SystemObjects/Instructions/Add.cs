@@ -1,22 +1,20 @@
-﻿using System.Data;
-
-namespace S1130.SystemObjects.Instructions
+﻿namespace S1130.SystemObjects.Instructions
 {
 	public class Add : InstructionBase, IInstruction
 	{
 		public OpCodes OpCode { get { return OpCodes.Add; }  }
 		public string OpName { get { return "A";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{	
-			var valueToAdd = state[GetEffectiveAddress(state)];
-			var oldAcc = state.Acc;
+			var valueToAdd = cpu[GetEffectiveAddress(cpu)];
+			var oldAcc = cpu.Acc;
 			var result = (uint) oldAcc + valueToAdd;
-			state.Acc = (ushort) (result & 0xffff);
-			state.Carry = (result & 0x10000) != 0;
-			if (!state.Overflow)
+			cpu.Acc = (ushort) (result & 0xffff);
+			cpu.Carry = (result & 0x10000) != 0;
+			if (!cpu.Overflow)
 			{
-				state.Overflow = Is16BitSignBitOn((~valueToAdd ^ oldAcc) & (valueToAdd ^ state.Acc));
+				cpu.Overflow = Is16BitSignBitOn((~valueToAdd ^ oldAcc) & (valueToAdd ^ cpu.Acc));
 			}
 		}
 	}

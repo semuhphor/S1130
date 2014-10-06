@@ -5,9 +5,9 @@ namespace S1130.SystemObjects.Instructions
         public OpCodes OpCode { get {return OpCodes.Store; } }
         public string OpName { get { return "STO"; } }
 
-        public void Execute(ISystemState state)
+        public void Execute(ICpu cpu)
         {
-            state[GetEffectiveAddress(state)] = state.Acc;
+            cpu[GetEffectiveAddress(cpu)] = cpu.Acc;
         }
     }
 }

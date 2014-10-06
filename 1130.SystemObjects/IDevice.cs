@@ -3,6 +3,6 @@
 	public interface IDevice
 	{
 		byte DeviceCode { get; }
-		void ExecuteIocc(ISystemState state, ushort ioccAddress);
+		void ExecuteIocc(ICpu cpu, ushort ioccAddress);
 	}
 }

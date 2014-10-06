@@ -8,9 +8,9 @@
 			public byte ShiftCount;
 		}
 
-		protected ShiftInfo ExtractShiftInfo(ISystemState state)
+		protected ShiftInfo ExtractShiftInfo(ICpu cpu)
 		{
-			var info =  (byte) (((state.Tag == 0) ? state.Displacement : state[state.Tag]) & 0xff);
+			var info =  (byte) (((cpu.Tag == 0) ? cpu.Displacement : cpu[cpu.Tag]) & 0xff);
 			return new ShiftInfo{ShiftCount = (byte) (info & 0x3f), Type = (byte) (info >> 6)};
 		}
 	}

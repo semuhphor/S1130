@@ -2,7 +2,7 @@
 
 namespace S1130.SystemObjects
 {
-	public class Cpu : ISystemState
+	public class Cpu : ICpu
     {
         public const int DefaultMemorySize = 32768;										// default size of memory 
 		private readonly ConcurrentQueue<IInterruptingDevice>[] _interruptQueues;		// queues for devices with interrupts

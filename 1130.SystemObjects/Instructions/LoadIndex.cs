@@ -7,9 +7,9 @@ namespace S1130.SystemObjects.Instructions
 		public OpCodes OpCode { get { return OpCodes.LoadIndex; }  }
 		public string OpName { get { return "LDX";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			state.Xr[state.Tag] = state.FormatLong ? (state.IndirectAddress ? state[state.Displacement] :  state.Displacement) : Convert.ToUInt16((sbyte) state.Displacement & 0xffff);
+			cpu.Xr[cpu.Tag] = cpu.FormatLong ? (cpu.IndirectAddress ? cpu[cpu.Displacement] :  cpu.Displacement) : Convert.ToUInt16((sbyte) cpu.Displacement & 0xffff);
 		}
 	}
 }

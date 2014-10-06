@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using S1130.SystemObjects.Instructions;
 using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
@@ -31,22 +30,22 @@ namespace S1130.SystemObjects
 		    return Instructions[opcode].HasLongFormat;
 	    }
 
-	    public void Execute(ISystemState state)
+	    public void Execute(ICpu cpu)
 	    {
-		    var instruction = Instructions[state.Opcode];
+		    var instruction = Instructions[cpu.Opcode];
 		    if (instruction != null)
 		    {
-			    instruction.Execute(state);
+			    instruction.Execute(cpu);
 		    }
 		    else
 		    {
-			    state.Wait = true;
+			    cpu.Wait = true;
 		    }
 	    }
 
-	    public IInstruction GetInstruction(ISystemState state)
+	    public IInstruction GetInstruction(ICpu cpu)
 	    {
-		    return Instructions[state.Opcode];
+		    return Instructions[cpu.Opcode];
 	    }
     }
 }

@@ -5,9 +5,9 @@
 		public OpCodes OpCode { get { return OpCodes.ExclusiveOr; }  }
 		public string OpName { get { return "EOR";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{	
-			state.Acc ^= state[GetEffectiveAddress(state)];
+			cpu.Acc ^= cpu[GetEffectiveAddress(cpu)];
 		}
 	}
 }

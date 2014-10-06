@@ -1,10 +1,8 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Dynamic;
 
 namespace S1130.SystemObjects
 {
-    public interface ISystemState
+    public interface ICpu
     {
         ushort[] Memory { get; }
         int MemorySize { get; }

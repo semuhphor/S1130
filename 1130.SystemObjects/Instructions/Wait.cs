@@ -7,9 +7,9 @@ namespace S1130.SystemObjects.Instructions
 
 		public new bool HasLongFormat { get { return false; } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			state.Wait = true;
+			cpu.Wait = true;
 		}
 	}
 }

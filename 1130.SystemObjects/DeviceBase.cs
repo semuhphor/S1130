@@ -7,16 +7,16 @@
 		protected DevFuction Func;
 		protected byte Modifier;
 
-		protected void DecodeIocc(ISystemState state, ushort ioccAddress)
+		protected void DecodeIocc(ICpu cpu, ushort ioccAddress)
 		{
-			Address = state[ioccAddress++];
-			Device = (ushort) ((state[ioccAddress] >> 11) & 0x1f);
-			Func = (DevFuction) ((state[ioccAddress] >> 8) & 0x7);
-			Modifier = (byte) (state[ioccAddress] & 0xff);
+			Address = cpu[ioccAddress++];
+			Device = (ushort) ((cpu[ioccAddress] >> 11) & 0x1f);
+			Func = (DevFuction) ((cpu[ioccAddress] >> 8) & 0x7);
+			Modifier = (byte) (cpu[ioccAddress] & 0xff);
 		}
 
 		public virtual byte DeviceCode { get; private set; }
-		public virtual void ExecuteIocc(ISystemState state, ushort ioccAddress)
+		public virtual void ExecuteIocc(ICpu cpu, ushort ioccAddress)
 		{
 			throw new System.NotImplementedException();
 		}

@@ -4,11 +4,11 @@ namespace S1130.SystemObjects
 {
     public class IndexRegisters
     {
-        private readonly ISystemState _state;
+        private readonly ICpu _cpu;
 
-        public IndexRegisters(ISystemState state)
+        public IndexRegisters(ICpu cpu)
         {
-            _state = state;
+            _cpu = cpu;
         }
 
         public ushort this[int indexRegister]
@@ -16,7 +16,7 @@ namespace S1130.SystemObjects
             get 
             {
                 CheckIndex(indexRegister);
-                return indexRegister > 0 ? _state[indexRegister] : _state.Iar ;
+                return indexRegister > 0 ? _cpu[indexRegister] : _cpu.Iar ;
             }
 
             set
@@ -24,11 +24,11 @@ namespace S1130.SystemObjects
                 CheckIndex(indexRegister);
                 if (indexRegister > 0)
                 {
-                    _state[indexRegister] = value;
+                    _cpu[indexRegister] = value;
                 }
                 else
                 {
-                    _state.Iar = value;
+                    _cpu.Iar = value;
                 }
             }
         }

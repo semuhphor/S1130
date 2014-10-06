@@ -12,23 +12,23 @@ namespace UnitTests.S1130.SystemObjects
             CommonTests(new Cpu());
         }
 
-        private void CommonTests(ISystemState state)
+        private void CommonTests(ICpu cpu)
         {
-            state.Xr[1] = 0xb1;
-            state.Xr[2] = 0xb2;
-            state.Xr[3] = 0xb3;
+            cpu.Xr[1] = 0xb1;
+            cpu.Xr[2] = 0xb2;
+            cpu.Xr[3] = 0xb3;
 
-            Assert.AreEqual(0xb1, state[1]);
-            Assert.AreEqual(0xb2, state[2]);
-            Assert.AreEqual(0xb3, state[3]);
+            Assert.AreEqual(0xb1, cpu[1]);
+            Assert.AreEqual(0xb2, cpu[2]);
+            Assert.AreEqual(0xb3, cpu[3]);
 
-            Assert.AreEqual(0xb1, state.Xr[1]);
-            Assert.AreEqual(0xb2, state.Xr[2]);
-            Assert.AreEqual(0xb3, state.Xr[3]);
+            Assert.AreEqual(0xb1, cpu.Xr[1]);
+            Assert.AreEqual(0xb2, cpu.Xr[2]);
+            Assert.AreEqual(0xb3, cpu.Xr[3]);
 
-            state.Xr[0] = 0xf1;
-            Assert.AreEqual(0xf1, state.Iar);
-            Assert.AreEqual(0xf1, state.Xr[0]);
+            cpu.Xr[0] = 0xf1;
+            Assert.AreEqual(0xf1, cpu.Iar);
+            Assert.AreEqual(0xf1, cpu.Xr[0]);
         }
     }
 }

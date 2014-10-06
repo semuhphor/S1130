@@ -1,6 +1,4 @@
-﻿using System.Runtime.Remoting.Messaging;
-
-namespace S1130.SystemObjects.Instructions
+﻿namespace S1130.SystemObjects.Instructions
 {
    public abstract class InstructionBase
     {
@@ -8,19 +6,19 @@ namespace S1130.SystemObjects.Instructions
 		public const uint Mask32 = 0xffffffff;
 		public virtual bool HasLongFormat { get { return true; }}
 
-	    private int GetEffectiveAddress(ISystemState state, int baseAddress)
+	    private int GetEffectiveAddress(ICpu cpu, int baseAddress)
 	    {
-			var location = baseAddress + GetOffset(state);
-			if (state.FormatLong && state.IndirectAddress) // long indirect
+			var location = baseAddress + GetOffset(cpu);
+			if (cpu.FormatLong && cpu.IndirectAddress) // long indirect
 			{
-				location = state[location];
+				location = cpu[location];
 			}
 			return location & 0xffff;
 		}
 
-	    protected int GetEffectiveAddressNoXr(ISystemState state)
+	    protected int GetEffectiveAddressNoXr(ICpu cpu)
 	    {
-			return GetEffectiveAddress(state, state.FormatLong ? 0 : state.Iar);
+			return GetEffectiveAddress(cpu, cpu.FormatLong ? 0 : cpu.Iar);
 	    }
 
 		protected bool Is16BitSignBitOn(int value)
@@ -38,24 +36,24 @@ namespace S1130.SystemObjects.Instructions
 		    return (uint) (((value & 0x8000) == 0) ? 0 : ~0xffff) | value;
 	    }
 
-        protected int GetEffectiveAddress(ISystemState state)
+        protected int GetEffectiveAddress(ICpu cpu)
         {
-	        return GetEffectiveAddress(state, GetBase(state));
+	        return GetEffectiveAddress(cpu, GetBase(cpu));
         }
 
-		private int GetOffset(ISystemState state)
+		private int GetOffset(ICpu cpu)
 		{
-			return state.FormatLong ? state.Displacement : +(sbyte) state.Displacement;
+			return cpu.FormatLong ? cpu.Displacement : +(sbyte) cpu.Displacement;
 		}
 
-        private int GetBase(ISystemState state)
+        private int GetBase(ICpu cpu)
         {
-            return (!state.FormatLong || state.Tag != 0) ? state.Xr[state.Tag] : 0;
+            return (!cpu.FormatLong || cpu.Tag != 0) ? cpu.Xr[cpu.Tag] : 0;
         }
 
-	    public int GetShiftDistance(ISystemState state)
+	    public int GetShiftDistance(ICpu cpu)
 	    {
-		    return ((state.Tag == 0) ? state.Displacement : state.Xr[state.Tag]) & 0x3f;
+		    return ((cpu.Tag == 0) ? cpu.Displacement : cpu.Xr[cpu.Tag]) & 0x3f;
 	    }
     }
 }

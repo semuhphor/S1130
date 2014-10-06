@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
 using FakeItEasy;
+using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects
 {
@@ -80,5 +81,39 @@ namespace UnitTests.S1130.SystemObjects
 			Assert.AreEqual(0x101, _cpu.Iar);
 			Assert.IsTrue(_cpu.Wait);
 	    }
-    }
+
+		[TestMethod]
+		public void NextInstruction_ShortLoadInstructionTest()
+		{
+			_cpu.Memory[0x100] = InstructionBuilder.BuildShort(OpCodes.Load, 2, 0x72);
+			_cpu.NextInstruction();
+			Assert.AreEqual(0x101, _cpu.Iar);
+			Assert.AreEqual((int)OpCodes.Load, _cpu.Opcode);
+			Assert.AreEqual(false, _cpu.FormatLong);
+			Assert.AreEqual(2, _cpu.Tag);
+			Assert.AreEqual(0x72, _cpu.Displacement);
+		}
+
+		[TestMethod]
+		public void NextInstruction_LongLoadInstructionIndirectWithXR3Test()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Load, 3, 0x72, _cpu);
+			_cpu.NextInstruction();
+			Assert.AreEqual(0x102, _cpu.Iar);
+			Assert.AreEqual((int)OpCodes.Load, _cpu.Opcode);
+			Assert.AreEqual(true, _cpu.FormatLong);
+			Assert.AreEqual(true, _cpu.IndirectAddress);
+			Assert.AreEqual(3, _cpu.Tag);
+			Assert.AreEqual(0x72, _cpu.Displacement);
+		}
+
+		[TestMethod]
+		public void IndexerTest()
+		{
+			_cpu[0x1000] = 0xbfbf;
+			Assert.AreEqual(0xbfbf, _cpu.Memory[0x1000]);
+			_cpu.Memory[0x2000] = 0xfbfb;
+			Assert.AreEqual(0xfbfb, _cpu[0x2000]);
+		}
+	}
 }

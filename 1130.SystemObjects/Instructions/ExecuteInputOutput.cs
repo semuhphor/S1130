@@ -5,10 +5,10 @@ namespace S1130.SystemObjects.Instructions
 		public OpCodes OpCode { get { return OpCodes.ExecuteInputOuput; } }
 		public string OpName { get { return "XIO"; } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			var ioccAddr = (ushort) GetEffectiveAddress(state);
-			new ConsoleEntrySwitches().ExecuteIocc(state, ioccAddr);
+			var ioccAddr = (ushort) GetEffectiveAddress(cpu);
+			new ConsoleEntrySwitches().ExecuteIocc(cpu, ioccAddr);
 		}
 	}
 }

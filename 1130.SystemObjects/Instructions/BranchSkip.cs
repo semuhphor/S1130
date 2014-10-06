@@ -1,27 +1,25 @@
-﻿using System.Data.Common;
-
-namespace S1130.SystemObjects.Instructions
+﻿namespace S1130.SystemObjects.Instructions
 {
 	public class BranchSkip : BranchInstructionBase, IInstruction
 	{
 		public OpCodes OpCode { get { return OpCodes.BranchSkip; }  }
 		public string OpName { get { return "BSC";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			if (state.FormatLong)											// q. is format long?
+			if (cpu.FormatLong)											// q. is format long?
 			{																// a. yes ..
-				if (base.TestCondition(state))								// q. condition met?
+				if (base.TestCondition(cpu))								// q. condition met?
 				{															// a.yes
 					return;													// .. take no action
 				}
-				state.Iar = (ushort) GetEffectiveAddress(state);			// branch to address
+				cpu.Iar = (ushort) GetEffectiveAddress(cpu);			// branch to address
 			}
 			else															// otherwise..
 			{																// .. short format
-				if (base.TestCondition(state))								// q. condition met?
+				if (base.TestCondition(cpu))								// q. condition met?
 				{															// a. yes ..
-					state.Iar++;											// .. then skip
+					cpu.Iar++;											// .. then skip
 				}
 			}
 		}

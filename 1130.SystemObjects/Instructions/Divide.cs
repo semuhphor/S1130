@@ -5,26 +5,26 @@ namespace S1130.SystemObjects.Instructions
 		public OpCodes OpCode { get { return OpCodes.Divide; }  }
 		public string OpName { get { return "D";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			var divider = state[GetEffectiveAddress(state)];
+			var divider = cpu[GetEffectiveAddress(cpu)];
 			if (divider != 0)
 			{
-				var quotient = (int) state.AccExt / (int) SignExtend(divider);
+				var quotient = (int) cpu.AccExt / (int) SignExtend(divider);
 				if (quotient > short.MaxValue)
 				{
-					state.Overflow = true;
-					state.AccExt = (uint) quotient & 0xffffffff; /* Undefined... let's make AccExt the quotient */
+					cpu.Overflow = true;
+					cpu.AccExt = (uint) quotient & 0xffffffff; /* Undefined... let's make AccExt the quotient */
 				}
 				else
 				{
-					state.Ext = (ushort) (state.AccExt % (short) divider);
-					state.Acc = (ushort) (quotient & 0xffff);
+					cpu.Ext = (ushort) (cpu.AccExt % (short) divider);
+					cpu.Acc = (ushort) (quotient & 0xffff);
 				}
 			}
 			else
 			{
-				state.Overflow = true;
+				cpu.Overflow = true;
 			}
 		}
 	}

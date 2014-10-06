@@ -1,5 +1,3 @@
-using System;
-
 namespace S1130.SystemObjects.Instructions
 {
 	public class LoadStatus : InstructionBase, IInstruction
@@ -9,10 +7,10 @@ namespace S1130.SystemObjects.Instructions
 
 		public override bool HasLongFormat { get { return false; } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			state.Carry = (state.Displacement & 0x02) != 0;
-			state.Overflow = (state.Displacement & 0x01) != 0;
+			cpu.Carry = (cpu.Displacement & 0x02) != 0;
+			cpu.Overflow = (cpu.Displacement & 0x01) != 0;
 		}
 	}
 }

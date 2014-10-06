@@ -7,6 +7,6 @@ namespace S1130.SystemObjects
         OpCodes OpCode { get; }
         string OpName { get; }
 		bool HasLongFormat { get; }
-        void Execute(ISystemState state);
+        void Execute(ICpu cpu);
     }
 }

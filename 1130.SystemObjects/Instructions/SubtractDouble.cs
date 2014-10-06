@@ -5,18 +5,18 @@
 		public OpCodes OpCode { get { return OpCodes.SubtractDouble; } }
 		public string OpName { get { return "SD"; } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			var effectiveAddress = GetEffectiveAddress(state);
-			long valueToSubtract = (state[effectiveAddress] << 16) & 0xffff0000;
-			valueToSubtract |= (ushort) (state[effectiveAddress | 1] &  0xffff);
-			long accExt = state.AccExt;
+			var effectiveAddress = GetEffectiveAddress(cpu);
+			long valueToSubtract = (cpu[effectiveAddress] << 16) & 0xffff0000;
+			valueToSubtract |= (ushort) (cpu[effectiveAddress | 1] &  0xffff);
+			long accExt = cpu.AccExt;
 			long result = accExt - valueToSubtract;
-			state.AccExt = (uint)(result & 0xffffffff);
-			state.Carry = (result & 0x100000000) != 0;
-			if (!state.Overflow)
+			cpu.AccExt = (uint)(result & 0xffffffff);
+			cpu.Carry = (result & 0x100000000) != 0;
+			if (!cpu.Overflow)
 			{
-				state.Overflow = Is32BitSignBitOn((uint)((accExt ^ valueToSubtract) & (accExt ^ state.AccExt)));
+				cpu.Overflow = Is32BitSignBitOn((uint)((accExt ^ valueToSubtract) & (accExt ^ cpu.AccExt)));
 			}
 		}
 	}

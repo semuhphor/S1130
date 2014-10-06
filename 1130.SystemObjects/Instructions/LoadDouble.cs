@@ -5,11 +5,11 @@
         public OpCodes OpCode { get { return OpCodes.LoadDouble; } }
         public string OpName { get { return "LDD"; } }
 
-        public void Execute(ISystemState state)
+        public void Execute(ICpu cpu)
         {
-            var effectiveAddress = GetEffectiveAddress(state);
-            state.Acc = state[effectiveAddress];
-            state.Ext = state[effectiveAddress | 1];
+            var effectiveAddress = GetEffectiveAddress(cpu);
+            cpu.Acc = cpu[effectiveAddress];
+            cpu.Ext = cpu[effectiveAddress | 1];
         }
     }
 }

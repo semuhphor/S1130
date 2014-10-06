@@ -5,9 +5,9 @@
         public OpCodes OpCode { get { return OpCodes.Load; }  }
         public string OpName { get { return "LD";  } }
 
-        public void Execute(ISystemState state)
+        public void Execute(ICpu cpu)
         {
-            state.Acc = state[GetEffectiveAddress(state)];
+            cpu.Acc = cpu[GetEffectiveAddress(cpu)];
         }
     }
 }

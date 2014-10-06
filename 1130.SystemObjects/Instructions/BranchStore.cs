@@ -5,15 +5,15 @@
 		public OpCodes OpCode { get { return OpCodes.BranchSkip; }  }
 		public string OpName { get { return "BSI";  } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			if (state.FormatLong && TestCondition(state))				// q. Long format & condition met?
+			if (cpu.FormatLong && TestCondition(cpu))				// q. Long format & condition met?
 			{															// a. yes
 				return;													// .. take no action
 			}
-			var subroutineAddress = (ushort)GetEffectiveAddress(state);	// resolve routine address
-			state[subroutineAddress++] = state.Iar;						// save return address and get entry address
-			state.Iar = subroutineAddress;								// .. and branch to routine
+			var subroutineAddress = (ushort)GetEffectiveAddress(cpu);	// resolve routine address
+			cpu[subroutineAddress++] = cpu.Iar;						// save return address and get entry address
+			cpu.Iar = subroutineAddress;								// .. and branch to routine
 		}
 	}
 }

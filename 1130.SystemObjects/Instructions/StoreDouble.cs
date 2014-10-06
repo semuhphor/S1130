@@ -4,11 +4,11 @@ namespace S1130.SystemObjects.Instructions
     {
         public OpCodes OpCode { get { return OpCodes.StoreDouble;  } }
         public string OpName { get { return "STD"; } }
-        public void Execute(ISystemState state)
+        public void Execute(ICpu cpu)
         {
-            var effectiveAddress = GetEffectiveAddress(state);
-            state[effectiveAddress | 1] = state.Ext;
-            state[effectiveAddress] = state.Acc;
+            var effectiveAddress = GetEffectiveAddress(cpu);
+            cpu[effectiveAddress | 1] = cpu.Ext;
+            cpu[effectiveAddress] = cpu.Acc;
         }
     }
 }

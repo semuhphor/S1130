@@ -7,52 +7,52 @@ namespace S1130.SystemObjects.Instructions
 
 		public new bool HasLongFormat { get { return false; } }
 
-		public void Execute(ISystemState state)
+		public void Execute(ICpu cpu)
 		{
-			var shiftInfo = ExtractShiftInfo(state); 
+			var shiftInfo = ExtractShiftInfo(cpu); 
 			if (shiftInfo.ShiftCount == 0) return;
-			if (state.Tag == 0)
+			if (cpu.Tag == 0)
 			{
 				shiftInfo.Type &= 0x02; // Can't count if no tag specified
 			}
-			ulong work = state.AccExt;
+			ulong work = cpu.AccExt;
 			switch (shiftInfo.Type)
 			{
 				case 0: // SLA 
 					work >>= 16;
 					work &= Mask16;
 					work <<= shiftInfo.ShiftCount;
-					state.Acc = (ushort) (work & Mask16);
-					state.Carry = (work & 0x10000) != 0;
+					cpu.Acc = (ushort) (work & Mask16);
+					cpu.Carry = (work & 0x10000) != 0;
 					break;
 				case 1: // SLCA
 					work >>= 16;
 					work &= Mask16;
-					state.Carry = false;
+					cpu.Carry = false;
 					while (shiftInfo.ShiftCount > 0 && (work & 0x8000) == 0)
 					{
 						work <<= 1;
 						shiftInfo.ShiftCount--;
 					}
-					state.Acc = (ushort) (work & Mask16);
-					state.Carry = (shiftInfo.ShiftCount != 0);
-					state.Xr[state.Tag] = shiftInfo.ShiftCount;
+					cpu.Acc = (ushort) (work & Mask16);
+					cpu.Carry = (shiftInfo.ShiftCount != 0);
+					cpu.Xr[cpu.Tag] = shiftInfo.ShiftCount;
 					break;
 				case 2: // SLT
 					work <<= shiftInfo.ShiftCount;
-					state.AccExt = (uint) (work & Mask32);
-					state.Carry = (work & 0x100000000) != 0;
+					cpu.AccExt = (uint) (work & Mask32);
+					cpu.Carry = (work & 0x100000000) != 0;
 					break;
 				case 3: // SLC
-					state.Carry = false;
+					cpu.Carry = false;
 					while (shiftInfo.ShiftCount > 0 && (work & 0x80000000) == 0)
 					{
 						work <<= 1;
 						shiftInfo.ShiftCount--;
 					}
-					state.AccExt = (uint)(work & Mask32);
-					state.Carry = (shiftInfo.ShiftCount != 0);
-					state.Xr[state.Tag] = shiftInfo.ShiftCount;
+					cpu.AccExt = (uint)(work & Mask32);
+					cpu.Carry = (shiftInfo.ShiftCount != 0);
+					cpu.Xr[cpu.Tag] = shiftInfo.ShiftCount;
 					break;
 			}
 		}
