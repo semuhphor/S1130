@@ -14,7 +14,7 @@ namespace UnitTests.S1130.SystemObjects
 		[TestInitialize]
 		public void BeforeEachTest()
 		{
-			_cpu = new Cpu(new SystemState{Iar = 0x100});
+			_cpu = new Cpu {Iar = 0x100};
 		}
 
 		[TestMethod]

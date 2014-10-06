@@ -7,15 +7,9 @@ namespace UnitTests.S1130.SystemObjects
     public class IndexRegisterTests
     {
         [TestMethod]
-        public void CpuTests()
-        {
-            CommonTests(new Cpu(new SystemState()));
-        }
-
-        [TestMethod]
         public void SystemSTateTests()
         {
-            CommonTests(new SystemState());
+            CommonTests(new Cpu());
         }
 
         private void CommonTests(ISystemState state)

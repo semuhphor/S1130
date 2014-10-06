@@ -36,7 +36,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestInitialize]
 		public void BeforeEachTest()
 		{
-			InsCpu = new Cpu(new SystemState { Iar = 0x100 });
+			InsCpu = new Cpu { Iar = 0x100 };
 		}
 	}
 }

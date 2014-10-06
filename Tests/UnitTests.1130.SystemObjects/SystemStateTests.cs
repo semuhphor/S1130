@@ -9,12 +9,12 @@ namespace UnitTests.S1130.SystemObjects
 	[TestClass]
     public class SystemStateTests
     {
-        private SystemState _state;
+        private Cpu _state;
 
         [TestInitialize]
         public void BeforeEachTest()
         {
-            _state = new SystemState {Iar = 0x100};
+            _state = new Cpu {Iar = 0x100};
         }
 
         [TestMethod]

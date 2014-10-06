@@ -20,7 +20,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 	    [TestInitialize]
         public void BeforeEachTest()
         {
-            InsCpu = new Cpu(new SystemState { Iar = 0x100 });
+            InsCpu = new Cpu { Iar = 0x100 };
         }
 
 	    protected virtual void ExecAndTest(ushort expectedAcc, ushort expectedExt, bool expectedCarry, bool expectedOverflow, ushort initialAcc, ushort initialExt, bool initialCarry, bool initialOverflow)

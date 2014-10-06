@@ -7,42 +7,34 @@ namespace UnitTests.S1130.SystemObjects
     [TestClass]
     public class CpuTests
     {
-        private SystemState _state;
         private Cpu _cpu;
         private const ushort IarDefault = 0x100;
 
         [TestInitialize]
         public void BeforeEachTest()
         {
-            _state = new SystemState { Iar = 0x100 };
-            _cpu = new Cpu(_state);
+            _cpu = new Cpu { Iar = 0x100 };
         }
 
         [TestMethod]
         public void AccProperty()
         {
             _cpu.Acc = 0x1234;
-            Assert.AreEqual(0x1234,_state.Acc);
-            _state.Acc = 0x2345;
-            Assert.AreEqual(0x2345, _cpu.Acc);
+            Assert.AreEqual(0x1234, _cpu.Acc);
         }
 
         [TestMethod]
         public void ExtProperty()
         {
             _cpu.Ext = 0x1234;
-            Assert.AreEqual(0x1234, _state.Ext);
-            _state.Ext = 0x2345;
-            Assert.AreEqual(0x2345, _cpu.Ext);
+			Assert.AreEqual(0x1234, _cpu.Ext);
         }
 
         [TestMethod]
         public void IarProperty()
         {
             _cpu.Iar = 0x1234;
-            Assert.AreEqual(0x1234, _state.Iar);
-            _state.Iar = 0x2345;
-            Assert.AreEqual(0x2345, _cpu.Iar);
+			Assert.AreEqual(0x1234, _cpu.Iar);
         }
 
         [TestMethod]
@@ -58,9 +50,7 @@ namespace UnitTests.S1130.SystemObjects
 		public void IndexProperty()
 		{
 			_cpu[0x100] = 0x1234;
-			Assert.AreEqual(0x1234, _state.Memory[0x100]);
-			_state[0x101] = 0x2345;
-			Assert.AreEqual(0x2345, _cpu[0x101]);
+			Assert.AreEqual(0x1234, _cpu.Memory[0x100]);
 		}
 
 		[TestMethod]
@@ -68,27 +58,18 @@ namespace UnitTests.S1130.SystemObjects
 		{
 			_cpu.Carry = true;
 			Assert.IsTrue(_cpu.Carry);
-			_state.Carry = false;
+			_cpu.Carry = false;
 			Assert.IsFalse(_cpu.Carry);
 		}
 
 		[TestMethod]
 		public void OverflowProperty()
 		{
-			_state.Overflow = true;
+			_cpu.Overflow = true;
 			Assert.IsTrue(_cpu.Overflow);
 			_cpu.Overflow = false;
 			Assert.IsFalse(_cpu.Overflow);
 		}
-
-        [TestMethod]
-        public void EnusureCpuCallsStateNextInstruction()
-        {
-            var fakeState = A.Fake<ISystemState>();
-            var cpu = new Cpu(fakeState);
-            cpu.NextInstruction();
-            A.CallTo(() => fakeState.NextInstruction()).MustHaveHappened();
-        }
 
 	    [TestMethod]
 	    public void InvalidOpCode()
