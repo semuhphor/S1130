@@ -29,7 +29,12 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 
 			public override void InterruptComplete()
 			{
-				InterruptCompleted = true;
+				InterruptCompleted = false;
+			}
+
+			public override byte DeviceCode
+			{
+				get { return 0x1f; }
 			}
 		}
 
@@ -37,6 +42,12 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		public void BeforeEachTest()
 		{
 			InsCpu = new Cpu { Iar = 0x100 };
+		}
+
+		protected void ExecuteOneInstruction()
+		{
+			InsCpu.NextInstruction();
+			InsCpu.ExecuteInstruction();
 		}
 	}
 }

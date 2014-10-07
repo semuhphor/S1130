@@ -179,6 +179,7 @@ namespace S1130.SystemObjects
 		public void ExecuteInstruction()											// Execute current instruction
 	    {																				// .. instruction decoded from NextInstruction() above
 		    _instructionSet.Execute(this);												// .. execute in the instruction set.
+			HandleInterrupt();															// .. handle any interrupt active
 	    }
     }
 }

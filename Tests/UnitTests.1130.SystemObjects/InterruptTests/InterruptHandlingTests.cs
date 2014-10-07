@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
+using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InterruptTests
 {
@@ -82,6 +83,32 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			Assert.IsNull(InsCpu.Interrupt);							// .. no interrupt active
 			Assert.IsTrue(InsCpu.InterruptQueues[4].IsEmpty);			// .. no device on interrupt 4
 			Assert.IsTrue(InsCpu.CurrentDevice.IsEmpty);				// .. and none currently active
+		}
+
+		[TestMethod]
+		public void TestFullInterruptRoutine()
+		{
+			InsCpu[Constants.InterruptVectors[4]] = 0x500;				// set the interrupt vector
+			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 0, InsCpu, 0x100);	// build a NOOP instruction
+			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, InsCpu, 0x101);		// .. then wait
+			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 0, InsCpu, 0x501);	// Interrupt starts with NOOP
+			InstructionBuilder.BuildLongIndirectBranchAtAddress(OpCodes.BranchSkip, 0, 0x40, 0x500, InsCpu, 0x502); // .. and the return from interrupt
+			var dummyDevice = new DummyDevice(4);						// device causing interrupt
+			InsCpu.InterruptQueues[4].Enqueue(dummyDevice);				// set up the interrupting device
+			Assert.AreEqual(0x100, InsCpu.Iar);							// not in routine
+			ExecuteOneInstruction();									// execute first noop...
+			Assert.AreEqual(0x501, InsCpu.Iar);							// .. should be in the routine 
+			Assert.IsFalse(dummyDevice.InterruptCompleted);				// .. interrupt should not be complete
+			Assert.AreEqual(InsCpu[0x500], 0x101);						// .. return should be second noop
+			ExecuteOneInstruction();									// execute handler noop ...
+			Assert.AreEqual(0x502, InsCpu.Iar);							// .. should still be in the routine 
+			Assert.IsFalse(dummyDevice.InterruptCompleted);				// .. interrupt should still not be complete
+			ExecuteOneInstruction();									// return from interrupt
+			Assert.AreEqual(0x101, InsCpu.Iar);							// .. should have returned from routine
+			Assert.IsTrue(dummyDevice.InterruptCompleted);				// .. interrupt should be complete
+			ExecuteOneInstruction();									// return from interrupt
+			Assert.AreEqual(0x102, InsCpu.Iar);							// .. should have executed wait
+			Assert.IsTrue(InsCpu.Wait);									// .. and in wait state
 		}
 	}
 }
