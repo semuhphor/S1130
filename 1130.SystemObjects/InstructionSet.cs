@@ -25,11 +25,6 @@ namespace S1130.SystemObjects
             }
         }
 
-	    public bool MayBeLong(int opcode)
-	    {
-		    return Instructions[opcode].HasLongFormat;
-	    }
-
 	    public IInstruction this[int opcode]
 	    {
 		    get { return Instructions[opcode]; }
