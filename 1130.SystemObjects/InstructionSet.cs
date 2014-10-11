@@ -30,22 +30,9 @@ namespace S1130.SystemObjects
 		    return Instructions[opcode].HasLongFormat;
 	    }
 
-	    public void Execute(ICpu cpu)
+	    public IInstruction this[int opcode]
 	    {
-		    var instruction = Instructions[cpu.Opcode];
-		    if (instruction != null)
-		    {
-			    instruction.Execute(cpu);
-		    }
-		    else
-		    {
-			    cpu.Wait = true;
-		    }
-	    }
-
-	    public IInstruction GetInstruction(ICpu cpu)
-	    {
-		    return Instructions[cpu.Opcode];
+		    get { return Instructions[opcode]; }
 	    }
     }
 }

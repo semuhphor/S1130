@@ -89,6 +89,7 @@
     <Compile Include="InterruptTests\InterruptTestBase.cs" />
     <Compile Include="ProgramTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="InstrutionSetTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\1130.SystemObjects\S1130.SystemObjects.csproj">

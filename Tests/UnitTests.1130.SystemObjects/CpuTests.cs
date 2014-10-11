@@ -92,6 +92,7 @@ namespace UnitTests.S1130.SystemObjects
 			Assert.AreEqual(false, _cpu.FormatLong);
 			Assert.AreEqual(2, _cpu.Tag);
 			Assert.AreEqual(0x72, _cpu.Displacement);
+			Assert.AreEqual("LD", _cpu.CurrentInstruction.OpName);
 		}
 
 		[TestMethod]

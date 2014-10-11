@@ -7,14 +7,13 @@ namespace S1130.SystemObjects
         public const int DefaultMemorySize = 32768;										// default size of memory 
 		private readonly ConcurrentQueue<IInterruptingDevice>[] _interruptQueues;		// queues for devices with interrupts
 		private readonly ConcurrentStack<IInterruptingDevice> _currentDevice;			// stack of devices being serviced
-	    private readonly IInstructionSet _instructionSet;								// class for instruction set 
 		
         public Cpu()														// System State constructor
         {
             MemorySize = DefaultMemorySize;												// size of memory
             Memory = new ushort[DefaultMemorySize];										// reserve the memory
             Xr = new IndexRegisters(this);												// setup index register shortcut
-			_instructionSet = new InstructionSet();										// instantiate the instruction set
+			Instructions = new InstructionSet();										// instantiate the instruction set
 			_interruptQueues =  new ConcurrentQueue<IInterruptingDevice>[6]				// prepare interrupting device queue	
 					{
 						new ConcurrentQueue<IInterruptingDevice>(),						// Level 0 
@@ -27,7 +26,9 @@ namespace S1130.SystemObjects
 			_currentDevice = new ConcurrentStack<IInterruptingDevice>();				// stack for devices being served
         }
 
-        public ushort[] Memory { get; set; }											// property for memory
+ 	    public IInstructionSet Instructions { get; private set; }						// property for instruction set access 
+		public IInstruction CurrentInstruction { get; private set; }					// property for current instruction
+		public ushort[] Memory { get; set; }											// property for memory
 		public int MemorySize { get; set; }												// property for memory size
 		public ushort Iar { get; set; }													// property for Instruction Address Register
 		public ushort Acc { get; set; }													// property for Accumulator
@@ -155,7 +156,7 @@ namespace S1130.SystemObjects
         {
             var firstWord = Memory[Iar++];												// retrieve the first work
             Opcode = (ushort) ((firstWord & 0xF800) >> 11);								// .. get the opcode shifted to low-order bits
-            FormatLong = (firstWord & 0x0400) != 0 && _instructionSet.MayBeLong(Opcode);// .. determine if long format
+            FormatLong = (firstWord & 0x0400) != 0 && Instructions.MayBeLong(Opcode);// .. determine if long format
             Tag = (ushort) ((firstWord & 0x0300) >> 8);									// .. get the Xr, if any, from tag bits
 			Modifiers = (ushort) (firstWord & 0xff);									// .. get out modifiers/displacement
             if (FormatLong)																// q. long format instruction?
@@ -168,17 +169,19 @@ namespace S1130.SystemObjects
 				Displacement = Modifiers;												// .. get displacement from modifiers (see above)
                 IndirectAddress = false;												// .. and it isn't indirect.
             }
+			CurrentInstruction = Instructions[Opcode];									// save the current instruction
         }
-
-	    public IInstruction GetInstruction()										// Get the instruction represented
-	    {																				// .. mainly for debug, dump 
-		    return _instructionSet.GetInstruction(this);								// .. get it from the instruction set
-	    }
-
 
 		public void ExecuteInstruction()											// Execute current instruction
 	    {																				// .. instruction decoded from NextInstruction() above
-		    _instructionSet.Execute(this);												// .. execute in the instruction set.
+			if (CurrentInstruction != null)												// q. is the current instruction valid?
+			{																			// a. yes ..
+				CurrentInstruction.Execute(this);										// .. execute it
+			}
+			else																		// Otherwise..
+			{																			// .. not found
+				Wait = true;															// .. treat it like a wait state
+			}
 			HandleInterrupt();															// .. handle any interrupt active
 	    }
     }

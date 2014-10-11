@@ -15,6 +15,8 @@ namespace S1130.SystemObjects
         ushort this[int address] { get; set; }
 
         IndexRegisters Xr { get; }
+		IInstructionSet Instructions { get;  }
+		IInstruction CurrentInstruction { get; }
 
         ushort Opcode { get;  }
         bool FormatLong { get;  }
@@ -33,7 +35,6 @@ namespace S1130.SystemObjects
 
         void NextInstruction();
 	    void ExecuteInstruction();
-	    IInstruction GetInstruction();
 	    ConcurrentQueue<IInterruptingDevice>[] InterruptQueues { get; }
 		ConcurrentStack<IInterruptingDevice> CurrentDevice { get; } 
     }
