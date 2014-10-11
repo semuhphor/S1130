@@ -82,7 +82,7 @@ namespace S1130.SystemObjects
 		{
 			get
 			{
-				for (int i = 0; i < 6; i++)												// iterate through levels 0..5
+				for (var i = 0; i < 6; i++)												// iterate through levels 0..5
 				{
 					if (!_interruptQueues[i].IsEmpty)									// q. interrupt active?
 					{																	// a. yes ...
@@ -156,20 +156,25 @@ namespace S1130.SystemObjects
         {
             var firstWord = Memory[Iar++];												// retrieve the first work
             Opcode = (ushort) ((firstWord & 0xF800) >> 11);								// .. get the opcode shifted to low-order bits
-            FormatLong = (firstWord & 0x0400) != 0 && Instructions.MayBeLong(Opcode);// .. determine if long format
-            Tag = (ushort) ((firstWord & 0x0300) >> 8);									// .. get the Xr, if any, from tag bits
-			Modifiers = (ushort) (firstWord & 0xff);									// .. get out modifiers/displacement
-            if (FormatLong)																// q. long format instruction?
-            {																			// a. yes ...
-                Displacement = Memory[Iar++];											// .. get displacement second word
-                IndirectAddress = (firstWord & 0x80) != 0;								// .. and get indirect address bit
-            }
-            else																		// otherwise ..
-            {																			// .. short format
-				Displacement = Modifiers;												// .. get displacement from modifiers (see above)
-                IndirectAddress = false;												// .. and it isn't indirect.
-            }
 			CurrentInstruction = Instructions[Opcode];									// save the current instruction
+			if (CurrentInstruction != null)												// q. instruciton found?
+			{																			// a. yes .. decode
+				var formatBit = (firstWord & 0x0400) != 0;								// .. extract the format bit
+				Tag = (ushort) ((firstWord & 0x0300) >> 8);								// .. get the Xr, if any, from tag bits
+				Modifiers = (ushort) (firstWord & 0xff);								// .. get out modifiers/displacement
+				if (formatBit && CurrentInstruction.HasLongFormat)						// q. long format instruction?
+				{																		// a. yes ...
+					FormatLong = true;													// .. show it is long
+					Displacement = Memory[Iar++];										// .. get displacement second word
+					IndirectAddress = (firstWord & 0x80) != 0;							// .. and get indirect address bit
+				}
+				else																	// otherwise ..
+				{																		// .. short format
+					FormatLong = false;													// .. show it is short
+					Displacement = Modifiers;											// .. get displacement from modifiers (see above)
+					IndirectAddress = false;											// .. and it isn't indirect.
+				}
+			}
         }
 
 		public void ExecuteInstruction()											// Execute current instruction
