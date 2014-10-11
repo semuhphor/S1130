@@ -5,11 +5,11 @@ using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
 
 namespace S1130.SystemObjects
 {
-    public class InstructionSet : InstructionBase, IInstructionSet
+    public class InstructionSetBuilder : InstructionBase
     {
         private static readonly IInstruction[] Instructions = new IInstruction[32];
-
-        static InstructionSet()
+		
+        static InstructionSetBuilder()
         {
             var assembly = Assembly.Load("S1130.SystemObjects");
             foreach (OpCodes opCode in Enum.GetValues(typeof (OpCodes)))
@@ -25,9 +25,11 @@ namespace S1130.SystemObjects
             }
         }
 
-	    public IInstruction this[int opcode]
+	    private InstructionSetBuilder() {}
+
+	    public static IInstruction[] GetInstructionSet()
 	    {
-		    get { return Instructions[opcode]; }
+		    return Instructions;
 	    }
     }
 }

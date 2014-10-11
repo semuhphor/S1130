@@ -15,7 +15,7 @@ namespace S1130.SystemObjects
         ushort this[int address] { get; set; }
 
         IndexRegisters Xr { get; }
-		IInstructionSet Instructions { get;  }
+		IInstruction[] Instructions { get;  }
 		IInstruction CurrentInstruction { get; }
 
         ushort Opcode { get;  }

@@ -13,7 +13,7 @@ namespace S1130.SystemObjects
             MemorySize = DefaultMemorySize;												// size of memory
             Memory = new ushort[DefaultMemorySize];										// reserve the memory
             Xr = new IndexRegisters(this);												// setup index register shortcut
-			Instructions = new InstructionSet();										// instantiate the instruction set
+			Instructions = InstructionSetBuilder.GetInstructionSet();					// instantiate the instruction set
 			_interruptQueues =  new ConcurrentQueue<IInterruptingDevice>[6]				// prepare interrupting device queue	
 					{
 						new ConcurrentQueue<IInterruptingDevice>(),						// Level 0 
@@ -26,7 +26,7 @@ namespace S1130.SystemObjects
 			_currentDevice = new ConcurrentStack<IInterruptingDevice>();				// stack for devices being served
         }
 
- 	    public IInstructionSet Instructions { get; private set; }						// property for instruction set access 
+ 	    public IInstruction[] Instructions { get; private set; }						// property for instruction set access 
 		public IInstruction CurrentInstruction { get; private set; }					// property for current instruction
 		public ushort[] Memory { get; set; }											// property for memory
 		public int MemorySize { get; set; }												// property for memory size

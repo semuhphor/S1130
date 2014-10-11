@@ -46,11 +46,10 @@
     <Compile Include="IDevice.cs" />
     <Compile Include="IInputOutputSystem.cs" />
     <Compile Include="IInstruction.cs" />
-    <Compile Include="IInstructionSet.cs" />
     <Compile Include="IInterruptingDevice.cs" />
     <Compile Include="InputOutputSystem.cs" />
     <Compile Include="InstructionBuilder.cs" />
-    <Compile Include="InstructionSet.cs" />
+    <Compile Include="InstructionSetBuilder.cs" />
     <Compile Include="Instructions\Add.cs" />
     <Compile Include="Instructions\AddDouble.cs" />
     <Compile Include="Instructions\And.cs" />
