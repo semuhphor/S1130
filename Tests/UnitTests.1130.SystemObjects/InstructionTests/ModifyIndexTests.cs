@@ -189,5 +189,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.AreEqual(1, InsCpu.Xr[2]);
 			Assert.AreEqual(0x101, InsCpu.Iar);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 2, 0x01);
+		}
+
+		protected override string OpName
+		{
+			get { return "MDX"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.ModifyIndex; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

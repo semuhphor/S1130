@@ -76,5 +76,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.IsFalse(InsCpu.Carry);
 			Assert.IsFalse(InsCpu.Overflow);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.StoreStatus, 1, 0x400, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "STS"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.StoreStatus; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

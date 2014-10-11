@@ -16,5 +16,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.IsTrue(InsCpu.Wait);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Wait, 0, 0);
+		}
+
+		protected override string OpName
+		{
+			get { return "WAIT"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.Wait; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

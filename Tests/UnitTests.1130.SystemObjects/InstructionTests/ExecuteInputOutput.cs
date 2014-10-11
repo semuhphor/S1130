@@ -17,5 +17,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.AreEqual(0x4321, InsCpu[0x500]);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOuput, 0, 0x11);
+		}
+
+		protected override string OpName
+		{
+			get { return "XIO"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.ExecuteInputOuput; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

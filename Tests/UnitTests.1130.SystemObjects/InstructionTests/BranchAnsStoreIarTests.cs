@@ -58,5 +58,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.AreEqual(0x111, InsCpu.Iar);
 			Assert.AreEqual(0x102, InsCpu[0x110]);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongBranchAtIar(OpCodes.BranchStore, 0, 0, 0x110, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "BSI"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.BranchStore; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

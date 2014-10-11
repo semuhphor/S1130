@@ -50,5 +50,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Xr[2] = 0xc0;
 			ExecAndTest(initialAccExt: 0x43121234, expectedAccExt: 0x43121234);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftRight, 2, 0x00);
+		}
+
+		protected override string OpName
+		{
+			get { return "SR"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.ShiftRight; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

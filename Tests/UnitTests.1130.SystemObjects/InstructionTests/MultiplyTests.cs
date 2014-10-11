@@ -73,5 +73,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[0x0400] = 0x1715;
 			ExecAndTest(initialAcc: 0x2333, expectedAccExt: 0x032c782f);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Multiply, 2, 0x1010, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "M"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.Multiply; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

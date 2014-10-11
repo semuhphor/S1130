@@ -57,5 +57,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.AreEqual(0x1001, InsCpu[0x600]);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.StoreIndex, 1, 0x400, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "STX"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.StoreIndex; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

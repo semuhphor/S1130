@@ -110,5 +110,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[0x0501] = 0x0040;
 			ExecAndTest(initialAcc: 0x0030, initialExt: 0x0063, initialCarry: false, initialOverflow: false, expectedAcc: 0x0010, expectedExt: 0x0023, expectedCarry: false, expectedOverflow: false);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.SubtractDouble, 3, 0x400, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "SD"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.SubtractDouble; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

@@ -102,5 +102,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[0x500] = 0x254;
 			ExecAndTest(initialAcc: 0x0255, initialCarry: false, initialOverflow: false, expectedAcc: 0x0001, expectedCarry: false, expectedOverflow: false);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Subtract, 0, 0x10);
+		}
+
+		protected override string OpName
+		{
+			get { return "S"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.Subtract; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

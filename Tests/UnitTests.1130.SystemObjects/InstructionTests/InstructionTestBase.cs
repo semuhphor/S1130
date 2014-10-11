@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Dynamic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
+using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
@@ -22,6 +24,19 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
             InsCpu = new Cpu { Iar = 0x100 };
         }
+
+	    protected abstract void BuildAnInstruction();
+		protected abstract string OpName { get; }
+		protected abstract OpCodes OpCode { get; }
+	    public abstract void NameAndOpcodeTest();
+
+		protected void CheckNameAndOpcode()
+		{
+			BuildAnInstruction();
+			InsCpu.NextInstruction();
+		    Assert.AreEqual(OpCode, InsCpu.CurrentInstruction.OpCode);
+			Assert.AreEqual(OpName, InsCpu.CurrentInstruction.OpName);
+	    }
 
 	    protected virtual void ExecAndTest(ushort expectedAcc, ushort expectedExt, bool expectedCarry, bool expectedOverflow, ushort initialAcc, ushort initialExt, bool initialCarry, bool initialOverflow)
 	    {

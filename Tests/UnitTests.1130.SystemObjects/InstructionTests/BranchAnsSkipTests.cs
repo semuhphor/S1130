@@ -394,5 +394,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.AreEqual(0x110, InsCpu.Iar);
 			Assert.IsFalse(InsCpu.Overflow);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongBranchAtIar(OpCodes.BranchSkip, 0, BranchInstructionBase.Overflow, 0x110, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "BSC"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.BranchSkip; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

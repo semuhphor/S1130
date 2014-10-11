@@ -58,5 +58,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Xr[1] = 0;
 			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x1234, expectedExt: 0x0024, expectedCarry: true);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x80);
+		}
+
+		protected override string OpName
+		{
+			get { return "SL"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.ShiftLeft; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

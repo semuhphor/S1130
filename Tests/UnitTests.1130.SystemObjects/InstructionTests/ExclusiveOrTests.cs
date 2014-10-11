@@ -55,5 +55,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[0x0400] = 0x1234;
 			ExecAndTest(initialAcc: 0xd210, expectedAcc: 0xc024);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.ExclusiveOr, 2, 0x1010, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "EOR"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.ExclusiveOr; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

@@ -67,5 +67,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.AreEqual(iar+1, InsCpu.Iar);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongAtIar(OpCodes.LoadStatus, 0, 0x03, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "LDS"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.LoadStatus; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

@@ -8,6 +8,12 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 	public class AddDoubleTests : InstructionTestBase
 	{
 		[TestMethod]
+		public void Name()
+		{
+			
+		}
+
+		[TestMethod]
 		public void Exeucte_AD_Short_NoTag_Positive_NoCarryNoOverflow()
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.AddDouble, 0, 0x0011);
@@ -109,6 +115,27 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[0x0500] = 0x0020;
 			InsCpu[0x0501] = 0x0040;
 			ExecAndTest(initialAcc: 0x0001, initialExt: 0x0002, initialCarry: false, initialOverflow: false, expectedAcc: 0x0021, expectedExt: 0x0042, expectedCarry: false, expectedOverflow: false);
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.AddDouble, 3, 0x400, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "AD"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.AddDouble; }
 		}
 	}
 }

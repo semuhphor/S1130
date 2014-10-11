@@ -66,5 +66,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[0x0400] = 0x0005;
 			ExecAndTestForOverflow(initialAccExt: 0x78921445);
 		}
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Divide, 2, 0x1010, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "D"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.Divide; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
 	}
 }

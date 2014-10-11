@@ -71,5 +71,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
             Assert.AreEqual(0x2345, InsCpu[effectiveAddress++]);
             Assert.AreEqual(0, InsCpu[effectiveAddress]);
         }
-    }
+
+	    protected override void BuildAnInstruction()
+	    {
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x10);
+		}
+
+	    protected override string OpName
+	    {
+		    get{ return "STD"; }
+	    }
+
+	    protected override OpCodes OpCode
+	    {
+		    get { return OpCodes.StoreDouble; }
+	    }
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
+	}
 }

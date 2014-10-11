@@ -2,7 +2,7 @@
 {
 	public class BranchStore : BranchInstructionBase, IInstruction
 	{
-		public OpCodes OpCode { get { return OpCodes.BranchSkip; }  }
+		public OpCodes OpCode { get { return OpCodes.BranchStore; }  }
 		public string OpName { get { return "BSI";  } }
 
 		public void Execute(ICpu cpu)

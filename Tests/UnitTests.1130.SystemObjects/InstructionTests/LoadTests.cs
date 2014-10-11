@@ -81,5 +81,26 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
             InsCpu.ExecuteInstruction();
             Assert.AreEqual(0x1234, InsCpu.Acc);
         }
-    }
+
+		protected override void BuildAnInstruction()
+		{
+			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Load, 1, 0x400, InsCpu);
+		}
+
+		protected override string OpName
+		{
+			get { return "LD"; }
+		}
+
+		protected override OpCodes OpCode
+		{
+			get { return OpCodes.Load; }
+		}
+
+		[TestMethod]
+		public override void NameAndOpcodeTest()
+		{
+			base.CheckNameAndOpcode();
+		}
+	}
 }
