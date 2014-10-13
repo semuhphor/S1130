@@ -47,7 +47,6 @@
     <Compile Include="IInputOutputSystem.cs" />
     <Compile Include="IInstruction.cs" />
     <Compile Include="InputOutputSystem.cs" />
-    <Compile Include="InstructionBuilder.cs" />
     <Compile Include="InstructionSetBuilder.cs" />
     <Compile Include="Instructions\Add.cs" />
     <Compile Include="Instructions\AddDouble.cs" />

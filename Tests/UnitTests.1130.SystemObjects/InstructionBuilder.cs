@@ -1,6 +1,7 @@
-﻿using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
+﻿using S1130.SystemObjects;
+using S1130.SystemObjects.Instructions;
 
-namespace S1130.SystemObjects
+namespace UnitTests.S1130.SystemObjects
 {
     public class InstructionBuilder
     {
