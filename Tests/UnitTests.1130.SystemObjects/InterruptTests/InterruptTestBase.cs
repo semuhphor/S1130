@@ -9,7 +9,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 	{
 		protected Cpu InsCpu;
 
-		protected class DummyDevice : InterruptingDeviceBase
+		protected class DummyDevice : IDevice
 		{
 			private readonly int _interruptLevel;
 			public bool InterruptCompleted;
@@ -18,24 +18,23 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 				_interruptLevel = interruptLevel;
 			}
 
-			public override int InterruptLevel
+			public byte DeviceCode { get { return 0x1f;  } }
+			public void ExecuteIocc(ICpu cpu, ushort ioccAddress)
 			{
-				get { return _interruptLevel; }
+				throw new NotImplementedException();
 			}
 
-			public override int InterruptLevelStatusWordBit
+			public Interrupt ActiveInterrupt { get; private set; }
+
+			public Interrupt GetInterrupt()
 			{
-				get { throw new NotImplementedException(); }
+				return InterruptPool.GetInterruptPool().GetInterrupt(_interruptLevel, this, 0x1f);
 			}
 
-			public override void InterruptComplete()
+			public Interrupt GenerateInterrupt()
 			{
-				InterruptCompleted = false;
-			}
-
-			public override byte DeviceCode
-			{
-				get { return 0x1f; }
+				ActiveInterrupt = InterruptPool.GetInterruptPool().GetInterrupt(_interruptLevel, this, 0x8000);
+				return ActiveInterrupt;
 			}
 		}
 
@@ -49,6 +48,11 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		{
 			InsCpu.NextInstruction();
 			InsCpu.ExecuteInstruction();
+		}
+
+		protected Interrupt GetInterrupt(int level)
+		{
+			return new DummyDevice(level).GenerateInterrupt();
 		}
 	}
 }

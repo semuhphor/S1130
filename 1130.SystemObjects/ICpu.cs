@@ -18,6 +18,7 @@ namespace S1130.SystemObjects
         IndexRegisters Xr { get; }
 		IInstruction[] Instructions { get;  }
 		IInstruction CurrentInstruction { get; }
+		InterruptPool IntPool { get; }
 
         ushort Opcode { get;  }
         bool FormatLong { get;  }
@@ -29,14 +30,14 @@ namespace S1130.SystemObjects
 		bool Carry { get; set;  }
 		bool Overflow { get; set; }
 		bool Wait { get; set; }
-		int? Interrupt { get;  }
-	    void AddInterrupt(IInterruptingDevice device);
+		int? CurrentInterruptLevel { get;  }
+	    void AddInterrupt(Interrupt interrupt);
 	    void HandleInterrupt();
 	    void ClearCurrentInterrupt();
 
         void NextInstruction();
 	    void ExecuteInstruction();
-	    ConcurrentQueue<IInterruptingDevice>[] InterruptQueues { get; }
-		ConcurrentStack<IInterruptingDevice> CurrentDevice { get; } 
+	    ConcurrentQueue<Interrupt>[] InterruptQueues { get; }
+		ConcurrentStack<Interrupt> CurrentInterrupt { get; } 
     }
 }

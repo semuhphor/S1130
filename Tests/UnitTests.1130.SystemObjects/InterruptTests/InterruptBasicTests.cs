@@ -9,78 +9,78 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestMethod]
 		public void NoInterruptActiveTest()
 		{
-			Assert.IsNull(InsCpu.Interrupt);
+			Assert.IsNull(InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void AddsDeviceToInterruptZero()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(0));
-			Assert.AreEqual(0, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(0));
+			Assert.AreEqual(0, InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void AddsDeviceToInterruptOne()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(1));
-			Assert.AreEqual(1, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(1));
+			Assert.AreEqual(1, InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void AddsDeviceToInterruptTwo()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(2));
-			Assert.AreEqual(2, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(2));
+			Assert.AreEqual(2, InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void AddsDeviceToInterruptThree()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(3));
-			Assert.AreEqual(3, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(3));
+			Assert.AreEqual(3, InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void AddsDeviceToInterruptFour()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(4));
-			Assert.AreEqual(4, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(4));
+			Assert.AreEqual(4, InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void AddsDeviceToInterruptFive()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(5));
-			Assert.AreEqual(5, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(5));
+			Assert.AreEqual(5, InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void InterruptOutsideRangeIgnored()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(-1));
-			Assert.IsNull(InsCpu.Interrupt);
-			InsCpu.AddInterrupt(new DummyDevice(6));
-			Assert.IsNull(InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(-1));
+			Assert.IsNull(InsCpu.CurrentInterruptLevel);
+			InsCpu.AddInterrupt(GetInterrupt(6));
+			Assert.IsNull(InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void InterruptsPriorityFourBeforeFive()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(4));
-			InsCpu.AddInterrupt(new DummyDevice(5));
-			Assert.AreEqual(4, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(4));
+			InsCpu.AddInterrupt(GetInterrupt(5));
+			Assert.AreEqual(4, InsCpu.CurrentInterruptLevel);
 		}
 
 		[TestMethod]
 		public void InterruptsPriorityZeroBeforeAnything()
 		{
-			InsCpu.AddInterrupt(new DummyDevice(1));
-			InsCpu.AddInterrupt(new DummyDevice(2));
-			InsCpu.AddInterrupt(new DummyDevice(3));
-			InsCpu.AddInterrupt(new DummyDevice(4));
-			InsCpu.AddInterrupt(new DummyDevice(5));
-			InsCpu.AddInterrupt(new DummyDevice(0));
-			Assert.AreEqual(0, InsCpu.Interrupt);
+			InsCpu.AddInterrupt(GetInterrupt(1));
+			InsCpu.AddInterrupt(GetInterrupt(2));
+			InsCpu.AddInterrupt(GetInterrupt(3));
+			InsCpu.AddInterrupt(GetInterrupt(4));
+			InsCpu.AddInterrupt(GetInterrupt(5));
+			InsCpu.AddInterrupt(GetInterrupt(0));
+			Assert.AreEqual(0, InsCpu.CurrentInterruptLevel);
 		}
 	}
 }

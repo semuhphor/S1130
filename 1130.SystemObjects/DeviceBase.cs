@@ -1,4 +1,6 @@
-﻿namespace S1130.SystemObjects
+﻿using S1130.SystemObjects.InterruptManagement;
+
+namespace S1130.SystemObjects
 {
 	public abstract class DeviceBase : IDevice
 	{
@@ -20,5 +22,7 @@
 		{
 			throw new System.NotImplementedException();
 		}
+
+		public Interrupt ActiveInterrupt { get; private set; }
 	}
 }
