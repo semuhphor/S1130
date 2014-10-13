@@ -1,4 +1,4 @@
-﻿namespace S1130.SystemObjects
+﻿namespace S1130.SystemObjects.InterruptManagement
 {
 	public abstract class InterruptingDeviceBase : DeviceBase, IInterruptingDevice
 	{
