@@ -19,7 +19,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			}
 
 			public byte DeviceCode { get { return 0x1f;  } }
-			public void ExecuteIocc(ICpu cpu, ushort ioccAddress)
+			public void ExecuteIocc(ICpu cpu)
 			{
 				throw new NotImplementedException();
 			}

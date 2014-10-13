@@ -18,7 +18,7 @@ namespace S1130.SystemObjects
 		}
 
 		public virtual byte DeviceCode { get; private set; }
-		public virtual void ExecuteIocc(ICpu cpu, ushort ioccAddress)
+		public virtual void ExecuteIocc(ICpu cpu)
 		{
 			throw new System.NotImplementedException();
 		}

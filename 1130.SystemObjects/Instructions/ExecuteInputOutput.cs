@@ -1,3 +1,5 @@
+using S1130.SystemObjects.Devices;
+
 namespace S1130.SystemObjects.Instructions
 {
 	public class ExecuteInputOuput : InstructionBase, IInstruction
@@ -5,10 +7,13 @@ namespace S1130.SystemObjects.Instructions
 		public OpCodes OpCode { get { return OpCodes.ExecuteInputOuput; } }
 		public string OpName { get { return "XIO"; } }
 
-		public void Execute(ICpu cpu)
+		public void Execute(ICpu cpu)										// execute XIO
 		{
-			var ioccAddr = (ushort) GetEffectiveAddress(cpu);
-			new ConsoleEntrySwitches().ExecuteIocc(cpu, ioccAddr);
+			cpu.IoccDecode(GetEffectiveAddress(cpu));							// Decode the IOCC
+			if (cpu.IoccDevice != null)											// q. device found?
+			{																	// a. yes ..
+				cpu.IoccDevice.ExecuteIocc(cpu);								// .. do what it says
+			}
 		}
 	}
 }

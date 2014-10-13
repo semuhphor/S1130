@@ -5,7 +5,7 @@ namespace S1130.SystemObjects
 	public interface IDevice
 	{
 		byte DeviceCode { get; }
-		void ExecuteIocc(ICpu cpu, ushort ioccAddress);
+		void ExecuteIocc(ICpu cpu);
 		Interrupt ActiveInterrupt{ get; }
 	}
 }

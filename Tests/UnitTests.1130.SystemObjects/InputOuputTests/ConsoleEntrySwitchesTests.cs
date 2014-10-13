@@ -1,6 +1,6 @@
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
+using S1130.SystemObjects.Devices;
 
 namespace UnitTests.S1130.SystemObjects.InputOuputTests
 {
@@ -21,7 +21,8 @@ namespace UnitTests.S1130.SystemObjects.InputOuputTests
 			var switches = new ConsoleEntrySwitches();
 			_cpu.ConsoleSwitches = 0x1234;
 			InstructionBuilder.BuildIoccAt(switches, DevFuction.Read, 0, 0x1000, _cpu, 0x500);
-			switches.ExecuteIocc(_cpu, 0x500);
+			_cpu.IoccDecode(0x500);
+			switches.ExecuteIocc(_cpu);
 			Assert.AreEqual(_cpu[0x1000], _cpu.ConsoleSwitches);
 		}
 	}

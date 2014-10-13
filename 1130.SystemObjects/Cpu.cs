@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.InterruptManagement;
 
 namespace S1130.SystemObjects
@@ -14,6 +16,7 @@ namespace S1130.SystemObjects
             MemorySize = DefaultMemorySize;										// size of memory
             Memory = new ushort[DefaultMemorySize];								// reserve the memory
             Xr = new IndexRegisters(this);										// setup index register shortcut
+	        IntPool = InterruptPool.GetInterruptPool();							// setup the interrupt pool
 			Instructions = InstructionSetBuilder.GetInstructionSet();			// instantiate the instruction set
 			_interruptQueues =  new ConcurrentQueue<Interrupt>[6]				// prepare interrupt queue	
 					{
@@ -25,12 +28,14 @@ namespace S1130.SystemObjects
 						new ConcurrentQueue<Interrupt>()						// Level 5 
 					};
 			_currentInterrupts = new ConcurrentStack<Interrupt>();				// stack for interrupts being served
-	        IntPool = InterruptPool.GetInterruptPool();							// setup the interrupt pool
+	        BuildDefaultDevices();												// .. initialize the devices
         }
 
- 	    public IInstruction[] Instructions { get; private set; }				// property for instruction set access 
+		public IInstruction[] Instructions { get; private set; }				// property for instruction set access 
 		public IInstruction CurrentInstruction { get; private set; }			// property for current instruction
 		public InterruptPool IntPool { get; private set; }						// property for the pool of interrupt objects
+		public IDevice[] Devices { get; private set; }							// property for devices on machine
+
 
 		public ushort[] Memory { get; set; }									// property for memory
 		public int MemorySize { get; set; }										// property for memory size
@@ -80,7 +85,7 @@ namespace S1130.SystemObjects
 		 */
 
 		public ConcurrentQueue<Interrupt>[] InterruptQueues { get { return _interruptQueues; } }	// Queue for interrupts
-		public ConcurrentStack<Interrupt> CurrentInterrupt { get { return _currentInterrupts; }  }	// Stack for interrupts being serviced
+		public ConcurrentStack<Interrupt> CurrentInterrupt { get { return _currentInterrupts; } }	// Stack for interrupts being serviced
 
 		public int? CurrentInterruptLevel									// Determine highestActive CurrentInterruptLevel
 		{
@@ -194,5 +199,41 @@ namespace S1130.SystemObjects
 			}
 			HandleInterrupt();													// .. handle any interrupt active
 	    }
+
+		/*
+		 * Device management
+		 */
+
+		public int IoccAddress { get; private set; }						// Address from IOCC
+		public int IoccDeviceCode { get; private set; }						// Device code from IOCC
+		public DevFuction IoccFunction { get; private set; }				// Function from IOCC
+		public int IoccModifiers { get; private set; }						// Modifier from IOCC
+		public IDevice IoccDevice { get; private set; }						// Device referenced
+
+		public bool AddDevice(IDevice device)								// Add device to system
+		{																		
+			if (Devices[device.DeviceCode] != null)								// q. device in use?
+			{																	// a. yes ..
+				return false;													// .. can't add now
+			}
+			Devices[device.DeviceCode] = device;								// otherwise ... add the device
+			return true;														// .. and tell 'em it worked
+		}
+
+		public void IoccDecode(int address)									// Decode an IOCC
+		{
+			IoccAddress = Memory[address++];									// get the memory address
+			ushort secondWord = Memory[address];								// then pull second word
+			IoccDeviceCode = (secondWord & 0xf800) >> 11;						// .. extract device code
+			IoccFunction = (DevFuction) ((secondWord & 0x0700) >> 8);			// .. extract function
+			IoccModifiers = secondWord & 0xff;									// .. and extract modifiers
+			IoccDevice = Devices[IoccDeviceCode];								// .. finally, get the device reference
+		}
+
+		private void BuildDefaultDevices()									// add default devices to system
+		{
+			Devices = new IDevice[32];											// init the device array
+			AddDevice(new ConsoleEntrySwitches());								// .. add console entry switches
+		}
     }
 }

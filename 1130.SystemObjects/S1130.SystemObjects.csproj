@@ -39,10 +39,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleEntrySwitches.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="DevFuction.cs" />
     <Compile Include="DeviceBase.cs" />
+    <Compile Include="Devices\ConsoleEntrySwitches.cs" />
     <Compile Include="IDevice.cs" />
     <Compile Include="IInputOutputSystem.cs" />
     <Compile Include="IInstruction.cs" />
