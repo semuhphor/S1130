@@ -129,7 +129,7 @@ namespace S1130.SystemObjects
 
 		public void HandleInterrupt()										// handle current interrupt
 		{
-			int? currentInterruptLevel = CurrentInterruptLevel;				// get current interrupt level
+			int? currentInterruptLevel = CurrentInterruptLevel;					// get current interrupt level
 			if (currentInterruptLevel.HasValue)									// q. interrupt active?
 			{																	// a. yes..
 				var interruptLevel = currentInterruptLevel.Value;				// .. save the interrupt number
@@ -152,6 +152,13 @@ namespace S1130.SystemObjects
 		public void ClearCurrentInterrupt()									// Clear current interrupt
 		{												
 			Interrupt interrupt;												// interrupting interrupt
+			if (CurrentInterrupt.TryPeek(out interrupt))						// q. interrupt in process?
+			{																	// a. yes ..
+				if (interrupt.CausingDevice.ActiveInterrupt == interrupt)		// q. is active interrupt current interrupt?
+				{																// a. yes .. 
+																				// .. leave it alone, let it re-interrupt.
+				}
+			}
 			if (CurrentInterrupt.TryPop(out interrupt))							// q. active interrupt available?
 			{																	// a. yes ...
 				InterruptQueues[interrupt.InterruptLevel].TryDequeue(out interrupt);	// remove it from the interrupt level queue

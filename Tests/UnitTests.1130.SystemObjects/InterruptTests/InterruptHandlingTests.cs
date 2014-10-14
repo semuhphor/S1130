@@ -113,6 +113,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			Assert.AreEqual(0x503, InsCpu.Iar);							// .. should still be in the routine 
 			Assert.AreEqual(0x001f, InsCpu.Acc);						// .. value returned by dummy device
 			Assert.IsNull(dummyDevice.ActiveInterrupt);					// .. interrupt should now be complete
+// ReSharper disable HeuristicUnreachableCode
 			Assert.IsTrue(interrupt.InBag);								// .. and interrupt returned to the bag
 			ExecuteOneInstruction();									// return from interrupt
 			Assert.AreEqual(0x101, InsCpu.Iar);							// .. should have returned from routine
@@ -122,6 +123,39 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			ExecuteOneInstruction();									// return from interrupt
 			Assert.AreEqual(0x102, InsCpu.Iar);							// .. should have executed wait
 			Assert.IsTrue(InsCpu.Wait);									// .. and in wait state
+// ReSharper restore HeuristicUnreachableCode
+		}
+
+		[TestMethod]
+		public void TestIfInterruptNotReset()
+		{
+			var dummyDevice = new DummyDevice();						// device causing interrupt
+			InsCpu.AddDevice(dummyDevice);								// .. add the device to the system.
+			InstructionBuilder.BuildIoccAt(dummyDevice, DevFuction.SenseDevice, 0, 1, InsCpu, 0x400);				// iocc to sense & NOT reset the dummy device
+			InsCpu[Constants.InterruptVectors[4]] = 0x500;															// set the interrupt vector
+			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 0, InsCpu, 0x100);							// build a NOOP instruction
+			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, InsCpu, 0x101);								// .. then wait
+			InstructionBuilder.BuildLongAtAddress(OpCodes.ExecuteInputOuput, 0, 0x400, InsCpu, 0x501);				// XIO to sense, NOT reset device
+			InstructionBuilder.BuildLongIndirectBranchAtAddress(OpCodes.BranchSkip, 0, 0x40, 0x500, InsCpu, 0x503); // .. and the return from interrupt
+			dummyDevice.GetInterrupt(InsCpu, 4);						// start the interrupt
+			Assert.AreEqual(0x100, InsCpu.Iar);							// not in routine
+			ExecuteOneInstruction();									// execute first noop...
+			Assert.AreEqual(0x501, InsCpu.Iar);							// .. should be in the routine 
+			Assert.IsNotNull(dummyDevice.ActiveInterrupt);				// .. interrupt should not be complete
+			var interrupt = dummyDevice.ActiveInterrupt;				// .. (save the interrupt)
+			Assert.IsFalse(dummyDevice.ActiveInterrupt.InBag);			// .. should not be pooled
+			Assert.AreEqual(InsCpu[0x500], 0x101);						// .. return should be stored now
+			ExecuteOneInstruction();									// execute handler XIO ...
+			Assert.AreEqual(0x503, InsCpu.Iar);							// .. should still be in the routine 
+			Assert.AreEqual(0x001f, InsCpu.Acc);						// .. value returned by dummy device
+			Assert.IsNotNull(dummyDevice.ActiveInterrupt);				// .. interrupt should not be complete
+			Assert.IsFalse(interrupt.InBag);							// .. and interrupt still out in the wild
+			ExecuteOneInstruction();									// return from interrupt
+			Assert.AreEqual(0x501, InsCpu.Iar);							// .. should be back in the routine
+			Assert.AreEqual(4, InsCpu.CurrentInterruptLevel);			// .. interrupt active
+			Assert.IsFalse(InsCpu.InterruptQueues[4].IsEmpty);			// .. no device on interrupt 4
+			Assert.IsFalse(InsCpu.CurrentInterrupt.IsEmpty);			// .. and none currently active
+			ExecuteOneInstruction();									// return from interrupt
 		}
 	}
 }

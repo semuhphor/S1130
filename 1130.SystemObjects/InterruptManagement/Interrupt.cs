@@ -16,6 +16,7 @@
 			InterruptLevel = interruptLevel;
 			CausingDevice = deviceCausingInterrupt;
 			InterruptLevelStatusWord = interruptLevelStatusWord;
+			InBag = false;
 			return this;
 		}
 
