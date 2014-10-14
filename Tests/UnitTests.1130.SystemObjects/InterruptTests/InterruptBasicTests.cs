@@ -55,15 +55,6 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		}
 
 		[TestMethod]
-		public void InterruptOutsideRangeIgnored()
-		{
-			InsCpu.AddInterrupt(GetInterrupt(-1));
-			Assert.IsNull(InsCpu.CurrentInterruptLevel);
-			InsCpu.AddInterrupt(GetInterrupt(6));
-			Assert.IsNull(InsCpu.CurrentInterruptLevel);
-		}
-
-		[TestMethod]
 		public void InterruptsPriorityFourBeforeFive()
 		{
 			InsCpu.AddInterrupt(GetInterrupt(4));

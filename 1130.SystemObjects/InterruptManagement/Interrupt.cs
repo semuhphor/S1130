@@ -2,30 +2,28 @@
 {
 	public class Interrupt
 	{
-		private bool _inBag = false;
-
 		internal Interrupt()
 		{
 		}
 
 		public int InterruptLevel { get; private set; }
-		public int InterruptLevelStatusWord { get; private set; }
+		public ushort InterruptLevelStatusWord { get; private set; }
 		public IDevice CausingDevice { get; private set; }
+		public bool InBag { get; private set; }
 
-		internal Interrupt Setup(int interruptLevel, IDevice deviceCausingInterrupt, int interruptLevelStatusWord)
+		internal Interrupt Setup(int interruptLevel, IDevice deviceCausingInterrupt, ushort interruptLevelStatusWord)
 		{
 			InterruptLevel = interruptLevel;
 			CausingDevice = deviceCausingInterrupt;
 			InterruptLevelStatusWord = interruptLevelStatusWord;
-			_inBag = false;
 			return this;
 		}
 
 		internal void BagMe()
 		{
-			if (!_inBag)
+			if (!InBag)
 			{
-				_inBag = true;
+				InBag = true;
 				InterruptPool.GetInterruptPool().Add(this);
 			}
 		}

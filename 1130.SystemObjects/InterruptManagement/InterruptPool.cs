@@ -22,7 +22,7 @@ namespace S1130.SystemObjects.InterruptManagement
 			return _interruptPool;
 		}
 
-		public Interrupt GetInterrupt(int interruptLevel, IDevice deviceCausingInterrupt, int interruptLevelStatusWord )
+		public Interrupt GetInterrupt(int interruptLevel, IDevice deviceCausingInterrupt, ushort interruptLevelStatusWord )
 		{
 			Interrupt item;
 			if (_interrupts.TryTake(out item)) return item.Setup(interruptLevel, deviceCausingInterrupt, interruptLevelStatusWord);
