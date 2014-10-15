@@ -13,7 +13,7 @@ namespace S1130.SystemObjects.InterruptManagement
 			_interrupts = new ConcurrentBag<Interrupt>();
 		}
 
-		public static InterruptPool GetInterruptPool()
+		public static InterruptPool GetPool()
 		{
 			if (_interruptPool == null)
 			{
@@ -38,6 +38,8 @@ namespace S1130.SystemObjects.InterruptManagement
 		{
 			_interrupts.Add(item);
 		}
+
+		public int Count { get { return _interrupts.Count; } }
 	}
 }
 

@@ -11,7 +11,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		public void HandlesInterruptCorrectly()
 		{
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;				// set the interrupt vector
-			InsCpu.InterruptQueues[4].Enqueue(GetInterrupt(4));			// set up the interrupting device
+			InsCpu.AddInterrupt(GetInterrupt(4));						// set up the interrupting device
 			InsCpu.HandleInterrupt();									// handle the interrupt
 			Assert.AreEqual(0x501, InsCpu.Iar);							// .. should be in first word of handler
 			Assert.AreEqual(0x100, InsCpu[0x500]);						// .. and return address should be set.
@@ -30,9 +30,11 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		{
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;				// set the interrupt vector
 			InsCpu[Constants.InterruptVectors[2]] = 0x600;				// set the interrupt vector
-			InsCpu.InterruptQueues[4].Enqueue(GetInterrupt(4));			// set up the interrupting device
+			var interrupt4 = GetInterrupt(4);							// setup level 4 interrupt
+			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. should be one interrupt active
 			InsCpu.HandleInterrupt();									// handle the interrupt
-			InsCpu.InterruptQueues[2].Enqueue(GetInterrupt(2));			// set up the interrupting device
+			var dev4 = GetInterrupt(2);									// set up level 2 interrupt
+			Assert.AreEqual(2, InsCpu.ActiveInterruptCount);			// .. should be one interrupt active
 			InsCpu.HandleInterrupt();									// handle the interrupt
 			Assert.AreEqual(0x601, InsCpu.Iar);							// .. should be in first word of handler
 			Assert.AreEqual(0x100, InsCpu[0x500]);						// .. and level 5 return address should be set.
@@ -44,9 +46,9 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		{
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;				// set the interrupt vector
 			InsCpu[Constants.InterruptVectors[2]] = 0x600;				// set the interrupt vector
-			InsCpu.InterruptQueues[2].Enqueue(GetInterrupt(2));			// set up the interrupting device
+			InsCpu.AddInterrupt(GetInterrupt(2));						// set up the interrupting device
 			InsCpu.HandleInterrupt();									// handle the interrupt
-			InsCpu.InterruptQueues[4].Enqueue(GetInterrupt(4));			// set up the interrupting device
+			InsCpu.AddInterrupt(GetInterrupt(4));						// set up the interrupting device
 			InsCpu.HandleInterrupt();									// handle the interrupt
 			Assert.AreEqual(0x601, InsCpu.Iar);							// .. should be in first word of level 2 handler
 			Assert.AreEqual(0x000, InsCpu[0x500]);						// .. and nothing should be in level 4 return.
@@ -59,10 +61,10 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			var dev4 = new DummyDevice();								// build first device
 			Assert.IsTrue(InsCpu.AddDevice(dev4));						// .. add to cpu
 			var interrupt = dev4.GetInterrupt(InsCpu, 4);				// Enqueue new interrupt
-			InsCpu.HandleInterrupt();									// handle the interrupt
+			InsCpu.HandleInterrupt();									// .. handle the interrupt
 			Assert.IsNotNull(interrupt.CausingDevice.ActiveInterrupt);	// .. device still shows interrupt not complete
-			InsCpu.ClearCurrentInterrupt();								// now clear it (ignore BOSC... that's 1130 processing)
-			Assert.IsNotNull(interrupt.CausingDevice.ActiveInterrupt);	// .. interrupt still not complete (XIO Required for this.)
+			dev4.ClearActiveInterrupt();								// reset interruptint device
+			InsCpu.ClearCurrentInterrupt();								// .. now clear it (ignore BOSC... that's 1130 processing)
 			Assert.IsNull(InsCpu.CurrentInterruptLevel);				// .. no interrupt active
 			Assert.IsTrue(InsCpu.InterruptQueues[4].IsEmpty);			// .. no device on interrupt 4
 			Assert.IsTrue(InsCpu.CurrentInterrupt.IsEmpty);				// .. and none currently active
@@ -74,20 +76,29 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			var dev4 = new DummyDevice();								// build first device
 			Assert.IsTrue(InsCpu.AddDevice(dev4));						// .. add to cpu
 			dev4.GetInterrupt(InsCpu, 4);								// Enqueue new interrupt
+			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
 			InsCpu.HandleInterrupt();									// handle the interrupt
 			var dev2 = new DummyDevice(0x1e);							// build first device, different address
 			Assert.IsTrue(InsCpu.AddDevice(dev2));						// .. add to cpu
 			dev2.GetInterrupt(InsCpu, 2);								// Enqueue new interrupt
+			Assert.AreEqual(2, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
 			InsCpu.HandleInterrupt();									// handle the interrupt
+			Assert.AreEqual(2, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
 			Assert.AreEqual(2, InsCpu.CurrentInterrupt.Count);			// .. and both on interrupt stack
-			InsCpu.ClearCurrentInterrupt();								// should clear level 2
+			dev2.ClearActiveInterrupt();								// reset int 2 device (like XIO SENSE DEVICE)
+			Assert.AreEqual(2, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
+			InsCpu.ClearCurrentInterrupt();								// ... should clear level 2
+			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
 			Assert.AreEqual(1, InsCpu.CurrentInterrupt.Count);			// .. and only one currently active
 			Assert.AreEqual(4, InsCpu.CurrentInterruptLevel);			// .. level 4 still active
 			Assert.IsTrue(InsCpu.InterruptQueues[2].IsEmpty);			// .. no device on interrupt 2
-			InsCpu.ClearCurrentInterrupt();								// now clear level 4 (ignore BOSC... that's 1130 processing)
+			dev4.ClearActiveInterrupt();								// reset int 4 device ...
+			InsCpu.ClearCurrentInterrupt();								// .. now clear level 4 (ignore BOSC... that's 1130 processing)
+			Assert.AreEqual(0, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
 			Assert.IsNull(InsCpu.CurrentInterruptLevel);				// .. no interrupt active
 			Assert.IsTrue(InsCpu.InterruptQueues[4].IsEmpty);			// .. no device on interrupt 4
 			Assert.IsTrue(InsCpu.CurrentInterrupt.IsEmpty);				// .. and none currently active
+			Assert.AreEqual(2, InsCpu.IntPool.Count);					// .. and two ints should be in the bag
 		}
 
 		[TestMethod]
@@ -114,8 +125,9 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			Assert.AreEqual(0x001f, InsCpu.Acc);						// .. value returned by dummy device
 			Assert.IsNull(dummyDevice.ActiveInterrupt);					// .. interrupt should now be complete
 // ReSharper disable HeuristicUnreachableCode
-			Assert.IsTrue(interrupt.InBag);								// .. and interrupt returned to the bag
+			Assert.IsFalse(interrupt.InBag);							// .. and interrupt not yet returned to the bag
 			ExecuteOneInstruction();									// return from interrupt
+			Assert.IsTrue(interrupt.InBag);								// .. and interrupt now returned to the bag
 			Assert.AreEqual(0x101, InsCpu.Iar);							// .. should have returned from routine
 			Assert.IsNull(InsCpu.CurrentInterruptLevel);				// .. no interrupt active
 			Assert.IsTrue(InsCpu.InterruptQueues[4].IsEmpty);			// .. no device on interrupt 4
@@ -155,7 +167,19 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			Assert.AreEqual(4, InsCpu.CurrentInterruptLevel);			// .. interrupt active
 			Assert.IsFalse(InsCpu.InterruptQueues[4].IsEmpty);			// .. no device on interrupt 4
 			Assert.IsFalse(InsCpu.CurrentInterrupt.IsEmpty);			// .. and none currently active
+			ExecuteOneInstruction();									// sense device .. no reset
 			ExecuteOneInstruction();									// return from interrupt
+			Assert.AreEqual(0x501, InsCpu.Iar);							// .. should be back in the routine
+			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. interrupt still active
+			ExecuteOneInstruction();									// sense device .. no reset
+			ExecuteOneInstruction();									// return from interrupt
+			Assert.AreEqual(0x501, InsCpu.Iar);							// .. should be back in the routine
+			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. interrupt still active
+			InsCpu[0x401] |= 1;											// make the sense device reset the interrupt
+			ExecuteOneInstruction();									// sense device .. no reset
+			ExecuteOneInstruction();									// return from interrupt
+			Assert.AreEqual(0x101, InsCpu.Iar);							// .. should be back in the routine
+			Assert.AreEqual(0, InsCpu.ActiveInterruptCount);			// .. interrupt still active
 		}
 	}
 }

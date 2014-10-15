@@ -7,17 +7,16 @@ namespace S1130.SystemObjects
 	{
 		public virtual byte DeviceCode { get; private set; }
 		public abstract void ExecuteIocc(ICpu cpu);
-		public Interrupt ActiveInterrupt { get; private set; }
+		public Interrupt ActiveInterrupt { get; protected set; }
 
 		protected void ActivateInterrupt(ICpu cpu, int interruptLevel, ushort interruptLevelStatusWord)
 		{
 			ActiveInterrupt = cpu.IntPool.GetInterrupt(interruptLevel, this, interruptLevelStatusWord);
-			cpu.InterruptQueues[interruptLevel].Enqueue(ActiveInterrupt);
+			cpu.AddInterrupt(ActiveInterrupt);
 		}
 
 		protected void DeactivateInterrupt(ICpu cpu)
 		{
-			cpu.IntPool.PutInterrupt(ActiveInterrupt);
 			ActiveInterrupt = null;
 		}
 	}

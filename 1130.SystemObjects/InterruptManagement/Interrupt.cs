@@ -25,7 +25,7 @@
 			if (!InBag)
 			{
 				InBag = true;
-				InterruptPool.GetInterruptPool().Add(this);
+				InterruptPool.GetPool().Add(this);
 			}
 		}
 	}

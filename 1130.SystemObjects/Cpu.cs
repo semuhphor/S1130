@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.InterruptManagement;
 
@@ -10,13 +11,14 @@ namespace S1130.SystemObjects
         public const int DefaultMemorySize = 32768;								// default size of memory 
 		private readonly ConcurrentQueue<Interrupt>[] _interruptQueues;			// queues for active interrupts
 		private readonly ConcurrentStack<Interrupt> _currentInterrupts;			// stack of interrupts being serviced
-		
+		private int _activeInterruptCount = 0;									// number of interrupts active
+
         public Cpu()														// System State constructor
         {
             MemorySize = DefaultMemorySize;										// size of memory
             Memory = new ushort[DefaultMemorySize];								// reserve the memory
             Xr = new IndexRegisters(this);										// setup index register shortcut
-	        IntPool = InterruptPool.GetInterruptPool();							// setup the interrupt pool
+	        IntPool = InterruptPool.GetPool();							// setup the interrupt pool
 			Instructions = InstructionSetBuilder.GetInstructionSet();			// instantiate the instruction set
 			_interruptQueues =  new ConcurrentQueue<Interrupt>[6]				// prepare interrupt queue	
 					{
@@ -87,6 +89,8 @@ namespace S1130.SystemObjects
 		public ConcurrentQueue<Interrupt>[] InterruptQueues { get { return _interruptQueues; } }	// Queue for interrupts
 		public ConcurrentStack<Interrupt> CurrentInterrupt { get { return _currentInterrupts; } }	// Stack for interrupts being serviced
 
+		public int ActiveInterruptCount { get { return _activeInterruptCount; } }					// number of interrupts currently active
+
 		public int? CurrentInterruptLevel									// Determine highestActive CurrentInterruptLevel
 		{
 			get
@@ -108,6 +112,7 @@ namespace S1130.SystemObjects
 			if (interruptLevel >= 0 && interruptLevel <= 5)						// q. CurrentInterruptLevel level in range?
 			{																	// a. yes .. 
 				_interruptQueues[interruptLevel].Enqueue(interrupt);			// .. queue the interrupt
+				Interlocked.Increment(ref _activeInterruptCount);				// .. add number active
 			}
 		}
 
@@ -129,39 +134,40 @@ namespace S1130.SystemObjects
 
 		public void HandleInterrupt()										// handle current interrupt
 		{
-			int? currentInterruptLevel = CurrentInterruptLevel;					// get current interrupt level
-			if (currentInterruptLevel.HasValue)									// q. interrupt active?
-			{																	// a. yes..
-				var interruptLevel = currentInterruptLevel.Value;				// .. save the interrupt number
-				if (!ShouldHandleInterrupt(interruptLevel))						// q. should the interrupt be handled?
-				{																// a. no..
-					return;														// .. don't handle it.
-				}
-				var intVector = Constants.InterruptVectors[interruptLevel];		// get the vector 
-				Interrupt interrupt;											// .. and a place for the interrupt
-				if (_interruptQueues[interruptLevel].TryPeek(out interrupt))	// q. found interrupt causing interrupt?
+			if (_activeInterruptCount != 0)										// q. any interrupts active?
+			{																	// a. yes...
+				int? currentInterruptLevel = CurrentInterruptLevel;				// get current interrupt level
+				if (currentInterruptLevel.HasValue)								// q. did we get the value?
 				{																// a. yes..
-					CurrentInterrupt.Push(interrupt);							// .. push it as current interrupt	
-					var addressOfInterruptHandler = Memory[intVector];			// .. get the address of the handler
-					Memory[addressOfInterruptHandler] = Iar;					// .. save the current IAR return address
-					Iar = (ushort) (addressOfInterruptHandler + 1);				// .. and go to the interrupt handler
-				}																	
+					var interruptLevel = currentInterruptLevel.Value;			// .. save the interrupt number
+					if (!ShouldHandleInterrupt(interruptLevel))					// q. should the interrupt be handled?
+					{															// a. no..
+						return;													// .. don't handle it.
+					}
+					var intVector = Constants.InterruptVectors[interruptLevel];	// get the vector 
+					Interrupt interrupt;										// .. and a place for the interrupt
+					if (_interruptQueues[interruptLevel].TryPeek(out interrupt))// q. found interrupt causing interrupt?
+					{															// a. yes..
+						CurrentInterrupt.Push(interrupt);						// .. push it as current interrupt	
+						var addressOfInterruptHandler = Memory[intVector];		// .. get the address of the handler
+						Memory[addressOfInterruptHandler] = Iar;				// .. save the current IAR return address
+						Iar = (ushort) (addressOfInterruptHandler + 1);			// .. and go to the interrupt handler
+					}
+				}
 			}
 		}
 
 		public void ClearCurrentInterrupt()									// Clear current interrupt
 		{												
-			Interrupt interrupt;												// interrupting interrupt
-			if (CurrentInterrupt.TryPeek(out interrupt))						// q. interrupt in process?
-			{																	// a. yes ..
-				if (interrupt.CausingDevice.ActiveInterrupt == interrupt)		// q. is active interrupt current interrupt?
-				{																// a. yes .. 
-																				// .. leave it alone, let it re-interrupt.
-				}
-			}
-			if (CurrentInterrupt.TryPop(out interrupt))							// q. active interrupt available?
+			Interrupt intr;														// interrupting interrupt
+			if (CurrentInterrupt.TryPop(out intr))								// q. active interrupt available?
 			{																	// a. yes ...
-				InterruptQueues[interrupt.InterruptLevel].TryDequeue(out interrupt);	// remove it from the interrupt level queue
+				if (intr.CausingDevice.ActiveInterrupt != intr)					// q. is this interrupt still on device?
+				{																// a. no ..
+					_interruptQueues[intr.InterruptLevel].TryDequeue(out intr);	// .. remove from interrupt queue
+					IntPool.PutInterrupt(intr);									// .. return to the pool
+					Interlocked.Decrement(ref _activeInterruptCount);			// .. and decrement number of active interrupts
+				}
 			}
 		}
 

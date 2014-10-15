@@ -40,6 +40,7 @@ namespace S1130.SystemObjects
 		void ExecuteInstruction();
 		ConcurrentQueue<Interrupt>[] InterruptQueues { get; }
 		ConcurrentStack<Interrupt> CurrentInterrupt { get; }
+		int ActiveInterruptCount { get; }
 
 		int IoccAddress { get; }
 		int IoccDeviceCode { get; }
@@ -49,5 +50,5 @@ namespace S1130.SystemObjects
 		IDevice IoccDevice { get; }
 
 		bool AddDevice(IDevice device);
-    }
+	}
 }

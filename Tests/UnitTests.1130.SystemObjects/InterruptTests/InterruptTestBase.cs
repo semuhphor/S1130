@@ -38,6 +38,11 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 				base.ActivateInterrupt(cpu, level, 0x1f);
 				return ActiveInterrupt;
 			}
+
+			public void ClearActiveInterrupt()
+			{
+				ActiveInterrupt = null;
+			}
 		}
 
 		[TestInitialize]
