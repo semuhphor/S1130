@@ -5,7 +5,7 @@ namespace S1130.SystemObjects
 {
 	public abstract class DeviceBase : IDevice
 	{
-		public virtual byte DeviceCode { get; private set; }
+		public abstract byte DeviceCode { get; }
 		public abstract void ExecuteIocc(ICpu cpu);
 		public Interrupt ActiveInterrupt { get; protected set; }
 

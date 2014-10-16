@@ -43,6 +43,7 @@
     <Compile Include="DevFuction.cs" />
     <Compile Include="DeviceBase.cs" />
     <Compile Include="Devices\ConsoleEntrySwitches.cs" />
+    <Compile Include="Devices\Device2501.cs" />
     <Compile Include="IDevice.cs" />
     <Compile Include="IInputOutputSystem.cs" />
     <Compile Include="IInstruction.cs" />
