@@ -8,12 +8,14 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 	public class Device2501Tests : DeviceTestBase
 	{
 		private Device2501 _2501;
+		private Deck _deck;
 
 		[TestInitialize]
 		public override void BeforeEachTest()
 		{
 			base.BeforeEachTest();
 			_2501 = new Device2501(InsCpu);
+			_deck = new Deck() + new [] { new Card(), new Card()};
 		}
 
 		[TestMethod]
@@ -32,8 +34,20 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		}
 
 		[TestMethod]
+		public void ShouldReturnReadyWithCards()
+		{
+			_2501 += _deck;
+			InsCpu.IoccDeviceCode = _2501.DeviceCode;
+			InsCpu.IoccFunction = DevFunction.SenseDevice;
+			_2501.ExecuteIocc();
+			Assert.AreEqual(0, InsCpu.Acc);
+		}
+
+		[TestMethod]
 		public void CardsShouldGoIntoHopper()
 		{
+			_2501 += _deck; 
+			Assert.AreEqual(2, _2501.Hopper.Count);
 		}
 	}
 }

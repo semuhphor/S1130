@@ -42,11 +42,17 @@ namespace S1130.SystemObjects.Devices
 			switch (CpuInstance.IoccFunction)
 			{
 				case DevFunction.SenseDevice:
-					CpuInstance.Acc = NotReadyOrBusyStatus;
+					CpuInstance.Acc = (ushort) (Hopper.IsEmpty ? CpuInstance.Acc = NotReadyOrBusyStatus : 0);
 					break;
 				case DevFunction.InitRead:
 					break;
 			}
+		}
+
+		public static Device2501 operator +(Device2501 cr, Deck deck)
+		{
+			deck.Cards.ForEach(c => cr.Hopper.Enqueue(c));
+			return cr;
 		}
 	}
 }
