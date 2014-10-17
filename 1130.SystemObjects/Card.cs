@@ -6,6 +6,12 @@
 		{
 			Columns = new ushort[80];
 		}
+
+		public Card(string columns)
+		{
+			
+		}
+
 		public ushort[] Columns { get; set; }
 
 		public ushort this[int columnIndex]
