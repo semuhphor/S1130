@@ -13,7 +13,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOuput, 0, 0x11);
 			InsCpu.NextInstruction();
-			InstructionBuilder.BuildIoccAt(new ConsoleEntrySwitches(), DevFuction.Read,0,0x500, InsCpu, 0x112);
+			InstructionBuilder.BuildIoccAt(new ConsoleEntrySwitches(InsCpu), DevFunction.Read,0,0x500, InsCpu, 0x112);
 			InsCpu.ConsoleSwitches = 0x4321;
 			InsCpu.ExecuteInstruction();
 			Assert.AreEqual(0x4321, InsCpu[0x500]);

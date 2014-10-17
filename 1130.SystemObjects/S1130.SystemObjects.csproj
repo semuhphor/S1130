@@ -40,7 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
-    <Compile Include="DevFuction.cs" />
+    <Compile Include="DevFunction.cs" />
     <Compile Include="DeviceBase.cs" />
     <Compile Include="Devices\ConsoleEntrySwitches.cs" />
     <Compile Include="Devices\Device2501.cs" />
@@ -76,6 +76,7 @@
     <Compile Include="Instructions\Wait.cs" />
     <Compile Include="ICpu.cs" />
     <Compile Include="Instructions\LoadDouble.cs" />
+    <Compile Include="ICard.cs" />
     <Compile Include="InterruptManagement\Interrupt.cs" />
     <Compile Include="InterruptManagement\InterruptPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

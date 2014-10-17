@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using S1130.SystemObjects;
 
 namespace UnitTests.S1130.SystemObjects.InterruptTests
 {

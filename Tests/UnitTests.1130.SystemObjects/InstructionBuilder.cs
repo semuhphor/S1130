@@ -50,7 +50,7 @@ namespace UnitTests.S1130.SystemObjects
 			cpu[address + 1] = displacement;
 		}
 
-	    public static void BuildIoccAt(IDevice device, DevFuction func, byte modifier, ushort memAddr, ICpu cpu, ushort ioccAddr)
+	    public static void BuildIoccAt(IDevice device, DevFunction func, byte modifier, ushort memAddr, ICpu cpu, ushort ioccAddr)
 	    {
 		    cpu[ioccAddr++] = memAddr;
 			cpu[ioccAddr] = (ushort) ((((device.DeviceCode & 0x1f) << 11) | (((int)func & 0x7) << 8) | modifier) & 0xffff);

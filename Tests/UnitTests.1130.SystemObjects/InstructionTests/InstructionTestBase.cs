@@ -9,7 +9,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
     public abstract class InstructionTestBase
     {
 	    private const ushort U1 = 1;
-        protected Cpu InsCpu;
+        protected ICpu InsCpu;
 		private readonly Random _rand = new Random();
 
 	    protected int GetOffsetFor(int x)

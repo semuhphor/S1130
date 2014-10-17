@@ -18,11 +18,11 @@ namespace UnitTests.S1130.SystemObjects.InputOuputTests
 		[TestMethod]
 		public void ConsoleEntrySwitches_Read()
 		{
-			var switches = new ConsoleEntrySwitches();
+			var switches = new ConsoleEntrySwitches(_cpu);
 			_cpu.ConsoleSwitches = 0x1234;
-			InstructionBuilder.BuildIoccAt(switches, DevFuction.Read, 0, 0x1000, _cpu, 0x500);
+			InstructionBuilder.BuildIoccAt(switches, DevFunction.Read, 0, 0x1000, _cpu, 0x500);
 			_cpu.IoccDecode(0x500);
-			switches.ExecuteIocc(_cpu);
+			switches.ExecuteIocc();
 			Assert.AreEqual(_cpu[0x1000], _cpu.ConsoleSwitches);
 		}
 	}

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.InterruptManagement;
@@ -11,16 +10,16 @@ namespace S1130.SystemObjects
         public const int DefaultMemorySize = 32768;								// default size of memory 
 		private readonly ConcurrentQueue<Interrupt>[] _interruptQueues;			// queues for active interrupts
 		private readonly ConcurrentStack<Interrupt> _currentInterrupts;			// stack of interrupts being serviced
-		private int _activeInterruptCount = 0;									// number of interrupts active
+		private int _activeInterruptCount;										// number of interrupts active
 
         public Cpu()														// System State constructor
         {
             MemorySize = DefaultMemorySize;										// size of memory
             Memory = new ushort[DefaultMemorySize];								// reserve the memory
             Xr = new IndexRegisters(this);										// setup index register shortcut
-	        IntPool = InterruptPool.GetPool();							// setup the interrupt pool
+	        IntPool = InterruptPool.GetPool();									// setup the interrupt pool
 			Instructions = InstructionSetBuilder.GetInstructionSet();			// instantiate the instruction set
-			_interruptQueues =  new ConcurrentQueue<Interrupt>[6]				// prepare interrupt queue	
+			_interruptQueues =  new[]											// prepare interrupt queue	
 					{
 						new ConcurrentQueue<Interrupt>(),						// Level 0 
 						new ConcurrentQueue<Interrupt>(),						// Level 1  
@@ -46,7 +45,7 @@ namespace S1130.SystemObjects
         public ushort Ext { get; set; }											// property for Accumulator Extension
 		public bool Carry { get; set; }											// property for Carry indicator
 		public bool Overflow { get; set; }										// property for Overflow indicator
-		public bool Wait { get; set; }											// property for Wait state
+		public bool Wait { get; set; }											// property for Wait state 
 
 		public ushort this[int address]											// c# indexer to access memory
 		{
@@ -217,11 +216,11 @@ namespace S1130.SystemObjects
 		 * Device management
 		 */
 
-		public int IoccAddress { get; private set; }						// Address from IOCC
-		public int IoccDeviceCode { get; private set; }						// Device code from IOCC
-		public DevFuction IoccFunction { get; private set; }				// Function from IOCC
-		public int IoccModifiers { get; private set; }						// Modifier from IOCC
-		public IDevice IoccDevice { get; private set; }						// Device referenced
+		public int IoccAddress { get; set; }								// Address from IOCC
+		public int IoccDeviceCode { get; set; }								// Device code from IOCC
+		public DevFunction IoccFunction { get; set; }						// Function from IOCC
+		public int IoccModifiers { get; set; }								// Modifier from IOCC
+		public IDevice IoccDevice { get; set; }								// Device referenced
 
 		public bool AddDevice(IDevice device)								// Add device to system
 		{																		
@@ -238,7 +237,7 @@ namespace S1130.SystemObjects
 			IoccAddress = Memory[address++];									// get the memory address
 			ushort secondWord = Memory[address];								// then pull second word
 			IoccDeviceCode = (secondWord & 0xf800) >> 11;						// .. extract device code
-			IoccFunction = (DevFuction) ((secondWord & 0x0700) >> 8);			// .. extract function
+			IoccFunction = (DevFunction) ((secondWord & 0x0700) >> 8);			// .. extract function
 			IoccModifiers = secondWord & 0xff;									// .. and extract modifiers
 			IoccDevice = Devices[IoccDeviceCode];								// .. finally, get the device reference
 		}
@@ -246,7 +245,7 @@ namespace S1130.SystemObjects
 		private void BuildDefaultDevices()									// add default devices to system
 		{
 			Devices = new IDevice[32];											// init the device array
-			AddDevice(new ConsoleEntrySwitches());								// .. add console entry switches
+			AddDevice(new ConsoleEntrySwitches(this));								// .. add console entry switches
 		}
     }
 }

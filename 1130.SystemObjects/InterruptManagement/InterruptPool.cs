@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using S1130.SystemObjects.Instructions;
 
 namespace S1130.SystemObjects.InterruptManagement
 {

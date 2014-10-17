@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using FakeItEasy;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
 using S1130.SystemObjects.InterruptManagement;
 
@@ -14,28 +11,29 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 
 		protected class DummyDevice : DeviceBase
 		{
-			public DummyDevice(byte deviceCode = 0x1f)
+			public DummyDevice(ICpu cpu, byte deviceCode = 0x1f)
 			{
 				_deviceCode = deviceCode;
+				CpuInstance = cpu;
 			}
 			private readonly byte _deviceCode = 0x1f;
 			public override byte DeviceCode { get { return _deviceCode;  } }
-			public override void ExecuteIocc(ICpu cpu)
+			public override void ExecuteIocc()
 			{
-				switch (cpu.IoccFunction)
+				switch (CpuInstance.IoccFunction)
 				{
-					case DevFuction.SenseDevice:
-						if ((cpu.IoccModifiers & 1) != 0)
+					case DevFunction.SenseDevice:
+						if ((CpuInstance.IoccModifiers & 1) != 0)
 						{
-							DeactivateInterrupt(cpu);
+							DeactivateInterrupt(CpuInstance);
 						}
-						cpu.Acc = DeviceCode;
+						CpuInstance.Acc = DeviceCode;
 						break;
 				}
 			}
 			public Interrupt GetInterrupt(ICpu cpu, int level)
 			{
-				base.ActivateInterrupt(cpu, level, 0x1f);
+				ActivateInterrupt(cpu, level, 0x1f);
 				return ActiveInterrupt;
 			}
 
@@ -59,7 +57,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 
 		protected Interrupt GetInterrupt(int level)
 		{
-			return new DummyDevice().GetInterrupt(InsCpu, level);
+			return new DummyDevice(InsCpu).GetInterrupt(InsCpu, level);
 		}
 	}
 }

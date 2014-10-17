@@ -31,6 +31,8 @@ namespace S1130.SystemObjects
 		bool Carry { get; set; }
 		bool Overflow { get; set; }
 		bool Wait { get; set; }
+		ushort AtIar { get; set; }
+
 		int? CurrentInterruptLevel { get; }
 		void AddInterrupt(Interrupt interrupt);
 		void HandleInterrupt();
@@ -42,12 +44,12 @@ namespace S1130.SystemObjects
 		ConcurrentStack<Interrupt> CurrentInterrupt { get; }
 		int ActiveInterruptCount { get; }
 
-		int IoccAddress { get; }
-		int IoccDeviceCode { get; }
-		DevFuction IoccFunction { get; }
-		int IoccModifiers { get; }
+		int IoccAddress { get; set; }
+		int IoccDeviceCode { get; set; }
+		DevFunction IoccFunction { get; set; }
+		int IoccModifiers { get; set; }
 	    void IoccDecode(int address);
-		IDevice IoccDevice { get; }
+		IDevice IoccDevice { get; set; }
 
 		bool AddDevice(IDevice device);
 	}

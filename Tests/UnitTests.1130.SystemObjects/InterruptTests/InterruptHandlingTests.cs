@@ -30,10 +30,10 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		{
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;				// set the interrupt vector
 			InsCpu[Constants.InterruptVectors[2]] = 0x600;				// set the interrupt vector
-			var interrupt4 = GetInterrupt(4);							// setup level 4 interrupt
+			GetInterrupt(4);
 			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. should be one interrupt active
 			InsCpu.HandleInterrupt();									// handle the interrupt
-			var dev4 = GetInterrupt(2);									// set up level 2 interrupt
+			GetInterrupt(2);
 			Assert.AreEqual(2, InsCpu.ActiveInterruptCount);			// .. should be one interrupt active
 			InsCpu.HandleInterrupt();									// handle the interrupt
 			Assert.AreEqual(0x601, InsCpu.Iar);							// .. should be in first word of handler
@@ -58,7 +58,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestMethod]
 		public void ShouldClearOutCurrentInterrupt()
 		{
-			var dev4 = new DummyDevice();								// build first device
+			var dev4 = new DummyDevice(InsCpu);							// build first device
 			Assert.IsTrue(InsCpu.AddDevice(dev4));						// .. add to cpu
 			var interrupt = dev4.GetInterrupt(InsCpu, 4);				// Enqueue new interrupt
 			InsCpu.HandleInterrupt();									// .. handle the interrupt
@@ -73,12 +73,12 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestMethod]
 		public void ShouldClearInterruptsInProperOrder()
 		{
-			var dev4 = new DummyDevice();								// build first device
+			var dev4 = new DummyDevice(InsCpu);								// build first device
 			Assert.IsTrue(InsCpu.AddDevice(dev4));						// .. add to cpu
 			dev4.GetInterrupt(InsCpu, 4);								// Enqueue new interrupt
 			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
 			InsCpu.HandleInterrupt();									// handle the interrupt
-			var dev2 = new DummyDevice(0x1e);							// build first device, different address
+			var dev2 = new DummyDevice(InsCpu, 0x1e);					// build first device, different address
 			Assert.IsTrue(InsCpu.AddDevice(dev2));						// .. add to cpu
 			dev2.GetInterrupt(InsCpu, 2);								// Enqueue new interrupt
 			Assert.AreEqual(2, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
@@ -104,9 +104,9 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestMethod]
 		public void TestFullInterruptRoutine()
 		{
-			var dummyDevice = new DummyDevice();						// device causing interrupt
+			var dummyDevice = new DummyDevice(InsCpu);					// device causing interrupt
 			InsCpu.AddDevice(dummyDevice);								// .. add the device to the system.
-			InstructionBuilder.BuildIoccAt(dummyDevice, DevFuction.SenseDevice, 1, 1, InsCpu, 0x400);				// iocc to sense & reset the dummy device
+			InstructionBuilder.BuildIoccAt(dummyDevice, DevFunction.SenseDevice, 1, 1, InsCpu, 0x400);				// iocc to sense & reset the dummy device
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;															// set the interrupt vector
 			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 0, InsCpu, 0x100);							// build a NOOP instruction
 			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, InsCpu, 0x101);								// .. then wait
@@ -141,9 +141,9 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestMethod]
 		public void TestIfInterruptNotReset()
 		{
-			var dummyDevice = new DummyDevice();						// device causing interrupt
+			var dummyDevice = new DummyDevice(InsCpu);					// device causing interrupt
 			InsCpu.AddDevice(dummyDevice);								// .. add the device to the system.
-			InstructionBuilder.BuildIoccAt(dummyDevice, DevFuction.SenseDevice, 0, 1, InsCpu, 0x400);				// iocc to sense & NOT reset the dummy device
+			InstructionBuilder.BuildIoccAt(dummyDevice, DevFunction.SenseDevice, 0, 1, InsCpu, 0x400);				// iocc to sense & NOT reset the dummy device
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;															// set the interrupt vector
 			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 0, InsCpu, 0x100);							// build a NOOP instruction
 			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, InsCpu, 0x101);								// .. then wait

@@ -3,12 +3,18 @@
 	public class ConsoleEntrySwitches : DeviceBase
 	{
 		public override byte DeviceCode { get { return 0x07; } }
-		public override void ExecuteIocc(ICpu cpu)
+
+		public ConsoleEntrySwitches(ICpu cpu)
 		{
-			switch (cpu.IoccFunction)
+			CpuInstance = cpu;
+		}
+
+		public override void ExecuteIocc()
+		{
+			switch (CpuInstance.IoccFunction)
 			{
-				case DevFuction.Read:
-					cpu[cpu.IoccAddress] = cpu.ConsoleSwitches;
+				case DevFunction.Read:
+					CpuInstance[CpuInstance.IoccAddress] = CpuInstance.ConsoleSwitches;
 					break;
 			}
 		}

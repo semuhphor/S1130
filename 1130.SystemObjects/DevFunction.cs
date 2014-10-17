@@ -1,6 +1,6 @@
 namespace S1130.SystemObjects
 {
-	public enum DevFuction
+	public enum DevFunction
 	{
 		Write = 0x1
 		,Read = 0x2

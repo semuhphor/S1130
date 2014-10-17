@@ -1,5 +1,3 @@
-using S1130.SystemObjects.Devices;
-
 namespace S1130.SystemObjects.Instructions
 {
 	public class ExecuteInputOuput : InstructionBase, IInstruction
@@ -12,7 +10,7 @@ namespace S1130.SystemObjects.Instructions
 			cpu.IoccDecode(GetEffectiveAddress(cpu));							// Decode the IOCC
 			if (cpu.IoccDevice != null)											// q. device found?
 			{																	// a. yes ..
-				cpu.IoccDevice.ExecuteIocc(cpu);								// .. do what it says
+				cpu.IoccDevice.ExecuteIocc();								// .. do what it says
 			}
 		}
 	}
