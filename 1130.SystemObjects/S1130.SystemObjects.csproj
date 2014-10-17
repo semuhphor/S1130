@@ -39,7 +39,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Card.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Deck.cs" />
     <Compile Include="DevFunction.cs" />
     <Compile Include="DeviceBase.cs" />
     <Compile Include="Devices\ConsoleEntrySwitches.cs" />

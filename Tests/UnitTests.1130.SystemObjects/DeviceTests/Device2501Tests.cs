@@ -30,5 +30,10 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			_2501.ExecuteIocc();
 			Assert.AreEqual(Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
 		}
+
+		[TestMethod]
+		public void CardsShouldGoIntoHopper()
+		{
+		}
 	}
 }

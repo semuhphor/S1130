@@ -3,5 +3,6 @@
 	public interface ICard
 	{
 		ushort[] Columns { get; set; }
+		ushort this[int columnIndex] { get; set; }
 	}
 }
