@@ -27,10 +27,14 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		[TestMethod]
 		public void ShouldReturnNotReadyWithoutCards()
 		{
-			InsCpu.IoccDeviceCode = _2501.DeviceCode;
-			InsCpu.IoccFunction = DevFunction.SenseDevice;
-			_2501.ExecuteIocc();
+			SenseDevice(_2501);
 			Assert.AreEqual(Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
+		}
+
+		[TestMethod]
+		public void ShouldShouldBusyDuringRead()
+		{
+			InitiateRead(_2501, 0x400, 80);	
 		}
 
 		[TestMethod]
