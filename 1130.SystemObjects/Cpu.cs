@@ -234,8 +234,8 @@ namespace S1130.SystemObjects
 
 		public void IoccDecode(int address)									// Decode an IOCC
 		{
-			IoccAddress = Memory[address++];									// get the memory address
-			ushort secondWord = Memory[address];								// then pull second word
+			IoccAddress = Memory[address];										// get the memory address (Note even address?)
+			ushort secondWord = Memory[address|1];								// then pull second word (Note odd address!)
 			IoccDeviceCode = (secondWord & 0xf800) >> 11;						// .. extract device code
 			IoccFunction = (DevFunction) ((secondWord & 0x0700) >> 8);			// .. extract function
 			IoccModifiers = secondWord & 0xff;									// .. and extract modifiers
