@@ -17,6 +17,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		{
 			InsCpu.IoccDeviceCode = device.DeviceCode;
 			InsCpu.IoccFunction = DevFunction.SenseDevice;
+			InsCpu.IoccModifiers = resetBits;
 			device.ExecuteIocc();
 		}
 
@@ -31,6 +32,16 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 				InsCpu[wca + wc--] = 0xffff;
 			}
 			device.ExecuteIocc();
+		}
+
+		protected ICard GetTestCard()
+		{
+			var columns = new ushort[80];
+			for (int i = 0; i < 80; i++)
+			{
+				columns[i] = (ushort) (i+1 << 4);
+			}
+			return new Card(columns);
 		}
 	}
 }

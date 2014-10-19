@@ -52,5 +52,6 @@ namespace S1130.SystemObjects
 		IDevice IoccDevice { get; set; }
 
 		bool AddDevice(IDevice device);
+		void Transfer(int wcAddr, ushort[] values, int max);
 	}
 }

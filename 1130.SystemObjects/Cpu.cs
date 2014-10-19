@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Data.Odbc;
 using System.Threading;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.InterruptManagement;
@@ -230,6 +232,15 @@ namespace S1130.SystemObjects
 			}
 			Devices[device.DeviceCode] = device;								// otherwise ... add the device
 			return true;														// .. and tell 'em it worked
+		}
+
+		public void Transfer(int wcAddr, ushort[] values, int max)			// Cycle steal
+		{
+			var transferCount = Memory[wcAddr] > max ? max : Memory[wcAddr];	// get amount to transfer
+			if (transferCount > 0)												// q. anything to transfer
+			{																	// a. yes..
+				Array.Copy(values, 0, Memory, wcAddr+1, transferCount);			// .. copy whatever into memory
+			}
 		}
 
 		public void IoccDecode(int address)									// Decode an IOCC

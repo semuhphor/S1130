@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading;
+using S1130.SystemObjects.InterruptManagement;
 
 namespace S1130.SystemObjects.Devices
 {
@@ -23,9 +25,14 @@ namespace S1130.SystemObjects.Devices
 		public const ushort BusyStatus = 0x0002;
 		public const ushort NotReadyOrBusyStatus = 0x0001;
 
+		public const ushort Ilsw = 0x1000;
+
 		public readonly ConcurrentQueue<ICard> Hopper = new ConcurrentQueue<ICard>();
 
+		private int address;
 		private bool _readInProgess;
+		private bool _complete;
+		private bool _lastCard;
 
 		public Device2501(ICpu cpu)
 		{
@@ -42,16 +49,67 @@ namespace S1130.SystemObjects.Devices
 			switch (CpuInstance.IoccFunction)
 			{
 				case DevFunction.SenseDevice:
+					if ((CpuInstance.IoccModifiers & 1) == 1)
+					{
+						_complete = _lastCard = false;
+						DeactivateInterrupt(CpuInstance);
+					}
 					CpuInstance.Acc = (ushort) (Hopper.IsEmpty ? CpuInstance.Acc = NotReadyOrBusyStatus : 0);
+					if (_readInProgess)
+					{
+						CpuInstance.Acc |= BusyStatus;
+					}
+					if (_complete)
+					{
+						CpuInstance.Acc |= OperationCompleteStatus;
+					}
+					if (_lastCard)
+					{
+						CpuInstance.Acc |= LastCardStatus;
+					}
 					break;
 				case DevFunction.InitRead:
+					if (!_readInProgess)
+					{
+						address = CpuInstance.IoccAddress;
+						_readInProgess = true;
+					}
 					break;
 			}
+		}
+
+		public override void Run()
+		{
+			if (!Hopper.IsEmpty && _readInProgess)
+			{
+				ICard card;
+				if (Hopper.TryDequeue(out card))
+				{
+					CpuInstance.Transfer(address, card.Columns, 80);
+				}
+			}
+			_readInProgess = false;
+			if (Hopper.IsEmpty)
+			{
+				_lastCard = true;
+			}
+			else
+			{
+				_complete = true;
+			}
+			ActivateInterrupt(CpuInstance, 4, Ilsw);
+			base.Run();
 		}
 
 		public static Device2501 operator +(Device2501 cr, Deck deck)
 		{
 			deck.Cards.ForEach(c => cr.Hopper.Enqueue(c));
+			return cr;
+		}
+
+		public static Device2501 operator +(Device2501 cr, ICard card)
+		{
+			cr.Hopper.Enqueue(card);
 			return cr;
 		}
 	}

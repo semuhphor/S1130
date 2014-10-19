@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq.Expressions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Devices;
 
@@ -8,14 +9,14 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 	public class Device2501Tests : DeviceTestBase
 	{
 		private Device2501 _2501;
-		private Deck _deck;
+		protected Deck ADeck;
 
 		[TestInitialize]
 		public override void BeforeEachTest()
 		{
 			base.BeforeEachTest();
 			_2501 = new Device2501(InsCpu);
-			_deck = new Deck() + new [] { new Card(), new Card()};
+			ADeck = new Deck() + new [] { new Card(), new Card()};
 		}
 
 		[TestMethod]
@@ -34,24 +35,54 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		[TestMethod]
 		public void ShouldShouldBusyDuringRead()
 		{
+			_2501 += ADeck;
 			InitiateRead(_2501, 0x400, 80);	
+			SenseDevice(_2501);
+			Assert.AreEqual(Device2501.BusyStatus, InsCpu.Acc);
 		}
 
 		[TestMethod]
 		public void ShouldReturnReadyWithCards()
 		{
-			_2501 += _deck;
-			InsCpu.IoccDeviceCode = _2501.DeviceCode;
-			InsCpu.IoccFunction = DevFunction.SenseDevice;
-			_2501.ExecuteIocc();
+			_2501 += ADeck;
+			SenseDevice(_2501);
 			Assert.AreEqual(0, InsCpu.Acc);
 		}
 
 		[TestMethod]
 		public void CardsShouldGoIntoHopper()
 		{
-			_2501 += _deck; 
+			_2501 += ADeck; 
 			Assert.AreEqual(2, _2501.Hopper.Count);
+		}
+
+		[TestMethod]
+		public void ShouldReadCards()
+		{
+			_2501 += GetTestCard();
+			_2501 += GetTestCard();
+			InitiateRead(_2501, 0x1000, 80);
+			_2501.Run();
+			Assert.IsNotNull(_2501.ActiveInterrupt);
+			Assert.AreEqual(0x1000, _2501.ActiveInterrupt.InterruptLevelStatusWord);
+			SenseDevice(_2501);
+			Assert.AreEqual(Device2501.OperationCompleteStatus, InsCpu.Acc);
+			CheckCardReadProperly(0x1001, 80);
+			SenseDevice(_2501, 1);
+			Assert.AreEqual(0, InsCpu.Acc);
+			Assert.IsNull(_2501.ActiveInterrupt);
+		}
+
+		protected void CheckCardReadProperly(int address, int wc)
+		{
+			var testCard = GetTestCard();
+			for (var i = 0; i < wc; i++)
+			{
+				if (InsCpu[address + i] != testCard[i])
+				{
+					Assert.Fail(string.Format("Mismatch at {0}: memory: {1:x}, card: {2:x}", i, InsCpu[address + i], testCard[i]));
+				}
+			}
 		}
 	}
 }
