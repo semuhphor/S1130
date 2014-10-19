@@ -71,6 +71,16 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			SenseDevice(_2501, 1);
 			Assert.AreEqual(0, InsCpu.Acc);
 			Assert.IsNull(_2501.ActiveInterrupt);
+			InitiateRead(_2501, 0x1000, 80);
+			_2501.Run();
+			Assert.IsNotNull(_2501.ActiveInterrupt);
+			Assert.AreEqual(0x1000, _2501.ActiveInterrupt.InterruptLevelStatusWord);
+			SenseDevice(_2501);
+			Assert.AreEqual(Device2501.LastCardStatus | Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
+			CheckCardReadProperly(0x1001, 80);
+			SenseDevice(_2501, 1);
+			Assert.AreEqual(Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
+			Assert.IsNull(_2501.ActiveInterrupt);
 		}
 
 		protected void CheckCardReadProperly(int address, int wc)
