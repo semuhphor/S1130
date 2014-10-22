@@ -14,11 +14,7 @@ namespace S1130.SystemObjects.InterruptManagement
 
 		public static InterruptPool GetPool()
 		{
-			if (_interruptPool == null)
-			{
-				_interruptPool = new InterruptPool();
-			}
-			return _interruptPool;
+			return _interruptPool ?? (_interruptPool = new InterruptPool());
 		}
 
 		public Interrupt GetInterrupt(int interruptLevel, IDevice deviceCausingInterrupt, ushort interruptLevelStatusWord )

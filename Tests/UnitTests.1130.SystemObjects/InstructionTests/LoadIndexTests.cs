@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using S1130.SystemObjects;
 using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InstructionTests
@@ -71,7 +70,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		[TestMethod]
 		public override void NameAndOpcodeTest()
 		{
-			base.CheckNameAndOpcode();
+			CheckNameAndOpcode();
 		}
 	}
 }

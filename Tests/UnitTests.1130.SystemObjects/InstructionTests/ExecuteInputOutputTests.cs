@@ -37,7 +37,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		[TestMethod]
 		public override void NameAndOpcodeTest()
 		{
-			base.CheckNameAndOpcode();
+			CheckNameAndOpcode();
 		}
 	}
 }

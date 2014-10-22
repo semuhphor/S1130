@@ -1,8 +1,5 @@
-﻿using System;
-using System.Runtime;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
-using FakeItEasy;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.Instructions;
 
@@ -127,7 +124,7 @@ namespace UnitTests.S1130.SystemObjects
 		    InstructionBuilder.BuildIoccAt(device2501, DevFunction.SenseDevice, 2,0x400, _cpu, 0x1000);
 			_cpu.IoccDecode(0x1000);
 			Assert.AreEqual(device2501.DeviceCode, _cpu.IoccDeviceCode);
-		    Assert.AreEqual(DevFunction.SenseDevice, (DevFunction) _cpu.IoccFunction);
+		    Assert.AreEqual(DevFunction.SenseDevice, _cpu.IoccFunction);
 		    Assert.AreEqual(0x400, _cpu.IoccAddress);
 		    Assert.AreEqual(2, _cpu.IoccModifiers);
 	    }
@@ -139,7 +136,7 @@ namespace UnitTests.S1130.SystemObjects
 			InstructionBuilder.BuildIoccAt(device2501, DevFunction.SenseDevice, 2, 0x400, _cpu, 0x1001);// .. build sense device at 0x1001 (odd address)
 			_cpu.IoccDecode(0x1001);																	// .. try to decode it
 			Assert.AreNotEqual(device2501, _cpu.IoccDeviceCode);										// Code is not 2501 code
-			Assert.AreNotEqual(DevFunction.SenseDevice, (DevFunction)_cpu.IoccFunction);				// .. and not sense device
+			Assert.AreNotEqual(DevFunction.SenseDevice, _cpu.IoccFunction);								// .. and not sense device
 			Assert.AreEqual(0, _cpu.IoccModifiers);														// .. and modifier wrong
 			Assert.AreEqual(0x400, _cpu.IoccAddress);													// .. this is correct because of how odd/even works
 		}

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Data.Odbc;
 using System.Threading;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.InterruptManagement;

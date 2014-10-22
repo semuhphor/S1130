@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Dynamic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Instructions;
@@ -8,8 +7,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
     public abstract class InstructionTestBase
     {
-	    private const ushort U1 = 1;
-        protected ICpu InsCpu;
+	    protected ICpu InsCpu;
 		private readonly Random _rand = new Random();
 
 	    protected int GetOffsetFor(int x)
@@ -17,7 +15,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		    return (sbyte) x;
 	    }
 
-		protected bool RandomBool { get { return ((_rand.Next() & 1) == 0) ? true : false; } }
+		protected bool RandomBool { get { return ((_rand.Next() & 1) == 0); } }
 
 	    [TestInitialize]
         public void BeforeEachTest()

@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Devices;
 
@@ -90,7 +89,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			{
 				if (InsCpu[address + i] != testCard[i])
 				{
-					Assert.Fail(string.Format("Mismatch at {0}: memory: {1:x}, card: {2:x}", i, InsCpu[address + i], testCard[i]));
+					Assert.Fail("Mismatch at {0}: memory: {1:x}, card: {2:x}", i, InsCpu[address + i], testCard[i]);
 				}
 			}
 		}
