@@ -73,7 +73,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 		[TestMethod]
 		public void ShouldClearInterruptsInProperOrder()
 		{
-			var dev4 = new DummyDevice(InsCpu);								// build first device
+			var dev4 = new DummyDevice(InsCpu);							// build first device
 			Assert.IsTrue(InsCpu.AddDevice(dev4));						// .. add to cpu
 			dev4.GetInterrupt(InsCpu, 4);								// Enqueue new interrupt
 			Assert.AreEqual(1, InsCpu.ActiveInterruptCount);			// .. ensure the count is correct
@@ -124,7 +124,6 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			Assert.AreEqual(0x503, InsCpu.Iar);							// .. should still be in the routine 
 			Assert.AreEqual(0x001f, InsCpu.Acc);						// .. value returned by dummy device
 			Assert.IsNull(dummyDevice.ActiveInterrupt);					// .. interrupt should now be complete
-// ReSharper disable HeuristicUnreachableCode
 			Assert.IsFalse(interrupt.InBag);							// .. and interrupt not yet returned to the bag
 			ExecuteOneInstruction();									// return from interrupt
 			Assert.IsTrue(interrupt.InBag);								// .. and interrupt now returned to the bag
@@ -135,7 +134,6 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			ExecuteOneInstruction();									// return from interrupt
 			Assert.AreEqual(0x102, InsCpu.Iar);							// .. should have executed wait
 			Assert.IsTrue(InsCpu.Wait);									// .. and in wait state
-// ReSharper restore HeuristicUnreachableCode
 		}
 
 		[TestMethod]
