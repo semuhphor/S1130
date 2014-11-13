@@ -39,6 +39,8 @@ namespace UnitTests.S1130.SystemObjects
 		public void DoAMillionAdds()
 		{
 			var location = _cpu.Iar;
+			var startingCount = _cpu.InstructionCount;
+			var endingCount = startingCount + 2000000;
 			_cpu[0x81] = 20;
 			_cpu[0x82] = 1;
 			InstructionBuilder.BuildLongAtAddress(OpCodes.Add, 0, 0x82, _cpu, location);					// 0x0101: add one to ACC
@@ -46,7 +48,7 @@ namespace UnitTests.S1130.SystemObjects
 			InstructionBuilder.BuildLongAtAddress(OpCodes.LoadIndex, 0, 0x100, _cpu, location);				// 0x0101: Branch to 0x100
 			var numberOfInstructions = 0;
 			var watch = Stopwatch.StartNew();
-			while (numberOfInstructions < 2000000)
+			while (_cpu.InstructionCount < endingCount)
 			{
 				_cpu.NextInstruction();
 				_cpu.ExecuteInstruction();

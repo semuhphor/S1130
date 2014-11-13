@@ -12,8 +12,9 @@ namespace S1130.SystemObjects
 		private readonly ConcurrentQueue<Interrupt>[] _interruptQueues;			// queues for active interrupts
 		private readonly ConcurrentStack<Interrupt> _currentInterrupts;			// stack of interrupts being serviced
 		private int _activeInterruptCount;										// number of interrupts active
+		private ulong _count;													// number of instructions executed;
 
-        public Cpu()														// System State constructor
+		public Cpu()														// System State constructor
         {
             MemorySize = DefaultMemorySize;										// size of memory
             Memory = new ushort[DefaultMemorySize];								// reserve the memory
@@ -211,6 +212,7 @@ namespace S1130.SystemObjects
 				Wait = true;													// .. treat it like a wait state
 			}
 			HandleInterrupt();													// .. handle any interrupt active
+			_count++;															// .. increment executed instruction count
 	    }
 
 		/*
@@ -241,6 +243,8 @@ namespace S1130.SystemObjects
 				Array.Copy(values, 0, Memory, wcAddr+1, transferCount);			// .. copy whatever into memory
 			}
 		}
+
+		public ulong InstructionCount { get { return _count; } }
 
 		public void IoccDecode(int address)									// Decode an IOCC
 		{

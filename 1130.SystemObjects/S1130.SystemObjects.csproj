@@ -45,7 +45,9 @@
     <Compile Include="DevFunction.cs" />
     <Compile Include="DeviceBase.cs" />
     <Compile Include="Devices\ConsoleEntrySwitches.cs" />
+    <Compile Include="Devices\Device2310.cs" />
     <Compile Include="Devices\Device2501.cs" />
+    <Compile Include="Devices\ICartridge.cs" />
     <Compile Include="IDevice.cs" />
     <Compile Include="IInputOutputSystem.cs" />
     <Compile Include="IInstruction.cs" />
