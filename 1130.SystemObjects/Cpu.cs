@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.InterruptManagement;
@@ -244,8 +245,23 @@ namespace S1130.SystemObjects
 			}
 		}
 
-		public ulong InstructionCount { get { return _count; } }
+		public ulong InstructionCount { get { return _count; } }			// number of instructions executed
+		public bool IgnoreInstructionCount { get; set; }					// ... ignore waiting for instruction
 
+		public void LetInstuctionsExecute(ulong numberOfInstructions)		// Let some number of instructions execute until wait
+		{
+			if (IgnoreInstructionCount)											// q. wait for instructions to run?
+			{																	// a. no .. 
+				return;															// .. leave now
+			}
+			var endCount = InstructionCount + numberOfInstructions;				// calculate the end count of instructions
+			while (InstructionCount < endCount)									// loop until we get to the count
+			{
+				if (Wait)														// q. did we hit a wait state?
+					break;														// a. yes .. leave now
+				Thread.Yield();
+			}
+		}
 		public void IoccDecode(int address)									// Decode an IOCC
 		{
 			IoccAddress = Memory[address];										// get the memory address (Note even address?)

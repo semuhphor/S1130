@@ -10,7 +10,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		[TestInitialize]
 		public virtual void BeforeEachTest()
 		{
-			InsCpu = new Cpu { Iar = 0x100 };
+			InsCpu = new Cpu { Iar = 0x100, IgnoreInstructionCount = true };
 		}
 
 		protected void SenseDevice(IDevice device, ushort resetBits = 0)

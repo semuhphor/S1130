@@ -29,16 +29,5 @@ namespace S1130.SystemObjects
 		{
 			ActiveInterrupt = null;
 		}
-
-		protected void LetInstuctionsExecute(ulong numberOfInstructions)
-		{
-			var endCount = CpuInstance.InstructionCount + numberOfInstructions;		// calculate the end count of instructions
-			while (CpuInstance.InstructionCount < endCount)							// loop until we get to the count
-			{
-				if (CpuInstance.Wait)												// q. did we hit a wait state?
-					break;															// a. yes .. leave now
-				Run();																// .. let other threads run
-			}
-		}
 	}
 }

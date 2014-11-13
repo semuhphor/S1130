@@ -57,7 +57,7 @@ namespace S1130.SystemObjects.Devices
 //					}
 					break;
 				case DevFunction.InitRead:
-					LetInstuctionsExecute(10);
+					CpuInstance.LetInstuctionsExecute(10);
 					break;
 			}
 		}
