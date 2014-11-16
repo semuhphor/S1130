@@ -81,15 +81,38 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			Assert.IsTrue(_cartridge.Mounted);
 		}
 
+		[TestMethod]
+		public void UnMount_DriveNotReadey_Flushes()
+		{
+			_2310.Mount(_cartridge);
+			Assert.IsTrue(_cartridge.Mounted);
+			_2310.UnMount();
+			SenseDevice(_2310);
+			Assert.AreEqual(Device2310.NotReady, InsCpu.Acc);
+			Assert.IsTrue(_cartridge.FlushCalled);
+			Assert.IsFalse(_cartridge.Mounted);
+		}
+
 		public class FakeCartridge : ICartridge
 		{
 			public bool MountCalled { get; set; }
+			public bool FlushCalled { get; set; }
 			public bool Mounted { get; private set; }
 
 			public void Mount()
 			{
 				MountCalled = true;
 				Mounted = true;
+			}
+
+			public void Flush()
+			{
+				FlushCalled = true;
+			}
+
+			public void UnMount()
+			{
+				Mounted = false;
 			}
 		}
 	}

@@ -36,5 +36,7 @@ namespace S1130.SystemObjects.Devices
 	{
 		bool Mounted { get; }
 		void Mount();
+		void UnMount();
+		void Flush();
 	}
 }

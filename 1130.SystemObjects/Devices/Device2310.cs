@@ -67,5 +67,11 @@ namespace S1130.SystemObjects.Devices
 			_cartridge = cartridge;
 			_cartridge.Mount();
 		}
+
+		public void UnMount()
+		{
+			_cartridge.Flush();
+			_cartridge = null;
+		}
 	}
 }
