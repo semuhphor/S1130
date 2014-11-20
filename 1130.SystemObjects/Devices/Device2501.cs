@@ -3,24 +3,6 @@
 namespace S1130.SystemObjects.Devices
 {
 	/* ******************************************************************************************
-	 * Device: 2310 Single Platter Disk Drive
-	 * 
-	 * This device class emulates a 2319. There are four commands accepted by the 2501: 
-	 * - Initiate read: Transfer 1 to 321 words from a specific sector of the current cylinder
-	 * - Initiate write: Tranfer 1 to 321 words to a specific sector of the current cylinder
-	 * - Control: Move the carriage to another cylinder (+/-)
-	 * - Sense device: Return the device's status word
-	 * 
-	 * The status word is as follows:
-	 *		1... .... .... ....		Data error (not implemented)
-	 *		.1.. .... .... ....		Operation complete
-	 *		..1. .... .... ....		Disk not ready (no file mounted/loaded)
-	 *		...1 .... .... ....		Disk busy (Executing a command)
-	 *		.... 1... .... ....		Carriage home (at cylinder 0)
-	 *		.... .... .... ..11		Next sector
-	 * ******************************************************************************************/
-
-	/* ******************************************************************************************
 	 * Device: 2501 card reader
 	 * 
 	 * This device class emulates a 2501. There are only two commands accepted by the 2501: 
