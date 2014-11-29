@@ -56,6 +56,7 @@
     <Compile Include="DeviceTests\Device2310Tests.cs" />
     <Compile Include="DeviceTests\Device2501Tests.cs" />
     <Compile Include="DeviceTests\DeviceTestBase.cs" />
+    <Compile Include="DeviceTests\CylinderTests.cs" />
     <Compile Include="IndexRegisterTests.cs" />
     <Compile Include="InputOuputTests\ConsoleEntrySwitchesTests.cs" />
     <Compile Include="InstructionBuilder.cs" />
