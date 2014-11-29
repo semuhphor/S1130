@@ -27,7 +27,7 @@ namespace S1130.SystemObjects.Devices
 
 		public readonly ConcurrentQueue<ICard> Hopper = new ConcurrentQueue<ICard>();
 
-		private int address;
+		private int _address;
 		private bool _readInProgess;
 		private bool _complete;
 		private bool _lastCard;
@@ -69,7 +69,7 @@ namespace S1130.SystemObjects.Devices
 				case DevFunction.InitRead:
 					if (!_readInProgess)
 					{
-						address = CpuInstance.IoccAddress;
+						_address = CpuInstance.IoccAddress;
 						_readInProgess = true;
 					}
 					break;
@@ -83,7 +83,7 @@ namespace S1130.SystemObjects.Devices
 				ICard card;
 				if (Hopper.TryDequeue(out card))
 				{
-					CpuInstance.Transfer(address, card.Columns, 80);
+					CpuInstance.Transfer(_address, card.Columns, 80);
 				}
 			}
 			_readInProgess = false;
