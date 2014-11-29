@@ -33,27 +33,9 @@ namespace S1130.SystemObjects.Devices
 
 		#region Cylinder implementation
 
-		private class Cylinder
-		{
-			public int Current { get; set; }
-
-			public static Cylinder operator +(Cylinder cyl, int numberOfCylinders)
-			{
-				cyl.Current += numberOfCylinders;
-				if (cyl.Current < 0)
-				{
-					cyl.Current = 0;
-				}
-				if (cyl.Current > 202)
-				{
-					cyl.Current = 202;
-				}
-				return cyl;
-			}
-		}
-
 		#endregion
 
+		private ushort _ilsw = 0x8000;											// default ILSW is for default drive
 		private Cylinder _cylinder = new Cylinder();
 		private bool _busy;
 
@@ -65,6 +47,7 @@ namespace S1130.SystemObjects.Devices
 			}
 			byte[] _driveCodes = {0x4, 0x09, 0x0a, 0x0b, 0x0c};					// possible device codes ...
 			_deviceCode = _driveCodes[driveNumber];								// ... set up device code
+			_ilsw >>= driveNumber;												// ... set up ilsw (shift bit on device number)
 			CpuInstance = cpu;													// ... and save the cpu
 		}
 
