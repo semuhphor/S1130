@@ -7,7 +7,7 @@
 		}
 
 		public int InterruptLevel { get; private set; }
-		public ushort InterruptLevelStatusWord { get; private set; }
+		public ushort Ilsw { get; private set; }
 		public IDevice CausingDevice { get; private set; }
 		public bool InBag { get; private set; }
 
@@ -15,7 +15,7 @@
 		{
 			InterruptLevel = interruptLevel;
 			CausingDevice = deviceCausingInterrupt;
-			InterruptLevelStatusWord = interruptLevelStatusWord;
+			Ilsw = interruptLevelStatusWord;
 			InBag = false;
 			return this;
 		}

@@ -5,7 +5,7 @@ namespace S1130.SystemObjects.Devices
 	/* ******************************************************************************************
 	 * Device: 2310 Single Platter Disk Drive
 	 * 
-	 * This device class emulates a 2319. There are four commands accepted by the 2501: 
+	 * This device class emulates a 2310. There are four commands accepted by the 2310: 
 	 * - Initiate read: Transfer 1 to 321 words from a specific sector of the current cylinder
 	 * - Initiate write: Tranfer 1 to 321 words to a specific sector of the current cylinder
 	 * - Control: Move the carriage to another cylinder (+/-)
@@ -27,36 +27,41 @@ namespace S1130.SystemObjects.Devices
 		public const ushort Busy = 0x1000;
 		public const ushort AtCylZero = 0x0400;
 		public const ushort NextSectorMask = 0x0003;
+		public const int InterruptLevel = 2;
+		public const byte SeekForward = 0x00;
+		public const byte SeekBackward = 0x40;
 
-		private readonly byte _deviceCode;
-		private ICartridge _cartridge;
+		private readonly byte _deviceCode;									// device code (calculated)
 
-		#region Cylinder implementation
+		// device status 
+		private bool _cartMounted;											// true if cart is mouned
+		private bool _busy;													// true if operation active
+		private bool _seeking;												// true if seeing in progress
+		private bool _reading;												// true if read in progress
+		private bool _writing;												// true if write in progress
+		private bool _complete;												// true if operation finished
+		private ushort _ilsw = 0x8000;										// ILSW (defaulted for drive 0)
+		private Cylinder _cylinder = new Cylinder();						// current cylinder address
+		private ICartridge _cartridge;										// cartridge 
+		private int _seekOffset;											// number of cyliders to seek (+/-)
 
-		#endregion
-
-		private ushort _ilsw = 0x8000;											// default ILSW is for default drive
-		private Cylinder _cylinder = new Cylinder();
-		private bool _busy;
-
-		public Device2310(ICpu cpu, int driveNumber = 0)
+		public Device2310(ICpu cpu, int driveNumber = 0)					// constructor cpu and drive number (0-5)		
 		{
 			if (driveNumber < 0 || driveNumber >= 5)							// q. actual device?
 			{																	// a. no .. throw error
 				throw new ArgumentException("2310 drive number must be between 0 and 4");
 			}
-			byte[] _driveCodes = {0x4, 0x09, 0x0a, 0x0b, 0x0c};					// possible device codes ...
-			_deviceCode = _driveCodes[driveNumber];								// ... set up device code
+			_deviceCode = new byte[] {0x4, 0x09, 0x0a, 0x0b, 0x0c}[driveNumber];// ... set up device code
 			_ilsw >>= driveNumber;												// ... set up ilsw (shift bit on device number)
 			CpuInstance = cpu;													// ... and save the cpu
 		}
 
-		public override byte DeviceCode
+		public override byte DeviceCode										// Get the device code
 		{
-			get { return _deviceCode; }
+			get { return _deviceCode; }											// return calculated value
 		}
 
-		public override void ExecuteIocc()
+		public override void ExecuteIocc()									// execute an IOCC
 		{
 			switch (CpuInstance.IoccFunction)
 			{
@@ -80,35 +85,25 @@ namespace S1130.SystemObjects.Devices
 						{
 							newAcc |= AtCylZero;
 						}
+						if (_complete)
+						{
+							newAcc |= OperationComplete;
+						}
 					}
 					CpuInstance.Acc = newAcc;
-//					if (_readInProgess)
-//					{
-////						CpuInstance.Acc |= BusyStatus;
-//					}
-//					if (_complete)
-//					{
-//						CpuInstance.Acc |= OperationCompleteStatus;
-//					}
-//					if (_lastCard)
-//					{
-//						CpuInstance.Acc |= LastCardStatus;
-//					}
 					break;
 
 				case DevFunction.Control:
-					if (_cartridge == null)										// q. cart ready?
+					if (!_cartMounted || _busy)									// q. cart not ready or already doing something
 						break;													// a. no .. can't move
-					if (!_busy && _cartridge != null)							// q. not busy & Ready to play?
-					{															// a. yes...
-						if (CpuInstance.IoccAddress == 0)						// q. move 0 cylinders.
-							break;												// a. ok ..  we're done!
-						_busy = true;											// otherwise.. make the drive busy
-						var dir = CpuInstance.IoccModifiers == 0x04;			// .. dir = tru if moving to home.
-						_cylinder += CpuInstance.IoccAddress * ((dir) ? -1 : 1);// calculate new cylinder
-						_cartridge.MoveToCylinder(_cylinder.Current);			// .. tell the cartridge
-						_busy = false;											// drive is done.
-					}
+					_seekOffset = CpuInstance.IoccAddress & 0x1ff;				// get number of cylinders to move
+					if (_seekOffset == 0)										// q. any movement?
+						break;													// a. no .. do nothing!
+					if ((CpuInstance.IoccModifiers & SeekBackward) != 0)		// q. moving toward home?
+						_seekOffset *= -1;										// a. yes .. make negative seek
+					_complete = false;											// .. not done yet
+					_busy = true;												// make the drive busy
+					_seeking = true;											// .. seeking
 					break;
 
 				case DevFunction.InitWrite:
@@ -119,6 +114,21 @@ namespace S1130.SystemObjects.Devices
 			}
 		}
 
+		public override void Run()											// do the operation
+		{
+			if (_seeking)														// q. seeking?					
+			{																	// a. yes ..
+				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
+				_cylinder += _seekOffset;										// .. move the heads
+				_cartridge.CurrentCylinder = _cylinder.Current;					// .. let the cartridge know
+				_complete = true;												// .. done with the operation
+				_seeking = false;												// .. no longer seeking
+				_busy = false;													// .. not busy any more
+				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. and set the interrupt
+			}
+			base.Run();
+		}
+
 		// Mount cartridge in drive. Assumes we turn on drive
 
 		public void Mount(ICartridge cartridge)								// mount a cartridge
@@ -126,7 +136,17 @@ namespace S1130.SystemObjects.Devices
 			_cartridge = cartridge;												// save the cartridge
 			_cartridge.Mount();													// tell the cart it's mounted
 			_cylinder = new Cylinder();											// set out cylinder to zero
-			_cartridge.MoveToCylinder(_cylinder.Current);						// .. let the cartridge know too
+			_cartridge.CurrentCylinder = 0;										// .. let the cartridge know too
+			_busy = false;														// .. show not busy
+			_complete = false;													// .. show no operation complete
+			_seeking = false;													// .. not seeking
+			_reading = false;													// .. not reading
+			_writing = false;													// .. not writing
+			if (ActiveInterrupt != null)										// q. any active interrupt?
+			{																	// a. yes ..
+				DeactivateInterrupt(CpuInstance);								// .. deactivate it.
+			}
+			_cartMounted = true;												// .. and show mounted
 		}
 
 		// UnMount cartridge. Save as turning off an removing
@@ -135,7 +155,8 @@ namespace S1130.SystemObjects.Devices
 		{
 			_cartridge.Flush();													// let it finalize any writes.
 			_cartridge.UnMount();												// .. then unmount from drive
-			_cartridge = null;													// .. let the drive know too
+			_cartridge = null;													// .. let the drive know too\
+			_cartMounted = false;												// .. show unmounted
 		}
 	}
 }

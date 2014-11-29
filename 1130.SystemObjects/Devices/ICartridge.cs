@@ -30,6 +30,8 @@ namespace S1130.SystemObjects.Devices
 	 *			
 	 * UnMount(): Disassociate the cartridge from the drive.
 	 * 
+	 * CurrentCylinder: Current cylinder address. Set after seek request.
+	 * 
 	 *****************************************************************************/
 
 	public interface ICartridge
@@ -39,6 +41,6 @@ namespace S1130.SystemObjects.Devices
 		void UnMount();
 		void Flush();
 
-		void MoveToCylinder(int cylinderNumber);
+		int CurrentCylinder { get; set; }
 	}
 }
