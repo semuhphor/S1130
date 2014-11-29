@@ -21,6 +21,15 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			device.ExecuteIocc();
 		}
 
+		protected void IssueControl(IDevice device, int wca, byte modifier)
+		{
+			InsCpu.IoccDevice = device;
+			InsCpu.IoccFunction = DevFunction.Control;
+			InsCpu.IoccAddress = wca;
+			InsCpu.IoccModifiers = modifier;
+			device.ExecuteIocc();
+		}
+
 		protected void InitiateRead(IDevice device, int wca, int wc)
 		{
 			InsCpu.IoccDeviceCode = device.DeviceCode;

@@ -38,5 +38,7 @@ namespace S1130.SystemObjects.Devices
 		void Mount();
 		void UnMount();
 		void Flush();
+
+		void MoveToCylinder(int cylinderNumber);
 	}
 }

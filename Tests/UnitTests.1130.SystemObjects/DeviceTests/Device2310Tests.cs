@@ -22,7 +22,6 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		public void CreateDeviceTests_ShouldHaveCorrectDeviceId()
 		{
 			Assert.AreEqual(0x04, new Device2310(InsCpu).DeviceCode);
-			Assert.AreEqual(0x04, new Device2310(InsCpu, 0).DeviceCode);
 			Assert.AreEqual(0x09, new Device2310(InsCpu, 1).DeviceCode);
 			Assert.AreEqual(0x0a, new Device2310(InsCpu, 2).DeviceCode);
 			Assert.AreEqual(0x0b, new Device2310(InsCpu, 3).DeviceCode);
@@ -30,11 +29,21 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		}
 
 		[TestMethod]
-
 		public void BadDeviceNumber_InvalidDriveNumberThrowsException()
 		{
 			TestBadDriveNumber(-1);
 			TestBadDriveNumber(5);
+		}
+
+		[TestMethod]
+		public void MoveToNewCylinder()
+		{
+			StartDriveAndTestReady();										// prepare drive to accept command
+			SenseDevice(_2310);												// check the status
+			Assert.AreEqual(InsCpu.Acc, Device2310.AtCylZero);				// ensure at cyl 0
+			IssueControl(_2310, 1, 0);										// move in one cylinder
+
+			Assert.AreEqual(1, _cartridge.CurrentCylinder);
 		}
 
 		private void TestBadDriveNumber(int driveNumber)
@@ -76,7 +85,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			Assert.IsFalse(_cartridge.Mounted);
 			_2310.Mount(_cartridge);
 			SenseDevice(_2310);
-			Assert.AreEqual(0, InsCpu.Acc);
+			Assert.AreEqual(Device2310.AtCylZero, InsCpu.Acc);
 			Assert.IsTrue(_cartridge.MountCalled);
 			Assert.IsTrue(_cartridge.Mounted);
 		}
@@ -93,8 +102,17 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			Assert.IsFalse(_cartridge.Mounted);
 		}
 
+		private void StartDriveAndTestReady()
+		{
+			_2310.Mount(_cartridge);											// mount the cart
+			SenseDevice(_2310);													// ... get the sense value
+			Assert.AreEqual(Device2310.AtCylZero, InsCpu.Acc);					// ... should be ready at cylinder 0
+		}
+
 		public class FakeCartridge : ICartridge
 		{
+			public int CurrentCylinder;
+
 			public bool MountCalled { get; set; }
 			public bool FlushCalled { get; set; }
 			public bool Mounted { get; private set; }
@@ -108,6 +126,11 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			public void Flush()
 			{
 				FlushCalled = true;
+			}
+
+			public void MoveToCylinder(int offsetOfCylinder)
+			{
+				CurrentCylinder += offsetOfCylinder;
 			}
 
 			public void UnMount()
