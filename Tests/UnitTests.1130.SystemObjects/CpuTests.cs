@@ -5,7 +5,7 @@ using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects
 {
-    [TestClass]
+	[TestClass]
     public class CpuTests
     {
         private Cpu _cpu;

@@ -1,3 +1,5 @@
+using System.Diagnostics.Eventing;
+
 namespace S1130.SystemObjects.Devices
 {
 	/***************************************************************************
@@ -19,9 +21,9 @@ namespace S1130.SystemObjects.Devices
 	 * Mounted: This property indicates if the device is mounted. It is up to the 
 	 *			cartridge implementation to set the bit when mounted.
 	 *			
-	 * Read(): Read a sector. 
+	 * Read(): Read a sector. Sector number is 0-7. 
 	 * 
-	 * Write(): Write a sector.
+	 * Write(): Write a sector. Sector number is 0-7.
 	 * 
 	 * ReadOnly: Disk cannot be written.
 	 * 
@@ -40,6 +42,8 @@ namespace S1130.SystemObjects.Devices
 		void Mount();
 		void UnMount();
 		void Flush();
+		//ushort[] Read(int sector);
+		//void Write(int sector, ushort[] data);
 
 		int CurrentCylinder { get; set; }
 	}

@@ -51,6 +51,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="BufferTests.cs" />
     <Compile Include="CardTests.cs" />
     <Compile Include="CpuTests.cs" />
     <Compile Include="DeviceTests\Device2310Tests.cs" />
