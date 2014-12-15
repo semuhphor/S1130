@@ -6,7 +6,7 @@ namespace S1130.SystemObjects.Devices
 	 * Device: 2310 Single Platter Disk Drive
 	 * 
 	 * This device class emulates a 2310. There are four commands accepted by the 2310: 
-	 * - Initiate read: Transfer 1 to 321 words from a specific sector of the current cylinder
+	 * - Initiate read: TransferToMemory 1 to 321 words from a specific sector of the current cylinder
 	 * - Initiate write: Tranfer 1 to 321 words to a specific sector of the current cylinder
 	 * - Control: Move the carriage to another cylinder (+/-)
 	 * - Sense device: Return the device's status word

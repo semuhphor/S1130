@@ -6,7 +6,7 @@ namespace S1130.SystemObjects.Devices
 	 * Device: 2501 card reader
 	 * 
 	 * This device class emulates a 2501. There are only two commands accepted by the 2501: 
-	 * - Initiate read: Transfer 0 to 127 words from "cards" to memory
+	 * - Initiate read: TransferToMemory 0 to 127 words from "cards" to memory
 	 * - Sense device: Return the device's status word
 	 * 
 	 * The status word is as follows:
@@ -83,7 +83,7 @@ namespace S1130.SystemObjects.Devices
 				ICard card;
 				if (Hopper.TryDequeue(out card))
 				{
-					CpuInstance.Transfer(_address, card.Columns, 80);
+					CpuInstance.TransferToMemory(_address, card.Columns, 80);
 				}
 			}
 			_readInProgess = false;
