@@ -236,7 +236,7 @@ namespace S1130.SystemObjects
 			return true;														// .. and tell 'em it worked
 		}
 
-		public void Transfer(int wcAddr, ushort[] values, int max)			// Cycle steal
+		public void TransferToMemory(int wcAddr, ushort[] values, int max)	// Cycle steal
 		{
 			var transferCount = Memory[wcAddr] > max ? max : Memory[wcAddr];	// get amount to transfer
 			if (transferCount > 0)												// q. anything to transfer
