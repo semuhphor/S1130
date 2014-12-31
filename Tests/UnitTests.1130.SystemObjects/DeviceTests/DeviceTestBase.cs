@@ -43,6 +43,19 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			device.ExecuteIocc();
 		}
 
+		protected void InitiateRead(IDevice device, int wca, int wc, bool check, int sector)
+		{
+			InsCpu.IoccDeviceCode = device.DeviceCode;
+			InsCpu.IoccFunction = DevFunction.InitRead;
+			InsCpu.IoccAddress = wca;
+			InsCpu[wca] = (ushort) wc;
+			while (wc != 0)
+			{
+				InsCpu[wca + wc--] = 0xffff;
+			}
+			device.ExecuteIocc();
+		}
+
 		protected ICard GetTestCard()
 		{
 			var columns = new ushort[80];

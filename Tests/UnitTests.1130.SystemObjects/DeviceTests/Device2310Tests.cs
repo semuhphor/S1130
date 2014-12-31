@@ -93,7 +93,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		{
 			_2310.Mount(_cartridge);										// mount one up
 			Assert.IsTrue(_cartridge.Mounted);								// .. check it's mounted
-			_2310.UnMount();												// no unmount it
+			_2310.UnMount();												// now unmount it
 			var acc = Sense(_2310);											// get DSW
 			Assert.AreEqual(Device2310.NotReady, acc);						// .. check not ready
 			Assert.IsTrue(_cartridge.FlushCalled);							// .. check that device told cart to flush
@@ -112,6 +112,15 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			Assert.AreEqual(0, _cartridge.CurrentCylinder);					// .. assure we are there
 		}
 
+		[TestMethod]
+		public void Read_ReadSector_Zero()								// test read for sector zero
+		{
+			_2310.Mount(_cartridge);										// mount one up
+			Assert.IsTrue(_cartridge.Mounted);								// .. check it's mounted
+			ReadSector(0);													// .. attempt read or sector zero
+			
+		}
+
 		#region Helpers
 
 		private void SeekToCylinder(int cylNumber)						// seek to specific cylinder
@@ -127,6 +136,11 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			_2310.Run();													// .. do the seek
 			status = GetCurrentStatus() | Device2310.OperationComplete;		// op copmlete ... maybe home
 			Assert.AreEqual(status, Sense(_2310, 1));						// Reset the interrupt and ensure complete
+		}
+
+		private void ReadSector(int sectorNumber)						// read a sector into memory
+		{																// sector is on current cylinder... Sector 0...7
+			
 		}
 
 		private ushort GetCurrentStatus()								// calculate some sense bits
@@ -173,8 +187,21 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		{
 			public int CurrentCylinder { get; set; }						// current cylinder (set after seek)
 			public bool MountCalled { get; set; }							// indicates mount called
+			public bool ReadCalled { get; set; }							// indicates read called
+			public int SectorRead { get; set; }								// sector read
 			public bool FlushCalled { get; set; }							// indicates flush called
 			public bool Mounted { get; private set; }						// indicates if mounted
+			private readonly ushort[] _sector = new ushort[321];			// place for a sector
+
+			public ushort[] Read(int sector)								// read a sector
+			{
+				for (int i = 1; i <= 32; i++)									// load the first 32 words
+				{
+					_sector[i] = (ushort) (i & 0xffff);							// .. with their offset
+				}
+				_sector[0] = (ushort) sector;									// set the sector number
+				return _sector;													// .. and return the sector
+			}
 
 			public void Mount()												// mount	
 			{
@@ -187,9 +214,9 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 				FlushCalled = true;												// show flush called
 			}
 
-			public void UnMount()
+			public void UnMount()											// Remove cart from drive
 			{
-				Mounted = false;
+				Mounted = false;												// unmounted!
 			}
 		}
 

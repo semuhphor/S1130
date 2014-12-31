@@ -42,7 +42,7 @@ namespace S1130.SystemObjects.Devices
 		void Mount();
 		void UnMount();
 		void Flush();
-		//ushort[] Read(int sector);
+		ushort[] Read(int sector);
 		//void Write(int sector, ushort[] data);
 
 		int CurrentCylinder { get; set; }

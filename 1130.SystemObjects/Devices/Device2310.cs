@@ -30,6 +30,8 @@ namespace S1130.SystemObjects.Devices
 		public const int InterruptLevel = 2;
 		public const byte SeekForward = 0x00;
 		public const byte SeekBackward = 0x40;
+		public const byte ReadCheck = 0x80;
+		public const int SectorMask = 0x07;
 
 		private readonly byte _deviceCode;									// device code (calculated)
 
@@ -40,10 +42,12 @@ namespace S1130.SystemObjects.Devices
 		private bool _reading;												// true if read in progress
 		private bool _writing;												// true if write in progress
 		private bool _complete;												// true if operation finished
+		private bool _readCheck;											// true if read check requested
 		private ushort _ilsw = 0x8000;										// ILSW (defaulted for drive 0)
 		private Cylinder _cylinder = new Cylinder();						// current cylinder address
 		private ICartridge _cartridge;										// cartridge 
 		private int _seekOffset;											// number of cyliders to seek (+/-)
+		private int _sector;												// sector to read
 
 		public Device2310(ICpu cpu, int driveNumber = 0)					// constructor cpu and drive number (0-5)		
 		{
@@ -93,7 +97,7 @@ namespace S1130.SystemObjects.Devices
 					CpuInstance.Acc = newAcc;
 					break;
 
-				case DevFunction.Control:
+				case DevFunction.Control:									// seek
 					if (!_cartMounted || _busy)									// q. cart not ready or already doing something
 						break;													// a. no .. can't move
 					_seekOffset = CpuInstance.IoccAddress & 0x1ff;				// get number of cylinders to move
@@ -106,10 +110,18 @@ namespace S1130.SystemObjects.Devices
 					_seeking = true;											// .. seeking
 					break;
 
-				case DevFunction.InitWrite:
+				case DevFunction.InitRead:									// read part or whole sector
+					if (!_cartMounted || _busy)									// q. cart not ready or already doing something
+						break;													// a. no .. can't read
+					_readCheck = (CpuInstance.IoccModifiers & ReadCheck) != 0;	// .. determine if read check
+					_sector = CpuInstance.IoccModifiers & SectorMask;			// .. get the sector on cylinder to read
+					_complete = false;											// .. not done yet
+					_busy = true;												// make the drive busy
+					_seeking = true;											// .. seeking
 					break;
-				case DevFunction.InitRead:
-					CpuInstance.LetInstuctionsExecute(10);
+
+				case DevFunction.InitWrite:
+
 					break;
 			}
 		}
