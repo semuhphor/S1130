@@ -53,6 +53,7 @@ namespace S1130.SystemObjects
 
 		bool AddDevice(IDevice device);
 		void TransferToMemory(int wcAddr, ushort[] values, int max);
+		void TransferToMemory(ushort[] values, int max);
 		ulong InstructionCount { get; }
 		bool IgnoreInstructionCount { get; set; }
 

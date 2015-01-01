@@ -245,6 +245,11 @@ namespace S1130.SystemObjects
 			}
 		}
 
+		public void TransferToMemory(ushort[] values, int max)
+		{
+			TransferToMemory(IoccAddress, values, max);
+		}
+
 		public ulong InstructionCount { get { return _count; } }			// number of instructions executed
 		public bool IgnoreInstructionCount { get; set; }					// ... ignore waiting for instruction
 

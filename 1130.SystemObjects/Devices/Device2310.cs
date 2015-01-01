@@ -138,6 +138,16 @@ namespace S1130.SystemObjects.Devices
 				_busy = false;													// .. not busy any more
 				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. and set the interrupt
 			}
+			else if (_reading)													// q. reading?
+			{																	// a. yes ..
+				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
+				int sectorToRead = (_cylinder.Current * 8) + _sector;			// .. get the sector number
+				var buffer = _cartridge.Read(sectorToRead);						// .. read the sector to buffer in cart
+				CpuInstance.TransferToMemory(buffer, 321);						// .. transfer to memory
+				_complete = true;												// done tranferring
+				_reading = false;												// .. no longer reading
+				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. tell the cpu we are done.
+			}
 			base.Run();
 		}
 

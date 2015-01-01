@@ -140,7 +140,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 
 		private void ReadSector(int sectorNumber)						// read a sector into memory
 		{																// sector is on current cylinder... Sector 0...7
-			
+			Assert.Fail("Test the read function");
 		}
 
 		private ushort GetCurrentStatus()								// calculate some sense bits
