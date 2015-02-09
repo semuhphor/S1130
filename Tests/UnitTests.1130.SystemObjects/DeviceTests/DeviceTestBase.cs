@@ -48,6 +48,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			InsCpu.IoccDeviceCode = device.DeviceCode;
 			InsCpu.IoccFunction = DevFunction.InitRead;
 			InsCpu.IoccAddress = wca;
+			InsCpu.IoccModifiers = (check ? 0x80 : 0) | sector;  
 			InsCpu[wca] = (ushort) wc;
 			while (wc != 0)
 			{

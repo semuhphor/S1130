@@ -117,7 +117,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		{
 			_2310.Mount(_cartridge);										// mount one up
 			Assert.IsTrue(_cartridge.Mounted);								// .. check it's mounted
-			ReadSector(0);													// .. attempt read or sector zero
+			ReadSector(0, 0x);													// .. attempt read of sector zero
 			
 		}
 
@@ -138,9 +138,9 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			Assert.AreEqual(status, Sense(_2310, 1));						// Reset the interrupt and ensure complete
 		}
 
-		private void ReadSector(int sectorNumber)						// read a sector into memory
+		private void ReadSector(int sectorNumber, ushort wca)			// read a sector into memory
 		{																// sector is on current cylinder... Sector 0...7
-			Assert.Fail("Test the read function");
+			InitiateRead(_2310, wca, false, (byte) sectorNumber & 0x03);
 		}
 
 		private ushort GetCurrentStatus()								// calculate some sense bits
