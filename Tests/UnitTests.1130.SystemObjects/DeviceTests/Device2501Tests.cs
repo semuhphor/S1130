@@ -69,7 +69,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			CheckCardReadProperly(0x1001, 80);
 			SenseDevice(_2501, 1);
 			Assert.AreEqual(0, InsCpu.Acc);
-			Assert.IsNull(_2501.ActiveInterrupt);
+			Assert.IsTrue(_2501.ActiveInterrupt == null);
 			InitiateRead(_2501, 0x1000, 80);
 			_2501.Run();
 			Assert.IsNotNull(_2501.ActiveInterrupt);
