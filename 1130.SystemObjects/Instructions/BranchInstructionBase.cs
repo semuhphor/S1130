@@ -20,7 +20,7 @@
 		{
 			if ((cpu.Modifiers & Overflow) != 0)		// q. checking overflow cpu?
 			{											// a. yes .. 
-				if (!cpu.Overflow)					// q. overflow off?
+				if (!cpu.Overflow)						// q. overflow off?
 				{										// a. yes...
 					return true;						// .. condition met
 				}
@@ -29,7 +29,7 @@
 
 			if ((cpu.Modifiers & Carry) != 0)			// q. check carry?
 			{											// a. yes ..
-				if (!cpu.Carry)						// q. carry off?
+				if (!cpu.Carry)							// q. carry off?
 				{										// a. yes..
 					return true;						// .. condition met
 				}
@@ -37,7 +37,7 @@
 
 			if ((cpu.Modifiers & Even) != 0)			// q. Checking for even?
 			{											// a. yes ..
-				if ((cpu.Acc & 1) == 0)				// q. Acc even?
+				if ((cpu.Acc & 1) == 0)					// q. Acc even?
 				{										// a. yes ..
 					return true;						// .. condition met
 				}
