@@ -8,11 +8,6 @@ namespace S1130.SystemObjects
 		{
 		}
 
-		public Card(string columns)
-		{
-			
-		}
-
 		public Card(ushort[] columns)
 		{
 			if (columns.Length != 80)
