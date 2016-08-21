@@ -2,6 +2,7 @@
 
 namespace Tests
 {
+	[Collection("Interrupt tests")]
 	public class InterruptBasicTests : InterruptTestBase
 	{
 		[Fact]

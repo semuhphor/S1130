@@ -4,6 +4,7 @@ using S1130.SystemObjects.Instructions;
 
 namespace Tests
 {
+	[Collection("Interrupt tests")]
 	public class InterruptHandlingTests : InterruptTestBase
 	{
 		[Fact]
