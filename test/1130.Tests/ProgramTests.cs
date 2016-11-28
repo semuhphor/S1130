@@ -55,7 +55,7 @@ namespace Tests
 				numberOfInstructions++;
 			}
 			watch.Stop();
-			Console.Out.WriteLine(watch.ElapsedMilliseconds);
+			Console.Out.WriteLine("1M Instructions in {0}ms.", watch.ElapsedMilliseconds);
 		}
 
 		private int RunUntilWait()
