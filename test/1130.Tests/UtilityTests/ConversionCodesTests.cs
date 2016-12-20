@@ -1,4 +1,3 @@
-using System;
 using Xunit;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Utility;

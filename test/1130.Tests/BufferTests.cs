@@ -57,7 +57,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, "Wrong exception");
+				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 
@@ -76,7 +76,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, "Wrong exception");
+				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 
@@ -95,7 +95,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, "Wrong exception");
+				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 
@@ -114,7 +114,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, "Wrong exception");
+				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 	}

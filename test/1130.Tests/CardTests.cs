@@ -1,9 +1,6 @@
-﻿using Xunit;
-using S1130.SystemObjects;
-
-namespace Tests	
+﻿namespace Tests
 {
-	public class CardTests
+    public class CardTests
 	{
 	}
 }

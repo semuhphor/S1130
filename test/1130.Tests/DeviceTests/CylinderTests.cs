@@ -1,16 +1,15 @@
-﻿using System;
-using Xunit;
+﻿using Xunit;
 using S1130.SystemObjects.Devices;
 
 namespace UnitTests.S1130.SystemObjects.DeviceTests
 {
-	/* ***********************************************************************
+    /* ***********************************************************************
 	 * Tests for cylinder calculation
 	 * 
 	 * Verfies that you can't move the heads outside of cylinders 0-202.
 	 * **********************************************************************/
 
-	public class CylinderTests
+    public class CylinderTests
 	{
 		private Cylinder _cyl;								// work for a cylider object
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace S1130.SystemObjects.Devices
+﻿namespace S1130.SystemObjects.Devices
 {
 	/***********************************************************************
 	 * struct to calc cylinder number with floor of zero and ceiling of 202

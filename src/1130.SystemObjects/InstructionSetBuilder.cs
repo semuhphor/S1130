@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using S1130.SystemObjects.Instructions;
 using OpCodes = S1130.SystemObjects.Instructions.OpCodes;
 
