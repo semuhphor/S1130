@@ -86,6 +86,18 @@ namespace Tests
 			Assert.Null(_2501.ActiveInterrupt);
 		}
 
+		[Fact]
+		public void ShouldOnlyReadNColumns()
+		{
+			BeforeEachTest();
+			_2501 += GetTestCard();
+			InsCpu[0x1006] = 0x1006;
+			InitiateRead(_2501, 0x1000, 5);
+			_2501.Run();
+			CheckCardReadProperly(0x1001, 5);
+			Assert.Equal((ushort) 0x1006, InsCpu[0x1006]);
+		}
+
 		protected void CheckCardReadProperly(int address, int wc)
 		{
 			var testCard = GetTestCard();
