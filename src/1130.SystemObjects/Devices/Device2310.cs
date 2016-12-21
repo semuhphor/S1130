@@ -117,7 +117,8 @@ namespace S1130.SystemObjects.Devices
 					_sector = CpuInstance.IoccModifiers & SectorMask;			// .. get the sector on cylinder to read
 					_complete = false;											// .. not done yet
 					_busy = true;												// make the drive busy
-					_seeking = true;											// .. seeking
+					_seeking = false;											// .. seeking
+					_reading = true;											// . and we are reading@!
 					break;
 
 				case DevFunction.InitWrite:
@@ -140,9 +141,11 @@ namespace S1130.SystemObjects.Devices
 			}
 			else if (_reading)													// q. reading?
 			{																	// a. yes ..
+				Console.WriteLine("Reading!");
 				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
 				int sectorToRead = (_cylinder.Current * 8) + _sector;			// .. get the sector number
 				var buffer = _cartridge.Read(sectorToRead);						// .. read the sector to buffer in cart
+				Console.WriteLine("2310 ... Sector From Buffer {0} and sector {1}", buffer[0], _sector);
 				CpuInstance.TransferToMemory(buffer, 321);						// .. transfer to memory
 				_complete = true;												// done tranferring
 				_reading = false;												// .. no longer reading

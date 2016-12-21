@@ -121,14 +121,29 @@ namespace Tests
 		[Fact]
 		public void Read_ReadSector_Zero()								// test read for sector zero
 		{
-			BeforeEachTest();
-			_2310.Mount(_cartridge);										// mount one up
-			Assert.True(_cartridge.Mounted);								// .. check it's mounted
-			ReadSector(0, (ushort) 0x0000);			//??? In process					// .. attempt read of sector zero
-			Assert.True(false, "Incomplete test");
+			BeforeEachTest();	
+			ReadSectorAndCheck(0, 0x1000);									// read sector zero
+		}
+
+		[Fact]
+		public void Read_ReadSector_44()								// test read for sector zero
+		{
+			BeforeEachTest();	
+			ReadSectorAndCheck(44, 0x1000);									// read sector zero
 		}
 
 		#region Helpers
+
+		private void ReadSectorAndCheck(int sector, int wca)			// mount a fake cartride, read it and check results
+		{
+			var cart = new FakeCartridge();									// make a fake
+			_2310.Mount(cart);												// mount it
+			ReadSector(sector, (ushort) wca);								// .. attempt read of sector zero
+			CheckSectordReadProperly(wca + 1, InsCpu[wca], cart, sector);	// .. check that the sector read ok.
+			Assert.True(cart.ReadCalled);									// ensure it was read
+			Assert.Equal(sector, cart.SectorRead);							// ensure correct sector
+			_2310.UnMount();												// remove the fake
+		}
 
 		private void SeekToCylinder(int cylNumber)						// seek to specific cylinder
 		{
@@ -147,8 +162,8 @@ namespace Tests
 
 		private void ReadSector(int sectorNumber, ushort wca)			// read a sector into memory
 		{	
-			Assert.True(false, "Incomplete test");						// sector is on current cylinder... Sector 0...7
-			//InitiateRead(_2310, wca, false, (byte) sectorNumber & 0x03);
+			InitiateRead(_2310, wca, 32, false, (byte) sectorNumber & 0x03);
+			_2310.Run();
 		}
 
 		private ushort GetCurrentStatus()								// calculate some sense bits
@@ -159,7 +174,7 @@ namespace Tests
 		private void StartDriveAndTestReady()							// mount a cart and check it's ready
 		{
 			_2310.Mount(_cartridge);											// mount the cart
-			var acc = Sense(_2310);												// ... get the sense value
+			var acc = Sense(_2310);												// ... get the sense valueg
 			Assert.Equal(Device2310.AtCylZero, acc);							// ... should be ready at cylinder 0
 		}
 
@@ -183,6 +198,18 @@ namespace Tests
 			Assert.True(false, "Bad Device number should have thrown exception.");	// uh oh.. wrong or no exception.
 		}
 
+		protected void CheckSectordReadProperly(int address, int wc, ICartridge cart, int sectorNumber)
+		{
+			var testSector = cart.Read(sectorNumber);
+			for (var i = 0; i < wc; i++)
+			{
+				if (InsCpu[address + i] != testSector[i])
+				{
+					Assert.True(false, string.Format("Sector mismatch at offset {0}: memory: {1:x}, sectorWord: {2:x}", i, InsCpu[address + i], testSector[i]));
+				}
+			}
+		}
+
 		#endregion
 
 		#region Fake Cartridge
@@ -203,6 +230,8 @@ namespace Tests
 
 			public ushort[] Read(int sector)								// read a sector
 			{
+				ReadCalled = true;												// show that a read was called
+				SectorRead = sector;											// sector number requested
 				for (int i = 1; i <= 32; i++)									// load the first 32 words
 				{
 					_sector[i] = (ushort) (i & 0xffff);							// .. with their offset
