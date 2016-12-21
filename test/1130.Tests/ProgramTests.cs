@@ -64,7 +64,7 @@ namespace Tests
 			while (!_cpu.Wait)
 			{
 				_cpu.NextInstruction();
-				Console.Out.WriteLine("{0:x4}: {1}, Acc: {2:x4} XR1: {3:x4}", _cpu.Iar, _cpu.CurrentInstruction.OpCode, _cpu.Acc, _cpu.Xr[1]);
+				// Console.Out.WriteLine("{0:x4}: {1}, Acc: {2:x4} XR1: {3:x4}", _cpu.Iar, _cpu.CurrentInstruction.OpCode, _cpu.Acc, _cpu.Xr[1]);
 				_cpu.ExecuteInstruction();
 				numberOfInstructions++;
 			}
