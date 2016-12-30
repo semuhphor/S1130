@@ -25,7 +25,7 @@ namespace S1130.SystemObjects.Devices
 		public const ushort OperationComplete = 0x4000;
 		public const ushort NotReady = 0x2000;
 		public const ushort Busy = 0x1000;
-		public const ushort AtCylZero = 0x0400;
+		public const ushort AtCylZero = 0x0800;
 		public const ushort NextSectorMask = 0x0003;
 		public const int InterruptLevel = 2;
 		public const byte SeekForward = 0x00;
