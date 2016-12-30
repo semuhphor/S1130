@@ -110,11 +110,11 @@ namespace Tests
 		{
 			BeforeEachTest();
 			_2310.Mount(_cartridge);										// mount up cartridge
-			SeekToCylinder(100);											// go to cylinder 100
-			Assert.Equal(100, _cartridge.CurrentCylinder);				// .. assure we are there
-			SeekToCylinder(95);												// go to cylinder 95
-			Assert.Equal(95, _cartridge.CurrentCylinder);				// .. assure we are there
-			SeekToCylinder(0);												// go to cylinder 95
+			SeekToCylinder(100, _cartridge);								// go to cylinder 100
+			Assert.Equal(100, _cartridge.CurrentCylinder);					// .. assure we are there
+			SeekToCylinder(95, _cartridge);									// go to cylinder 95
+			Assert.Equal(95, _cartridge.CurrentCylinder);					// .. assure we are there
+			SeekToCylinder(0, _cartridge);									// go to cylinder 95
 			Assert.Equal(0, _cartridge.CurrentCylinder);					// .. assure we are there
 		}
 
@@ -132,43 +132,54 @@ namespace Tests
 			ReadSectorAndCheck(44, 0x1000);									// read sector zero
 		}
 
+		[Fact]
+		public void Read_ReadSector_Last()								// test read for sector zero
+		{
+			BeforeEachTest();
+			int sector = (202 << 3) + 7;									// get last sector	
+			ReadSectorAndCheck(sector, 0x1000);								// read sector zero
+		}
+
 		#region Helpers
 
 		private void ReadSectorAndCheck(int sector, int wca)			// mount a fake cartride, read it and check results
 		{
 			var cart = new FakeCartridge();									// make a fake
 			_2310.Mount(cart);												// mount it
-			ReadSector(sector, (ushort) wca);								// .. attempt read of sector zero
+			SeekToCylinder(sector >> 3, cart);								// .. get to the correct cylinder
+			ReadSector(sector, (ushort) wca, cart);							// .. attempt read of sector zero
 			CheckSectordReadProperly(wca + 1, InsCpu[wca], cart, sector);	// .. check that the sector read ok.
 			Assert.True(cart.ReadCalled);									// ensure it was read
-			Assert.Equal(sector, cart.SectorRead);							// ensure correct sector
+			Assert.Equal(sector & 0x7, cart.SectorRead);					// ensure correct sector
 			_2310.UnMount();												// remove the fake
 		}
 
-		private void SeekToCylinder(int cylNumber)						// seek to specific cylinder
+		private void SeekToCylinder(int cylNumber, ICartridge cart)		// seek to specific cylinder
 		{
-			var offset = cylNumber - _cartridge.CurrentCylinder;			// distance and direction to move
+			var offset = cylNumber - cart.CurrentCylinder;					// distance and direction to move
 			if (offset == 0)												// q. any movement?
 				return;														// a. no .. don't move
 			byte dir = (byte) (offset < 0 ? Device2310.SeekBackward : 0);	// set direction
 			offset = Math.Abs(offset);										// ensure offset positive
 			IssueControl(_2310, offset, dir);								// seek to new cylinder
-			var status = GetCurrentStatus() | Device2310.Busy;				// busy .. maybe home
-			Assert.Equal(status, Sense(_2310));							// .. ensure it is busy
+			var status = GetCurrentStatus(cart) | Device2310.Busy;			// busy .. maybe home
+			Assert.Equal(status, Sense(_2310));								// .. ensure it is busy
 			_2310.Run();													// .. do the seek
-			status = GetCurrentStatus() | Device2310.OperationComplete;		// op copmlete ... maybe home
-			Assert.Equal(status, Sense(_2310, 1));						// Reset the interrupt and ensure complete
+			status = GetCurrentStatus(cart) | Device2310.OperationComplete;	// op copmlete ... maybe home
+			Assert.Equal(status, Sense(_2310, 1));							// Reset the interrupt and ensure complete
 		}
 
-		private void ReadSector(int sectorNumber, ushort wca)			// read a sector into memory
-		{	
-			InitiateRead(_2310, wca, 32, false, (byte) sectorNumber & 0x03);
-			_2310.Run();
+		private void ReadSector(int sectorNumber, ushort wca, ICartridge cart)	// read a sector into memory
+		{																	// note sector number is (cyl * 8) + sector {0-7}
+			SeekToCylinder(sectorNumber >> 3, cart);								// go to that cylinder
+			InitiateRead(_2310, wca, 32, false, (byte) sectorNumber & 0x07);// get the requested sector
+			_2310.Run();													// DO IT!
 		}
 
-		private ushort GetCurrentStatus()								// calculate some sense bits
+		private ushort GetCurrentStatus(ICartridge cart)				// calculate some sense bits
 		{																	// check for home
-			return (ushort) (_cartridge.CurrentCylinder == 0 ? Device2310.AtCylZero : 0);
+			var status =  (ushort) (cart.CurrentCylinder == 0 ? Device2310.AtCylZero : 0);
+			return status;
 		}
 
 		private void StartDriveAndTestReady()							// mount a cart and check it's ready
@@ -200,7 +211,10 @@ namespace Tests
 
 		protected void CheckSectordReadProperly(int address, int wc, ICartridge cart, int sectorNumber)
 		{
-			var testSector = cart.Read(sectorNumber);
+			var cyl = sectorNumber >> 3;
+			var sector = sectorNumber & 7;
+			cart.CurrentCylinder = cyl;
+			var testSector = cart.Read(sector);
 			for (var i = 0; i < wc; i++)
 			{
 				if (InsCpu[address + i] != testSector[i])
@@ -230,13 +244,15 @@ namespace Tests
 
 			public ushort[] Read(int sector)								// read a sector
 			{
+				Assert.False(sector < 0 || sector > 7, "Bad sector number!");	// q. sector ok?
+																				// a. no .. fail. With Meaning.
 				ReadCalled = true;												// show that a read was called
 				SectorRead = sector;											// sector number requested
 				for (int i = 1; i <= 32; i++)									// load the first 32 words
 				{
 					_sector[i] = (ushort) (i & 0xffff);							// .. with their offset
 				}
-				_sector[0] = (ushort) sector;									// set the sector number
+				_sector[0] = (ushort) (sector | CurrentCylinder << 3);			// set the sector number
 				return _sector;													// .. and return the sector
 			}
 
