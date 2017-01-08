@@ -235,6 +235,11 @@ namespace S1130.SystemObjects
 			return true;														// .. and tell 'em it worked
 		}
 
+		public ArraySegment<ushort> GetBuffer()								// get the i/o buffer only
+		{
+			return new ArraySegment<ushort>(Memory, IoccAddress+1, Memory[IoccAddress]);
+		}
+
 		public void TransferToMemory(int wcAddr, ushort[] values, int max)	// Cycle steal
 		{
 			var transferCount = Memory[wcAddr] > max ? max : Memory[wcAddr];	// get amount to transfer
@@ -279,7 +284,7 @@ namespace S1130.SystemObjects
 		private void BuildDefaultDevices()									// add default devices to system
 		{
 			Devices = new IDevice[32];											// init the device array
-			AddDevice(new ConsoleEntrySwitches(this));								// .. add console entry switches
+			AddDevice(new ConsoleEntrySwitches(this));							// .. add console entry switches
 		}
     }
 }

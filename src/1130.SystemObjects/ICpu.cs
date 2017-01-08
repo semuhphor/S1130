@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using S1130.SystemObjects.InterruptManagement;
 
@@ -50,6 +51,7 @@ namespace S1130.SystemObjects
 		int IoccModifiers { get; set; }
 	    void IoccDecode(int address);
 		IDevice IoccDevice { get; set; }
+		ArraySegment<ushort> GetBuffer();
 
 		bool AddDevice(IDevice device);
 		void TransferToMemory(int wcAddr, ushort[] values, int max);
