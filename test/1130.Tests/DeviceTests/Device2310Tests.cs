@@ -140,6 +140,20 @@ namespace Tests
 		}
 
 		[Fact]
+		public void Write_WriteSector_1205()							// Write sector 1205
+		{
+			BeforeEachTest();
+			WriteSectorAndCheck(1205, 0x1000);									// write a sector and check the output
+		}
+
+		[Fact]
+		public void Write_WriteSector_47()								// Write sector 1200
+		{
+			BeforeEachTest();
+			WriteSectorAndCheck(47, 0x1000);									// write a sector and check the output
+		}
+
+		[Fact]
 		public void Read_ReadSector_Last()								// test read for sector zero
 		{
 			BeforeEachTest();
