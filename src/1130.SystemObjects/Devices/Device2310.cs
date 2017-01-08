@@ -48,6 +48,7 @@ namespace S1130.SystemObjects.Devices
 		private ICartridge _cartridge;										// cartridge 
 		private int _seekOffset;											// number of cyliders to seek (+/-)
 		private int _sector;												// sector to read
+		private int _wcAddress;												// address to write from
 
 		public Device2310(ICpu cpu, int driveNumber = 0)					// constructor cpu and drive number (0-5)		
 		{
@@ -122,7 +123,14 @@ namespace S1130.SystemObjects.Devices
 					break;
 
 				case DevFunction.InitWrite:
-
+					if (!_cartMounted || _busy)									// q. cart not ready or already doing something
+						break;													// a. no .. can't read
+					_sector = CpuInstance.IoccModifiers & SectorMask;			// .. get the sector on cylinder to read
+					_wcAddress = CpuInstance.IoccAddress;						// .. where to write from
+					_complete = false;											// .. not done yet
+					_busy = true;												// make the drive busy
+					_seeking = false;											// .. seeking
+					_writing = true;											// . and we are writing@!
 					break;
 			}
 		}
@@ -146,6 +154,16 @@ namespace S1130.SystemObjects.Devices
 				CpuInstance.TransferToMemory(buffer, 321);						// .. transfer to memory
 				_complete = true;												// done tranferring
 				_reading = false;												// .. no longer reading
+				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. tell the cpu we are done.
+			}
+			else if (_writing)													// q. writing?
+			{																	// a. yes ..
+				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
+				var wc = CpuInstance[_wcAddress];								// .. number of words to write
+				wc = (ushort) ((wc > 321) ? 321 : wc);							// .. ensure max words are 321
+				_cartridge.Write(_sector, CpuInstance.GetBuffer(), wc);			// .. write the sector
+				_complete = true;												// done tranferring
+				_writing = false;												// .. no longer writing
 				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. tell the cpu we are done.
 			}
 			base.Run();

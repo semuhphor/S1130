@@ -55,6 +55,21 @@ namespace Tests
 			device.ExecuteIocc();
 		}
 
+		protected void InitiateDiskWrite(IDevice device, int wca, int wc, int sector)
+		{
+			InsCpu.IoccDeviceCode = device.DeviceCode;
+			InsCpu.IoccFunction = DevFunction.InitWrite;
+			InsCpu.IoccAddress = wca;
+			InsCpu.IoccModifiers = sector & 0x07;  
+			InsCpu[wca] = (ushort) wc;
+			while (wc > 1)
+			{
+				InsCpu[wca + wc--] = (ushort) wc;
+			}
+			InsCpu[wca+1] = (ushort) sector;
+			device.ExecuteIocc();
+		}
+
 		protected ICard GetTestCard()
 		{
 			var columns = new ushort[80];

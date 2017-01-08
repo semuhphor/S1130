@@ -1,3 +1,5 @@
+using System;
+
 namespace S1130.SystemObjects.Devices
 {
 	/***************************************************************************
@@ -40,8 +42,10 @@ namespace S1130.SystemObjects.Devices
 		void Mount();
 		void UnMount();
 		void Flush();
-		ushort[] Read(int sector);
+		ushort[] Read(int sectorNumber);
 		//void Write(int sector, ushort[] data);
+
+		void Write(int sectorNumber, ArraySegment<ushort> sector, int wc);
 
 		int CurrentCylinder { get; set; }
 	}

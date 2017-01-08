@@ -133,6 +133,13 @@ namespace Tests
 		}
 
 		[Fact]
+		public void Write_WriteSector_Zero()							// Write the first sector on the disk
+		{
+			BeforeEachTest();
+			WriteSectorAndCheck(0, 0x1000);									// write a sector and check the output
+		}
+
+		[Fact]
 		public void Read_ReadSector_Last()								// test read for sector zero
 		{
 			BeforeEachTest();
@@ -150,7 +157,19 @@ namespace Tests
 			ReadSector(sector, (ushort) wca, cart);							// .. attempt read of sector zero
 			CheckSectordReadProperly(wca + 1, InsCpu[wca], cart, sector);	// .. check that the sector read ok.
 			Assert.True(cart.ReadCalled);									// ensure it was read
-			Assert.Equal(sector & 0x7, cart.SectorRead);					// ensure correct sector
+			Assert.Equal(sector & 0x7, cart.SectorNumber);					// ensure correct sector
+			_2310.UnMount();												// remove the fake
+		}
+
+		private void WriteSectorAndCheck(int sector, int wca)			// mount a fake cartride, write to it and check results
+		{
+			var cart = new FakeCartridge();									// make a fake
+			_2310.Mount(cart);												// mount it
+			SeekToCylinder(sector >> 3, cart);								// .. get to the correct cylinder
+			WriteSector(sector, (ushort) wca, cart);						// .. attempt write of sector zero
+			Assert.True(cart.WriteCalled);									// ensure it was written
+			CheckSectorWroteProperly(wca + 1, InsCpu[wca], cart, sector);	// .. check that the sector wrote ok.
+			Assert.Equal(sector & 0x7, cart.SectorNumber);					// ensure correct sector
 			_2310.UnMount();												// remove the fake
 		}
 
@@ -170,14 +189,21 @@ namespace Tests
 		}
 
 		private void ReadSector(int sectorNumber, ushort wca, ICartridge cart)	// read a sector into memory
-		{																	// note sector number is (cyl * 8) + sector {0-7}
-			SeekToCylinder(sectorNumber >> 3, cart);								// go to that cylinder
-			InitiateRead(_2310, wca, 32, false, (byte) sectorNumber & 0x07);// get the requested sector
-			_2310.Run();													// DO IT!
+		{																		// note sector number is (cyl * 8) + sector {0-7}
+			SeekToCylinder(sectorNumber >> 3, cart);							// go to that cylinder
+			InitiateRead(_2310, wca, 32, false, (byte) sectorNumber & 0x07);	// get the requested sector
+			_2310.Run();														// DO IT!
+		}
+
+		private void WriteSector(int sectorNumber, ushort wca, ICartridge cart) // write sector from memory
+		{																		// note sector number is (cyl * 8) + sector {0-7}
+			SeekToCylinder(sectorNumber >> 3, cart);							// go to that cylinder
+			InitiateDiskWrite(_2310, wca, 321, sectorNumber);					// .. write the requested sector
+			_2310.Run();														// DO IT!
 		}
 
 		private ushort GetCurrentStatus(ICartridge cart)				// calculate some sense bits
-		{																	// check for home
+		{																		// check for home
 			var status =  (ushort) (cart.CurrentCylinder == 0 ? Device2310.AtCylZero : 0);
 			return status;
 		}
@@ -224,6 +250,21 @@ namespace Tests
 			}
 		}
 
+		protected void CheckSectorWroteProperly(int address, int wc, ICartridge cart, int sectorNumber)
+		{
+			var cyl = sectorNumber >> 3;
+			var sector = sectorNumber & 7;
+			cart.CurrentCylinder = cyl;
+			ushort[] sectorWritten = ((FakeCartridge) cart).Sector;
+			for (var i = 0; i < wc; i++)
+			{
+				if (InsCpu[address + i] != sectorWritten[i])
+				{
+					Assert.True(false, string.Format("Sector mismatch at offset {0}: memory: {1:x}, sectorWord: {2:x}, address: {3:x}, wc: {4}", i, InsCpu[address + i], sectorWritten[i], address, InsCpu[address-1]));
+				}
+			}
+		}
+
 		#endregion
 
 		#region Fake Cartridge
@@ -237,23 +278,35 @@ namespace Tests
 			public int CurrentCylinder { get; set; }						// current cylinder (set after seek)
 			public bool MountCalled { get; set; }							// indicates mount called
 			public bool ReadCalled { get; set; }							// indicates read called
-			public int SectorRead { get; set; }								// sector read
+			public bool WriteCalled { get; set; }							// indicates write called
+			public int SectorNumber { get; set; }							// sector read
 			public bool FlushCalled { get; set; }							// indicates flush called
 			public bool Mounted { get; private set; }						// indicates if mounted
-			private readonly ushort[] _sector = new ushort[321];			// place for a sector
+			public readonly ushort[] Sector = new ushort[321];				// place for a sector
 
-			public ushort[] Read(int sector)								// read a sector
+			public ushort[] Read(int sectorNumber)								// read a sector
 			{
-				Assert.False(sector < 0 || sector > 7, "Bad sector number!");	// q. sector ok?
+				Assert.False(sectorNumber < 0 || sectorNumber > 7, "Bad sector number!");	// q. sector ok?
 																				// a. no .. fail. With Meaning.
 				ReadCalled = true;												// show that a read was called
-				SectorRead = sector;											// sector number requested
+				SectorNumber = sectorNumber;											// sector number requested
 				for (int i = 1; i <= 32; i++)									// load the first 32 words
 				{
-					_sector[i] = (ushort) (i & 0xffff);							// .. with their offset
+					Sector[i] = (ushort) (i & 0xffff);							// .. with their offset
 				}
-				_sector[0] = (ushort) (sector | CurrentCylinder << 3);			// set the sector number
-				return _sector;													// .. and return the sector
+				Sector[0] = (ushort) (sectorNumber | CurrentCylinder << 3);	// set the sector number
+				return Sector;													// .. and return the sector
+			}
+
+			public void Write(int sectorNumber, ArraySegment<ushort> sector, int wc)
+			{
+				Assert.False(sectorNumber < 0 || sectorNumber > 7, "Bad sector number!");	// q. sector ok?
+																				// a. no .. fail. With Meaning.
+				InitSector();													// ensure all zeros ..
+				WriteCalled = true;												// show that a read was called
+				SectorNumber = sectorNumber;									// sector number requested
+				Array.Copy(sector.Array, sector.Offset, Sector, 0, sector.Count); 	// copy the requested words
+				Sector[0] = (ushort) (sectorNumber | CurrentCylinder << 3);		// set the sector number
 			}
 
 			public void Mount()												// mount	
@@ -270,6 +323,14 @@ namespace Tests
 			public void UnMount()											// Remove cart from drive
 			{
 				Mounted = false;												// unmounted!
+			}
+
+			private void InitSector()										// reset sector to all zeros
+			{
+				for (int i = 0; i < Sector.Length; i++)					
+				{
+					Sector[i] = 0;
+				}
 			}
 		}
 
