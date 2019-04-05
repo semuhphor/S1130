@@ -10,7 +10,7 @@ namespace Tests
 		private Device2310 _2310;										// 2310 for testing
 		private FakeCartridge _cartridge;								// cartridge to test
 
-		public override void BeforeEachTest()							// before each test ..
+		protected override void BeforeEachTest()							// before each test ..
 		{
 			base.BeforeEachTest();											// .. run the base (creates new cpu)
 			_2310 = new Device2310(InsCpu);									// creeate new 2310

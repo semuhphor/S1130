@@ -9,7 +9,7 @@ namespace Tests
 		private Device2501 _2501;
 		protected Deck ADeck;
 
-		public override void BeforeEachTest()
+		protected override void BeforeEachTest()
 		{
 			base.BeforeEachTest();
 			_2501 = new Device2501(InsCpu);

@@ -6,7 +6,7 @@ namespace Tests
 	{
 		protected Cpu InsCpu;
 
-		public virtual void BeforeEachTest()
+		protected virtual void BeforeEachTest()
 		{
 			InsCpu = new Cpu { Iar = 0x100, IgnoreInstructionCount = true };
 		}

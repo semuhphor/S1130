@@ -95,7 +95,7 @@ namespace Tests
 			Assert.Equal(2, InsCpu.ActiveInterruptCount);				// .. ensure the count is correct
 			InsCpu.ClearCurrentInterrupt();								// ... should clear level 2
 			Assert.Equal(1, InsCpu.ActiveInterruptCount);				// .. ensure the count is correct
-			Assert.Equal(1, InsCpu.CurrentInterrupt.Count);				// .. and only one currently active
+			Assert.Single(InsCpu.CurrentInterrupt);						// .. and only one currently active
 			Assert.Equal(4, InsCpu.CurrentInterruptLevel);				// .. level 4 still active
 			Assert.True(InsCpu.InterruptQueues[2].IsEmpty);				// .. no device on interrupt 2
 			dev4.ClearActiveInterrupt();								// reset int 4 device ...
@@ -126,7 +126,7 @@ namespace Tests
 			Assert.NotNull(dummyDevice.ActiveInterrupt);															// .. interrupt should not be complete
 			var interrupt = dummyDevice.ActiveInterrupt;															// .. (save the interrupt)
 			Assert.False(dummyDevice.ActiveInterrupt.InBag);														// .. should not be pooled
-			Assert.Equal(InsCpu[0x500], 0x101);																		// .. return should be stored now
+			Assert.Equal(0x101, InsCpu[0x500]);																		// .. return should be stored now
 			ExecuteOneInstruction();																				// execute handler XIO ...
 			Assert.Equal(0x503, InsCpu.Iar);																		// .. should still be in the routine 
 			Assert.Equal(0x001f, InsCpu.Acc);																		// .. value returned by dummy device
@@ -162,7 +162,7 @@ namespace Tests
 			Assert.NotNull(dummyDevice.ActiveInterrupt);															// .. interrupt should not be complete
 			var interrupt = dummyDevice.ActiveInterrupt;															// .. (save the interrupt)
 			Assert.False(dummyDevice.ActiveInterrupt.InBag);														// .. should not be pooled
-			Assert.Equal(InsCpu[0x500], 0x101);																		// .. return should be stored now
+			Assert.Equal(0x101, InsCpu[0x500]);																		// .. return should be stored now
 			ExecuteOneInstruction();																				// execute handler XIO ...
 			Assert.Equal(0x503, InsCpu.Iar);																		// .. should still be in the routine 
 			Assert.Equal(0x001f, InsCpu.Acc);																		// .. value returned by dummy device

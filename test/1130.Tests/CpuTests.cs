@@ -92,7 +92,7 @@ namespace Tests
 			_cpu.NextInstruction();
 			Assert.Equal(0x101, _cpu.Iar);
 			Assert.Equal((int)OpCodes.Load, _cpu.Opcode);
-			Assert.Equal(false, _cpu.FormatLong);
+			Assert.False(_cpu.FormatLong);
 			Assert.Equal(2, _cpu.Tag);
 			Assert.Equal(0x72, _cpu.Displacement);
 			Assert.Equal("LD", _cpu.CurrentInstruction.OpName);
@@ -106,8 +106,8 @@ namespace Tests
 			_cpu.NextInstruction();
 			Assert.Equal(0x102, _cpu.Iar);
 			Assert.Equal((int)OpCodes.Load, _cpu.Opcode);
-			Assert.Equal(true, _cpu.FormatLong);
-			Assert.Equal(true, _cpu.IndirectAddress);
+			Assert.True(_cpu.FormatLong);
+			Assert.True(_cpu.IndirectAddress);
 			Assert.Equal(3, _cpu.Tag);
 			Assert.Equal(0x72, _cpu.Displacement);
 		}

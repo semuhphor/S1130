@@ -11,7 +11,7 @@ namespace UnitTests.S1130.SystemObjects
 		private Buffer _buffer;
 		private const ushort IarDefault = 0x100;
 
-		public void BeforeEachTest()
+		protected void BeforeEachTest()
 		{
 			_cpu = new Cpu { Iar = 0x100 };
 			_cpu[0x1000] = 80;

@@ -1,8 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
-    <RootNamespace>S1130.SystemObjects</RootNamespace>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RootNamespace>_1130.SystemObjects</RootNamespace>
+    <IsTestProject>false</IsTestProject>
   </PropertyGroup>
 
 </Project>

@@ -41,7 +41,7 @@ namespace Tests
 			}
 		}
 
-		public void BeforeEachTest()
+		protected void BeforeEachTest()
 		{
 			InsCpu = new Cpu { Iar = 0x100 };
 		}

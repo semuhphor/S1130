@@ -10,7 +10,7 @@ namespace Tests
 	{
 		private Cpu _cpu;
 
-		public void BeforeEachTest()
+		protected void BeforeEachTest()
 		{
 			_cpu = new Cpu {Iar = 0x100};
 		}

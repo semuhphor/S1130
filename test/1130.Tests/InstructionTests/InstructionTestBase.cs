@@ -17,7 +17,7 @@ namespace Tests
 
 		protected bool RandomBool { get { return ((_rand.Next() & 1) == 0); } }
 
-        public void BeforeEachTest()
+        protected void BeforeEachTest()
         {
             InsCpu = new Cpu { Iar = 0x100 };
         }
@@ -58,7 +58,7 @@ namespace Tests
 		    Assert.Equal(expectedAcc, InsCpu.Acc);
 		    Assert.Equal(expectedExt, InsCpu.Ext);
 		    Assert.Equal(expectedCarry, InsCpu.Carry);
-		    Assert.Equal(true, InsCpu.Overflow);
+		    Assert.True(InsCpu.Overflow);
 	    }
 
 		protected void ExecAndTest(ushort expectedAcc, bool expectedCarry, bool expectedOverflow, ushort initialAcc, bool initialCarry, bool initialOverflow)
@@ -80,7 +80,7 @@ namespace Tests
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(expectedAcc, InsCpu.Acc);
 			Assert.Equal(expectedCarry, InsCpu.Carry);
-			Assert.Equal(true, InsCpu.Overflow);
+			Assert.True(InsCpu.Overflow);
 		}
 
 		protected void ExecAndTest(ushort expectedAcc, ushort initialAcc)
