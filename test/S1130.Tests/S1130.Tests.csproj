@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RootNamespace>_1130.Tests</RootNamespace>
+    <RootNamespace>S1130.Tests</RootNamespace>
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\1130.SystemObjects\1130.SystemObjects.csproj" />
+    <ProjectReference Include="..\..\src\S1130.SystemObjects\S1130.SystemObjects.csproj" />
   </ItemGroup>
 
 </Project>

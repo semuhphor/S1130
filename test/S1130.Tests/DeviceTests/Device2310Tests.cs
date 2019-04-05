@@ -303,12 +303,12 @@ namespace Tests
 				Assert.False(sectorNumber < 0 || sectorNumber > 7, "Bad sector number!");	// q. sector ok?
 																				// a. no .. fail. With Meaning.
 				ReadCalled = true;												// show that a read was called
-				SectorNumber = sectorNumber;											// sector number requested
+				SectorNumber = sectorNumber;									// sector number requested
 				for (int i = 1; i <= 32; i++)									// load the first 32 words
 				{
 					Sector[i] = (ushort) (i & 0xffff);							// .. with their offset
 				}
-				Sector[0] = (ushort) (sectorNumber | CurrentCylinder << 3);	// set the sector number
+				Sector[0] = (ushort) (sectorNumber | CurrentCylinder << 3);		// set the sector number
 				return Sector;													// .. and return the sector
 			}
 

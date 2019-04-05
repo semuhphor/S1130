@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RootNamespace>_1130.SystemObjects</RootNamespace>
+    <RootNamespace>S1130.SystemObjects</RootNamespace>
     <IsTestProject>false</IsTestProject>
   </PropertyGroup>
 
