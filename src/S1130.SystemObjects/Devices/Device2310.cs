@@ -44,7 +44,7 @@ namespace S1130.SystemObjects.Devices
 		private bool _complete;												// true if operation finished
 		private bool _readCheck;											// true if read check requested
 		private ushort _ilsw = 0x8000;										// ILSW (defaulted for drive 0)
-		private Cylinder _cylinder = new Cylinder();						// current cylinder address
+		private CylinderTracker _cylinder = new CylinderTracker();			// current cylinder address
 		private ICartridge _cartridge;										// cartridge 
 		private int _seekOffset;											// number of cyliders to seek (+/-)
 		private int _sector;												// sector to read
@@ -175,7 +175,7 @@ namespace S1130.SystemObjects.Devices
 		{
 			_cartridge = cartridge;												// save the cartridge
 			_cartridge.Mount();													// tell the cart it's mounted
-			_cylinder = new Cylinder();											// set out cylinder to zero
+			_cylinder = new CylinderTracker();											// set out cylinder to zero
 			_cartridge.CurrentCylinder = 0;										// .. let the cartridge know too
 			_busy = false;														// .. show not busy
 			_complete = false;													// .. show no operation complete
