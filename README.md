@@ -1,5 +1,5 @@
-IBM1130Emulator
-===============
+S1130
+=====
 
 ## IBM 1130 Emulator in C#
 
