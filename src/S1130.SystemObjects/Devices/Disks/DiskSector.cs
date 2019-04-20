@@ -3,7 +3,7 @@ namespace S1130.SystemObjects.Devices.Disks
     /// <summary>
     /// A sector is the smallest accessible unit of a disk
     /// </summary>
-    public class Sector
+    public class DiskSector
     {
         public bool Written {get; set;}
         public ushort[] Data = new ushort[321];
@@ -15,5 +15,10 @@ namespace S1130.SystemObjects.Devices.Disks
                 Data[i] = data[i];
             }
         }
+    }
+
+    public class DiskCylinder
+    {
+        public DiskSector[] Sectors = new DiskSector[0];
     }
 }

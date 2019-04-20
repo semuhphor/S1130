@@ -3,19 +3,19 @@ using Xunit;
 
 namespace UnitTests.S1130.DeviceTests.DiskTests
 {
-    public class SectorTests
+    public class DiskSectorTests
     {
         [Fact]
         public void SectorIs321WordsTest()
         {
-            var sector = new Sector();
+            var sector = new DiskSector();
             Assert.Equal(321, sector.Data.Length);
         }
 
         [Fact]
         public void LoadTest()
         {
-            var sector = new Sector();
+            var sector = new DiskSector();
             ushort[] data = new ushort[321];
             for (ushort i = 0; i < data.Length; i++)
             {
