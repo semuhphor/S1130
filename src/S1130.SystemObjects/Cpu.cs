@@ -19,7 +19,7 @@ namespace S1130.SystemObjects
             MemorySize = DefaultMemorySize;										// size of memory
             Memory = new ushort[DefaultMemorySize];								// reserve the memory
             Xr = new IndexRegisters(this);										// setup index register shortcut
-	        IntPool = InterruptPool.GetPool();									// setup the interrupt pool
+	        IntPool = new InterruptPool();										// setup the interrupt pool
 			Instructions = InstructionSetBuilder.GetInstructionSet();			// instantiate the instruction set
 			_interruptQueues =  new[]											// prepare interrupt queue	
 					{
@@ -39,7 +39,6 @@ namespace S1130.SystemObjects
 		public InterruptPool IntPool { get; private set; }						// property for the pool of interrupt objects
 		public IDevice[] Devices { get; private set; }							// property for devices on machine
 
-
 		public ushort[] Memory { get; set; }									// property for memory
 		public int MemorySize { get; set; }										// property for memory size
 		public ushort Iar { get; set; }											// property for Instruction Address Register
@@ -48,7 +47,7 @@ namespace S1130.SystemObjects
 		public bool Carry { get; set; }											// property for Carry indicator
 		public bool Overflow { get; set; }										// property for Overflow indicator
 		public bool Wait { get; set; }											// property for Wait state 
-
+	
 		public ushort this[int address]											// c# indexer to access memory
 		{
 			get { return Memory[address]; }										// .. memory read
@@ -109,7 +108,7 @@ namespace S1130.SystemObjects
 
 		public void AddInterrupt(Interrupt interrupt)						// Add interrupt to interrupt queue
 		{
-			var interruptLevel = interrupt.InterruptLevel;						// Get tthe interrupt level
+			var interruptLevel = interrupt.InterruptLevel;						// Get the interrupt level
 			if (interruptLevel >= 0 && interruptLevel <= 5)						// q. CurrentInterruptLevel level in range?
 			{																	// a. yes .. 
 				_interruptQueues[interruptLevel].Enqueue(interrupt);			// .. queue the interrupt
@@ -166,7 +165,7 @@ namespace S1130.SystemObjects
 				if (intr.CausingDevice.ActiveInterrupt != intr)					// q. is this interrupt still on device?
 				{																// a. no ..
 					_interruptQueues[intr.InterruptLevel].TryDequeue(out intr);	// .. remove from interrupt queue
-					IntPool.PutInterrupt(intr);									// .. return to the pool
+					IntPool.PutInterruptInBag(intr);							// .. return to the pool
 					Interlocked.Decrement(ref _activeInterruptCount);			// .. and decrement number of active interrupts
 				}
 			}
