@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿using System.Reflection.Metadata;
+using Xunit;
+using S1130.SystemObjects.InterruptManagement;
 
 namespace UnitTests.S1130.InterruptTests
 {
@@ -8,77 +10,77 @@ namespace UnitTests.S1130.InterruptTests
 		[Fact]
 		public void NoInterruptActiveTest()
 		{
-			BeforeEachTest();
+			var InsCpu = GetNewCpu();
 			Assert.Null(InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void AddsToInterruptZero()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(0));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 0, 0x1f));
 			Assert.Equal(0, InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void AddsToInterruptOne()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(1));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 1, 0x1f));
 			Assert.Equal(1, InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void AddsToInterruptTwo()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(2));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 2, 0x1f));
 			Assert.Equal(2, InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void AddsToInterruptThree()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(3));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 3, 0x1f));
 			Assert.Equal(3, InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void AddsToInterruptFour()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(4));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 4, 0x1f));
 			Assert.Equal(4, InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void AddsToInterruptFive()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(5));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 5, 0x1f));
 			Assert.Equal(5, InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void InterruptsPriorityFourBeforeFive()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(4));
-			InsCpu.AddInterrupt(GetInterrupt(5));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 4, 0x1e));
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 5, 0x1f));
 			Assert.Equal(4, InsCpu.CurrentInterruptLevel);
 		}
 
 		[Fact]
 		public void InterruptsPriorityZeroBeforeAnything()
 		{
-			BeforeEachTest();
-			InsCpu.AddInterrupt(GetInterrupt(1));
-			InsCpu.AddInterrupt(GetInterrupt(2));
-			InsCpu.AddInterrupt(GetInterrupt(3));
-			InsCpu.AddInterrupt(GetInterrupt(4));
-			InsCpu.AddInterrupt(GetInterrupt(5));
-			InsCpu.AddInterrupt(GetInterrupt(0));
+			var InsCpu = GetNewCpu();
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 1, 0x1a));
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 2, 0x1b));
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 3, 0x1c));
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 4, 0x1d));
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 5, 0x1e));
+			InsCpu.AddInterrupt(GetInterrupt(InsCpu, 0, 0x1f));
 			Assert.Equal(0, InsCpu.CurrentInterruptLevel);
 		}
 	}

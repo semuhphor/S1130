@@ -5,16 +5,14 @@ namespace UnitTests.S1130.InterruptTests
 {
 	public abstract class InterruptTestBase
 	{
-		protected Cpu InsCpu;
-
 		protected class DummyDevice : DeviceBase
 		{
-			public DummyDevice(ICpu cpu, byte deviceCode = 0x1f)
+			public DummyDevice(ICpu cpu, byte deviceCode)
 			{
 				_deviceCode = deviceCode;
 				CpuInstance = cpu;
 			}
-			private readonly byte _deviceCode = 0x1f;
+			private readonly byte _deviceCode;
 			public override byte DeviceCode { get { return _deviceCode;  } }
 			public override void ExecuteIocc()
 			{
@@ -31,7 +29,7 @@ namespace UnitTests.S1130.InterruptTests
 			}
 			public Interrupt GetInterrupt(ICpu cpu, int level)
 			{
-				ActivateInterrupt(cpu, level, 0x1f);
+				ActivateInterrupt(cpu, level, DeviceCode);
 				return ActiveInterrupt;
 			}
 
@@ -41,20 +39,20 @@ namespace UnitTests.S1130.InterruptTests
 			}
 		}
 
-		protected void BeforeEachTest()
+		protected Cpu GetNewCpu()
 		{
-			InsCpu = new Cpu { Iar = 0x100 };
+			return new Cpu { Iar = 0x100 };
 		}
 
-		protected void ExecuteOneInstruction()
+		protected void ExecuteOneInstruction(Cpu cpu)
 		{
-			InsCpu.NextInstruction();
-			InsCpu.ExecuteInstruction();
+			cpu.NextInstruction();
+			cpu.ExecuteInstruction();
 		}
 
-		protected Interrupt GetInterrupt(int level)
+		protected Interrupt GetInterrupt(Cpu cpu, int level, byte deviceCode)
 		{
-			return new DummyDevice(InsCpu).GetInterrupt(InsCpu, level);
+			return new DummyDevice(cpu, deviceCode).GetInterrupt(cpu, level);
 		}
 	}
 }
