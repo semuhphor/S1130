@@ -48,14 +48,15 @@ namespace UnitTests.S1130
 			InstructionBuilder.BuildLongAtAddress(OpCodes.LoadIndex, 0, 0x100, _cpu, location);				// 0x0101: Branch to 0x100
 			var numberOfInstructions = 0;
 			var watch = Stopwatch.StartNew();
-			while (_cpu.InstructionCount < endingCount)
+			// while (_cpu.InstructionCount < endingCount)
+			while(watch.ElapsedMilliseconds < 1000)
 			{
 				_cpu.NextInstruction();
 				_cpu.ExecuteInstruction();
 				numberOfInstructions++;
 			}
 			watch.Stop();
-			Console.Out.WriteLine("1M Instructions in {0}ms.", watch.ElapsedMilliseconds);
+			Console.Out.WriteLine("1M Instructions in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
 		}
 
 		private int RunUntilWait()
