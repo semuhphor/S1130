@@ -10,7 +10,7 @@ namespace S1130.SystemObjects.Instructions
 			cpu.IoccDecode(GetEffectiveAddress(cpu));							// Decode the IOCC
 			if (cpu.IoccDevice != null)											// q. device found?
 			{																	// a. yes ..
-				cpu.IoccDevice.ExecuteIocc();								// .. do what it says
+				cpu.IoccDevice.ExecuteIocc();									// .. do what it says
 			}
 		}
 	}
