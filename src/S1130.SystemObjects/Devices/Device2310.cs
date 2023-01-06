@@ -175,7 +175,7 @@ namespace S1130.SystemObjects.Devices
 		{
 			_cartridge = cartridge;												// save the cartridge
 			_cartridge.Mount();													// tell the cart it's mounted
-			_cylinder = new CylinderTracker();											// set out cylinder to zero
+			_cylinder = new CylinderTracker();									// set our cylinder to zero
 			_cartridge.CurrentCylinder = 0;										// .. let the cartridge know too
 			_busy = false;														// .. show not busy
 			_complete = false;													// .. show no operation complete
