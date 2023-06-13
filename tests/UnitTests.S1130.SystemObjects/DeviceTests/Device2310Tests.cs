@@ -42,7 +42,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			BeforeEachTest();
 			StartDriveAndTestReady();										// prepare drive to accept command
 			var acc = Sense(_2310);											// check the status
-			Assert.Equal(InsCpu.Acc, Device2310.AtCylZero);				// ensure at cyl 0
+			Assert.Equal(Device2310.AtCylZero, InsCpu.Acc);					// ensure at cyl 0
 			IssueControl(_2310, 1, Device2310.SeekForward);					// move in one cylinder
 			acc = Sense(_2310);												// check the status
 			Assert.Equal(Device2310.Busy|Device2310.AtCylZero, acc);		// .. we should be busy and still at cyl zero
@@ -51,9 +51,9 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			var activeInterrupt = _2310.ActiveInterrupt;					// get the active interrupt
 			Assert.NotNull(activeInterrupt);								// .. assert an interrupt requested
 			Assert.Equal(2, activeInterrupt.InterruptLevel);				// .. assert level 2
-			Assert.Equal(0x8000, activeInterrupt.Ilsw);					// .. and is for drive 0
+			Assert.Equal(0x8000, activeInterrupt.Ilsw);						// .. and is for drive 0
 			acc = Sense(_2310);												// check the status
-			Assert.Equal(Device2310.OperationComplete, InsCpu.Acc);		// operation is complete
+			Assert.Equal(Device2310.OperationComplete, InsCpu.Acc);			// operation is complete
 		}
 
 		[Fact]
@@ -62,14 +62,14 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			BeforeEachTest();
 			StartDriveAndTestReady();										// prepare drive to accept command
 			var acc = Sense(_2310);											// check the status
-			Assert.Equal(acc, Device2310.AtCylZero);						// ensure at cyl 0
+			Assert.Equal(Device2310.AtCylZero, acc);						// ensure at cyl 0
 			IssueControl(_2310, 0, Device2310.SeekForward);					// move zero cylinders
 			_2310.Run();													// .. and run the seek
 			Assert.Equal(0, _cartridge.CurrentCylinder);					// assert no move occurred
 			var activeInterrupt = _2310.ActiveInterrupt;					// get the active interrupt
 			Assert.Null(activeInterrupt);									// .. assert no interrupt requested
 			acc = Sense(_2310);												// check the status
-			Assert.Equal(acc, Device2310.AtCylZero);						// ensure at cyl 0
+			Assert.Equal(Device2310.AtCylZero, acc);						// ensure at cyl 0
 		}
 
 		[Fact]
