@@ -246,7 +246,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 				Assert.Equal("2310 drive number must be between 0 and 4", ex.Message);
 				return;															// .. and return after exception
 			}
-			Assert.True(false, "Bad Device number should have thrown exception.");	// uh oh.. wrong or no exception.
+			Assert.Fail("Bad Device number should have thrown exception.");	// uh oh.. wrong or no exception.
 		}
 
 		protected void CheckSectordReadProperly(int address, int wc, ICartridge cart, int sectorNumber)
@@ -259,7 +259,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			{
 				if (InsCpu[address + i] != testSector[i])
 				{
-					Assert.True(false, string.Format("Sector mismatch at offset {0}: memory: {1:x}, sectorWord: {2:x}", i, InsCpu[address + i], testSector[i]));
+					Assert.Fail(string.Format("Sector mismatch at offset {0}: memory: {1:x}, sectorWord: {2:x}", i, InsCpu[address + i], testSector[i]));
 				}
 			}
 		}
@@ -274,7 +274,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			{
 				if (InsCpu[address + i] != sectorWritten[i])
 				{
-					Assert.True(false, string.Format("Sector mismatch at offset {0}: memory: {1:x}, sectorWord: {2:x}, address: {3:x}, wc: {4}", i, InsCpu[address + i], sectorWritten[i], address, InsCpu[address-1]));
+					Assert.Fail(string.Format("Sector mismatch at offset {0}: memory: {1:x}, sectorWord: {2:x}, address: {3:x}, wc: {4}", i, InsCpu[address + i], sectorWritten[i], address, InsCpu[address-1]));
 				}
 			}
 		}

@@ -40,6 +40,8 @@ namespace S1130.SystemObjects
 		public IDevice[] Devices { get; private set; }							// property for devices on machine
 
 		public ushort[] Memory { get; set; }									// property for memory
+		publis ushort[] Tags {get; set; }										// tags for memory
+																				
 		public int MemorySize { get; set; }										// property for memory size
 		public ushort Iar { get; set; }											// property for Instruction Address Register
 		public ushort Acc { get; set; }											// property for Accumulator

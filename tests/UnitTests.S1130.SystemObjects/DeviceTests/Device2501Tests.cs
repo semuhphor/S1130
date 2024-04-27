@@ -105,7 +105,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			{
 				if (InsCpu[address + i] != testCard[i])
 				{
-					Assert.True(false, string.Format("Mismatch at {0}: memory: {1:x}, card: {2:x}", i, InsCpu[address + i], testCard[i]));
+					Assert.Fail(string.Format("Mismatch at {0}: memory: {1:x}, card: {2:x}", i, InsCpu[address + i], testCard[i]));
 				}
 			}
 		}
