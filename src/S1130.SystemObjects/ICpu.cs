@@ -7,6 +7,12 @@ namespace S1130.SystemObjects
 	public interface ICpu
 	{
 		ushort[] Memory { get; }
+
+		bool MasterDebug { get; set; }
+
+		void SetDebug(int location, IDebugSetting debugSetting);
+		void ResetDebug(int location);
+
 		int MemorySize { get; }
 
 		ushort ConsoleSwitches { get; set; }
@@ -49,7 +55,7 @@ namespace S1130.SystemObjects
 		int IoccDeviceCode { get; set; }
 		DevFunction IoccFunction { get; set; }
 		int IoccModifiers { get; set; }
-	    void IoccDecode(int address);
+		void IoccDecode(int address);
 		IDevice IoccDevice { get; set; }
 		ArraySegment<ushort> GetBuffer();
 
