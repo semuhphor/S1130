@@ -28,7 +28,7 @@ namespace S1130.SystemObjects.Devices
 	 * ReadOnly: Disk cannot be written.
 	 * 
 	 * Flush(): Provides the cartridge the opportunity to write contents to permanent 
-	 *			storate.
+	 *			storage.
 	 *			
 	 * UnMount(): Disassociate the cartridge from the drive.
 	 * 
