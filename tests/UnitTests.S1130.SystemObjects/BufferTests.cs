@@ -49,7 +49,7 @@ namespace UnitTests.S1130.SystemObjects
 			try
 			{
 				_buffer[-1] = 0x100;
-				Assert.True(false, "Expected exception");
+				Assert.Fail("Expected exception");
 			}
 			catch (IndexOutOfRangeException ex)
 			{
@@ -57,7 +57,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
+				Assert.Fail(string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace UnitTests.S1130.SystemObjects
 			try
 			{
 				var a = _buffer[-1];
-				Assert.True(false, "Expected exception");
+				Assert.Fail("Expected exception");
 			}
 			catch (IndexOutOfRangeException ex)
 			{
@@ -76,7 +76,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
+				Assert.Fail(string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace UnitTests.S1130.SystemObjects
 			try
 			{
 				_buffer[80] = 0x100;
-				Assert.True(false, "Expected exception");
+				Assert.Fail("Expected exception");
 			}
 			catch (IndexOutOfRangeException ex)
 			{
@@ -95,7 +95,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
+				Assert.Fail(string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 
@@ -106,7 +106,7 @@ namespace UnitTests.S1130.SystemObjects
 			try
 			{
 				var a = _buffer[80];
-				Assert.True(false, "Expected exception");
+				Assert.Fail("Expected exception");
 			}
 			catch (IndexOutOfRangeException ex)
 			{
@@ -114,7 +114,7 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			catch (Exception e)
 			{
-				Assert.True(false, string.Format("Wrong exception: {0}", e.Message));
+				Assert.Fail(string.Format("Wrong exception: {0}", e.Message));
 			}
 		}
 	}
