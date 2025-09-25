@@ -15,7 +15,12 @@ namespace S1130.SystemObjects.Devices
 	 *		.... 1... .... ....		Operation complete (interrupt 4)
 	 *		.... .... .... ..1.		Busy (read in progress)
 	 *		.... .... .... ...1		Not ready or busy
-	 * ******************************************************************************************/		
+	 * ******************************************************************************************/
+	
+	/// <summary>
+	/// Emulates an IBM 2501 Card Reader.
+	/// Provides card reading operations and status reporting through a concurrent card hopper.
+	/// </summary>
 	public class Device2501 : DeviceBase
 	{
 		public const ushort LastCardStatus = 0x1000;

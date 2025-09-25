@@ -1,9 +1,24 @@
 ﻿namespace S1130.SystemObjects.Instructions
 {
+   /// <summary>
+   /// Base class for all IBM 1130 instruction implementations.
+   /// Provides common functionality for address calculation, sign extension, and bit manipulation.
+   /// </summary>
    public abstract class InstructionBase
     {
+		/// <summary>
+		/// Bitmask for 16-bit values.
+		/// </summary>
 		public const uint Mask16 = 0xffff;
+		
+		/// <summary>
+		/// Bitmask for 32-bit values.
+		/// </summary>
 		public const uint Mask32 = 0xffffffff;
+		
+		/// <summary>
+		/// Gets a value indicating whether this instruction supports long format.
+		/// </summary>
 		public virtual bool HasLongFormat { get { return true; }}
 
 	    private int GetEffectiveAddress(ICpu cpu, int baseAddress)

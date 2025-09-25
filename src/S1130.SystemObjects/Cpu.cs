@@ -6,6 +6,10 @@ using S1130.SystemObjects.InterruptManagement;
 
 namespace S1130.SystemObjects
 {
+	/// <summary>
+	/// Represents the central processing unit of the IBM 1130 emulator.
+	/// Manages instruction execution, memory, registers, interrupts, and device interactions.
+	/// </summary>
 	public class Cpu : ICpu
 	{
 		public const int DefaultMemorySize = 32768;                             // default size of memory 
@@ -14,55 +18,157 @@ namespace S1130.SystemObjects
 		private int _activeInterruptCount;                                      // number of interrupts active
 		private ulong _count;                                                   // number of instructions executed;
 
-		public IInstruction[] Instructions { get; private set; }                // property for instruction set access 
-		public IInstruction CurrentInstruction { get; private set; }            // property for current instruction
-		public InterruptPool IntPool { get; private set; }                      // property for the pool of interrupt objects
-		public IDevice[] Devices { get; private set; }                          // property for devices on machine
+		/// <summary>
+		/// Gets the complete instruction set available to the CPU.
+		/// </summary>
+		public IInstruction[] Instructions { get; private set; }
+		
+		/// <summary>
+		/// Gets the currently decoded instruction ready for execution.
+		/// </summary>
+		public IInstruction CurrentInstruction { get; private set; }
+		
+		/// <summary>
+		/// Gets the interrupt pool for managing interrupt objects.
+		/// </summary>
+		public InterruptPool IntPool { get; private set; }
+		
+		/// <summary>
+		/// Gets the array of devices attached to the system.
+		/// </summary>
+		public IDevice[] Devices { get; private set; }
 
-		public ushort[] Memory { get; set; }                                    // property for memory
-		public IDebugSetting[] _debugSettings { get; set; }                     // property for debug settings
-		public int MemorySize { get; set; }                                     // property for memory size
+		/// <summary>
+		/// Gets or sets the system memory array.
+		/// </summary>
+		public ushort[] Memory { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the debug settings for memory locations.
+		/// </summary>
+		public IDebugSetting[] _debugSettings { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the size of system memory in words.
+		/// </summary>
+		public int MemorySize { get; set; }
 
-		public ushort Iar { get; set; }                                         // property for Instruction Address Register
-		public ushort Acc { get; set; }                                         // property for Accumulator
-		public ushort Ext { get; set; }                                         // property for Accumulator Extension
-		public bool Carry { get; set; }                                         // property for Carry indicator
-		public bool Overflow { get; set; }                                      // property for Overflow indicator
-		public bool Wait { get; set; }                                          // property for Wait state 
+		/// <summary>
+		/// Gets or sets the Instruction Address Register (program counter).
+		/// </summary>
+		public ushort Iar { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the Accumulator register.
+		/// </summary>
+		public ushort Acc { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the Accumulator Extension register.
+		/// </summary>
+		public ushort Ext { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the Carry flag indicator.
+		/// </summary>
+		public bool Carry { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the Overflow flag indicator.
+		/// </summary>
+		public bool Overflow { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the Wait state flag.
+		/// </summary>
+		public bool Wait { get; set; } 
 
-		public ushort this[int address]                                         // c# indexer to access memory
+		/// <summary>
+		/// Indexer to access system memory by address.
+		/// Provides direct read/write access to memory locations with bounds checking.
+		/// </summary>
+		/// <param name="address">Memory address to access</param>
+		/// <returns>16-bit word at the specified address</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown when address is outside valid memory bounds</exception>
+		public ushort this[int address]
 		{
-			get { return Memory[address]; }                                     // .. memory read
-			set { Memory[address] = value; }                                    // .. memory write
-		}
-
-		public ushort ConsoleSwitches { get; set; }                         // property for console entry switches
-
-		public uint AccExt                                                  // property for accumulator and extension (32bit access)
-		{
-			get { return (uint)((Acc << 16) | Ext); }                           // get ACC and EXT as one 32bit value
-			set                                                                 // set ACC and EXT ...
+			get 
 			{
-				Acc = (ushort)(value >> 16);                                    // Set ACC to hi order 16bits of 32bits
-				Ext = (ushort)(value & 0xffff);                             // Set EXT to low order 16bits of 32bits
+				if (address < 0 || address >= MemorySize)
+					throw new ArgumentOutOfRangeException(nameof(address), $"Memory address {address} is outside valid range 0-{MemorySize - 1}");
+				return Memory[address]; 
+			}
+			set 
+			{
+				if (address < 0 || address >= MemorySize)
+					throw new ArgumentOutOfRangeException(nameof(address), $"Memory address {address} is outside valid range 0-{MemorySize - 1}");
+				Memory[address] = value; 
 			}
 		}
 
-		public IndexRegisters Xr { get; private set; }                      // property to access index registers
+		/// <summary>
+		/// Gets or sets the console entry switches value.
+		/// </summary>
+		public ushort ConsoleSwitches { get; set; }
 
-		public ushort AtIar                                                     // property to access memory address IAR
+		/// <summary>
+		/// Gets or sets the combined Accumulator and Extension registers as a 32-bit value.
+		/// High 16 bits represent the Accumulator, low 16 bits represent the Extension.
+		/// </summary>
+		public uint AccExt
 		{
-			get { return this[Iar]; }                                           // read memory
-			set { this[Iar] = value; }                                          // write memory
+			get { return (uint)((Acc << 16) | Ext); }
+			set
+			{
+				Acc = (ushort)(value >> 16);
+				Ext = (ushort)(value & 0xffff);
+			}
 		}
 
-		// current instruction
-		public ushort Opcode { get; set; }                                      // opcode
-		public bool FormatLong { get; set; }                                    // long/short format instruction
-		public ushort Tag { get; set; }                                         // tag bits (index register)
-		public ushort Displacement { get; set; }                                // displacement (may be absolute address)
-		public bool IndirectAddress { get; set; }                               // indirect address bit
-		public ushort Modifiers { get; set; }                                   // modifiers 
+		/// <summary>
+		/// Gets the index registers (XR1, XR2, XR3).
+		/// </summary>
+		public IndexRegisters Xr { get; private set; }
+
+		/// <summary>
+		/// Gets or sets the memory word at the current Instruction Address Register location.
+		/// </summary>
+		public ushort AtIar
+		{
+			get { return this[Iar]; }
+			set { this[Iar] = value; }
+		}
+
+		// Current instruction decode fields
+		/// <summary>
+		/// Gets or sets the current instruction opcode.
+		/// </summary>
+		public ushort Opcode { get; set; }
+		
+		/// <summary>
+		/// Gets or sets whether the current instruction uses long format.
+		/// </summary>
+		public bool FormatLong { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the tag bits (index register selector) of the current instruction.
+		/// </summary>
+		public ushort Tag { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the displacement field of the current instruction.
+		/// </summary>
+		public ushort Displacement { get; set; }
+		
+		/// <summary>
+		/// Gets or sets whether the current instruction uses indirect addressing.
+		/// </summary>
+		public bool IndirectAddress { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the modifier bits of the current instruction.
+		/// </summary>
+		public ushort Modifiers { get; set; } 
 
 		/*
 		 * CurrentInterruptLevel handling code
@@ -177,7 +283,11 @@ namespace S1130.SystemObjects
 		 * Instruction decode and execution
 		 */
 
-		public void NextInstruction()                                       // Decode the next instruction
+		/// <summary>
+		/// Decodes the next instruction at the current IAR location.
+		/// Advances IAR past the instruction and populates instruction decode fields.
+		/// </summary>
+		public void NextInstruction()
 		{
 			var firstWord = Memory[Iar++];                                      // retrieve the first work
 			Opcode = (ushort)((firstWord & 0xF800) >> 11);                      // .. get the opcode shifted to low-order bits
@@ -202,7 +312,11 @@ namespace S1130.SystemObjects
 			}
 		}
 
-		public void ExecuteInstruction()                                    // Execute current instruction
+		/// <summary>
+		/// Executes the currently decoded instruction and handles any pending interrupts.
+		/// Sets Wait state if instruction is invalid. Increments instruction counter.
+		/// </summary>
+		public void ExecuteInstruction()
 		{                                                                       // .. instruction decoded from NextInstruction() above
 			if (CurrentInstruction != null)                                     // q. is the current instruction valid?
 			{                                                                   // a. yes ..
@@ -220,20 +334,48 @@ namespace S1130.SystemObjects
 		 * Device management
 		 */
 
-		public int IoccAddress { get; set; }                                // Address from IOCC
-		public int IoccDeviceCode { get; set; }                             // Device code from IOCC
-		public DevFunction IoccFunction { get; set; }                       // Function from IOCC
-		public int IoccModifiers { get; set; }                              // Modifier from IOCC
-		public IDevice IoccDevice { get; set; }                             // Device referenced
+		/// <summary>
+		/// Gets or sets the address field from the current I/O Channel Command.
+		/// </summary>
+		public int IoccAddress { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the device code from the current I/O Channel Command.
+		/// </summary>
+		public int IoccDeviceCode { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the function field from the current I/O Channel Command.
+		/// </summary>
+		public DevFunction IoccFunction { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the modifier field from the current I/O Channel Command.
+		/// </summary>
+		public int IoccModifiers { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the device referenced by the current I/O Channel Command.
+		/// </summary>
+		public IDevice IoccDevice { get; set; }
 
-		public bool AddDevice(IDevice device)                               // Add device to system
+		/// <summary>
+		/// Adds a device to the system at the specified device code.
+		/// </summary>
+		/// <param name="device">The device to add to the system</param>
+		/// <returns>True if device was added successfully, false if device code is already in use</returns>
+		/// <exception cref="ArgumentNullException">Thrown when device is null</exception>
+		public bool AddDevice(IDevice device)
 		{
-			if (Devices[device.DeviceCode] != null)                             // q. device in use?
-			{                                                                   // a. yes ..
-				return false;                                                   // .. can't add now
+			if (device == null)
+				throw new ArgumentNullException(nameof(device), "Cannot add a null device");
+				
+			if (Devices[device.DeviceCode] != null)
+			{
+				return false;
 			}
-			Devices[device.DeviceCode] = device;                                // otherwise ... add the device
-			return true;                                                        // .. and tell 'em it worked
+			Devices[device.DeviceCode] = device;
+			return true;
 		}
 
 		public ArraySegment<ushort> GetBuffer()                             // get the i/o buffer only
