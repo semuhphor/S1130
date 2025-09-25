@@ -22,6 +22,11 @@ namespace S1130.SystemObjects.Utility
         private static readonly Regex OperatorRegex = new Regex(@"^(\+|-|\*|/|==|!=|<|>|<=|>=)");
         private static readonly Regex PunctuationRegex = new Regex(@"^(;|,|\(|\)|\{|\})");
 
+        /// <summary>
+        /// Tokenizes the provided code string into a list of tokens.
+        /// </summary>
+        /// <param name="code">The code string to tokenize</param>
+        /// <returns>A list of tokens representing the parsed code</returns>
         public List<Token> Tokenize(string code)
         {
             var tokens = new List<Token>();

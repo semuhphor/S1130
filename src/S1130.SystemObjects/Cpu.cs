@@ -85,14 +85,25 @@ namespace S1130.SystemObjects
 
 		/// <summary>
 		/// Indexer to access system memory by address.
-		/// Provides direct read/write access to memory locations.
+		/// Provides direct read/write access to memory locations with bounds checking.
 		/// </summary>
 		/// <param name="address">Memory address to access</param>
 		/// <returns>16-bit word at the specified address</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown when address is outside valid memory bounds</exception>
 		public ushort this[int address]
 		{
-			get { return Memory[address]; }
-			set { Memory[address] = value; }
+			get 
+			{
+				if (address < 0 || address >= MemorySize)
+					throw new ArgumentOutOfRangeException(nameof(address), $"Memory address {address} is outside valid range 0-{MemorySize - 1}");
+				return Memory[address]; 
+			}
+			set 
+			{
+				if (address < 0 || address >= MemorySize)
+					throw new ArgumentOutOfRangeException(nameof(address), $"Memory address {address} is outside valid range 0-{MemorySize - 1}");
+				Memory[address] = value; 
+			}
 		}
 
 		/// <summary>
@@ -323,20 +334,48 @@ namespace S1130.SystemObjects
 		 * Device management
 		 */
 
-		public int IoccAddress { get; set; }                                // Address from IOCC
-		public int IoccDeviceCode { get; set; }                             // Device code from IOCC
-		public DevFunction IoccFunction { get; set; }                       // Function from IOCC
-		public int IoccModifiers { get; set; }                              // Modifier from IOCC
-		public IDevice IoccDevice { get; set; }                             // Device referenced
+		/// <summary>
+		/// Gets or sets the address field from the current I/O Channel Command.
+		/// </summary>
+		public int IoccAddress { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the device code from the current I/O Channel Command.
+		/// </summary>
+		public int IoccDeviceCode { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the function field from the current I/O Channel Command.
+		/// </summary>
+		public DevFunction IoccFunction { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the modifier field from the current I/O Channel Command.
+		/// </summary>
+		public int IoccModifiers { get; set; }
+		
+		/// <summary>
+		/// Gets or sets the device referenced by the current I/O Channel Command.
+		/// </summary>
+		public IDevice IoccDevice { get; set; }
 
-		public bool AddDevice(IDevice device)                               // Add device to system
+		/// <summary>
+		/// Adds a device to the system at the specified device code.
+		/// </summary>
+		/// <param name="device">The device to add to the system</param>
+		/// <returns>True if device was added successfully, false if device code is already in use</returns>
+		/// <exception cref="ArgumentNullException">Thrown when device is null</exception>
+		public bool AddDevice(IDevice device)
 		{
-			if (Devices[device.DeviceCode] != null)                             // q. device in use?
-			{                                                                   // a. yes ..
-				return false;                                                   // .. can't add now
+			if (device == null)
+				throw new ArgumentNullException(nameof(device), "Cannot add a null device");
+				
+			if (Devices[device.DeviceCode] != null)
+			{
+				return false;
 			}
-			Devices[device.DeviceCode] = device;                                // otherwise ... add the device
-			return true;                                                        // .. and tell 'em it worked
+			Devices[device.DeviceCode] = device;
+			return true;
 		}
 
 		public ArraySegment<ushort> GetBuffer()                             // get the i/o buffer only

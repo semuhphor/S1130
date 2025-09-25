@@ -70,73 +70,115 @@ namespace S1130.SystemObjects.Devices
 			get { return _deviceCode; }											// return calculated value
 		}
 
-		public override void ExecuteIocc()									// execute an IOCC
+		/// <summary>
+		/// Executes the I/O Channel Command (IOCC) operation.
+		/// Delegates to specific handlers based on the function type.
+		/// </summary>
+		public override void ExecuteIocc()
 		{
 			switch (CpuInstance.IoccFunction)
 			{
 				case DevFunction.SenseDevice:
-					if ((CpuInstance.IoccModifiers & 1) == 1)
-					{
-						DeactivateInterrupt(CpuInstance);
-					}
-					ushort newAcc = 0;
-					if (_cartridge == null)
-					{
-						newAcc = NotReady;
-					}
-					else
-					{
-						if (_busy)
-						{
-							newAcc = Busy;
-						}
-						if (_cylinder.Current == 0)
-						{
-							newAcc |= AtCylZero;
-						}
-						if (_complete)
-						{
-							newAcc |= OperationComplete;
-						}
-					}
-					CpuInstance.Acc = newAcc;
+					HandleSenseDevice();
 					break;
 
-				case DevFunction.Control:									// seek
-					if (!_cartMounted || _busy)									// q. cart not ready or already doing something
-						break;													// a. no .. can't move
-					_seekOffset = CpuInstance.IoccAddress & 0x1ff;				// get number of cylinders to move
-					if (_seekOffset == 0)										// q. any movement?
-						break;													// a. no .. do nothing!
-					if ((CpuInstance.IoccModifiers & SeekBackward) != 0)		// q. moving toward home?
-						_seekOffset *= -1;										// a. yes .. make negative seek
-					_complete = false;											// .. not done yet
-					_busy = true;												// make the drive busy
-					_seeking = true;											// .. seeking
+				case DevFunction.Control:
+					HandleControl();
 					break;
 
-				case DevFunction.InitRead:									// read part or whole sector
-					if (!_cartMounted || _busy)									// q. cart not ready or already doing something
-						break;													// a. no .. can't read
-					_readCheck = (CpuInstance.IoccModifiers & ReadCheck) != 0;	// .. determine if read check
-					_sector = CpuInstance.IoccModifiers & SectorMask;			// .. get the sector on cylinder to read
-					_complete = false;											// .. not done yet
-					_busy = true;												// make the drive busy
-					_seeking = false;											// .. seeking
-					_reading = true;											// . and we are reading@!
+				case DevFunction.InitRead:
+					HandleInitRead();
 					break;
 
 				case DevFunction.InitWrite:
-					if (!_cartMounted || _busy)									// q. cart not ready or already doing something
-						break;													// a. no .. can't read
-					_sector = CpuInstance.IoccModifiers & SectorMask;			// .. get the sector on cylinder to read
-					_wcAddress = CpuInstance.IoccAddress;						// .. where to write from
-					_complete = false;											// .. not done yet
-					_busy = true;												// make the drive busy
-					_seeking = false;											// .. seeking
-					_writing = true;											// . and we are writing@!
+					HandleInitWrite();
 					break;
 			}
+		}
+
+		/// <summary>
+		/// Handles the Sense Device IOCC function, returning device status to the accumulator.
+		/// </summary>
+		private void HandleSenseDevice()
+		{
+			if ((CpuInstance.IoccModifiers & 1) == 1)
+			{
+				DeactivateInterrupt(CpuInstance);
+			}
+			
+			ushort newAcc = 0;
+			if (_cartridge == null)
+			{
+				newAcc = NotReady;
+			}
+			else
+			{
+				if (_busy)
+				{
+					newAcc = Busy;
+				}
+				if (_cylinder.Current == 0)
+				{
+					newAcc |= AtCylZero;
+				}
+				if (_complete)
+				{
+					newAcc |= OperationComplete;
+				}
+			}
+			CpuInstance.Acc = newAcc;
+		}
+
+		/// <summary>
+		/// Handles the Control IOCC function for cylinder seeking operations.
+		/// </summary>
+		private void HandleControl()
+		{
+			if (!_cartMounted || _busy)
+				return;
+
+			_seekOffset = CpuInstance.IoccAddress & 0x1ff;
+			if (_seekOffset == 0)
+				return;
+
+			if ((CpuInstance.IoccModifiers & SeekBackward) != 0)
+				_seekOffset *= -1;
+
+			_complete = false;
+			_busy = true;
+			_seeking = true;
+		}
+
+		/// <summary>
+		/// Handles the Initiate Read IOCC function for reading sectors.
+		/// </summary>
+		private void HandleInitRead()
+		{
+			if (!_cartMounted || _busy)
+				return;
+
+			_readCheck = (CpuInstance.IoccModifiers & ReadCheck) != 0;
+			_sector = CpuInstance.IoccModifiers & SectorMask;
+			_complete = false;
+			_busy = true;
+			_seeking = false;
+			_reading = true;
+		}
+
+		/// <summary>
+		/// Handles the Initiate Write IOCC function for writing sectors.
+		/// </summary>
+		private void HandleInitWrite()
+		{
+			if (!_cartMounted || _busy)
+				return;
+
+			_sector = CpuInstance.IoccModifiers & SectorMask;
+			_wcAddress = CpuInstance.IoccAddress;
+			_complete = false;
+			_busy = true;
+			_seeking = false;
+			_writing = true;
 		}
 
 		public override void Run()											// do the operation
@@ -175,27 +217,44 @@ namespace S1130.SystemObjects.Devices
 
 		// Mount cartridge in drive. Assumes we turn on drive
 
-		public void Mount(ICartridge cartridge)								// mount a cartridge
+		/// <summary>
+		/// Mounts a cartridge in the disk drive and initializes the drive state.
+		/// Resets the cylinder position to zero and clears all operation flags.
+		/// </summary>
+		/// <param name="cartridge">The cartridge to mount in the drive</param>
+		/// <exception cref="ArgumentNullException">Thrown when cartridge is null</exception>
+		/// <exception cref="InvalidOperationException">Thrown when a cartridge is already mounted</exception>
+		public void Mount(ICartridge cartridge)
 		{
-			_cartridge = cartridge;												// save the cartridge
-			_cartridge.Mount();													// tell the cart it's mounted
-			_cylinder = new CylinderTracker();									// set our cylinder to zero
-			_cartridge.CurrentCylinder = 0;										// .. let the cartridge know too
-			_busy = false;														// .. show not busy
-			_complete = false;													// .. show no operation complete
-			_seeking = false;													// .. not seeking
-			_reading = false;													// .. not reading
-			_writing = false;													// .. not writing
-			if (ActiveInterrupt != null)										// q. any active interrupt?
-			{																	// a. yes ..
-				DeactivateInterrupt(CpuInstance);								// .. deactivate it.
+			if (cartridge == null)
+				throw new ArgumentNullException(nameof(cartridge), "Cannot mount a null cartridge");
+				
+			if (_cartMounted && _cartridge != null)
+				throw new InvalidOperationException("A cartridge is already mounted. Unmount the current cartridge first.");
+				
+			_cartridge = cartridge;
+			_cartridge.Mount();
+			_cylinder = new CylinderTracker();
+			_cartridge.CurrentCylinder = 0;
+			_busy = false;
+			_complete = false;
+			_seeking = false;
+			_reading = false;
+			_writing = false;
+			if (ActiveInterrupt != null)
+			{
+				DeactivateInterrupt(CpuInstance);
 			}
-			_cartMounted = true;												// .. and show mounted
+			_cartMounted = true;
 		}
 
 		// UnMount cartridge. Save as turning off an removing
 
-		public void UnMount()												// unmount cartridge
+		/// <summary>
+		/// Unmounts the cartridge from the disk drive.
+		/// Flushes any pending writes before removing the cartridge.
+		/// </summary>
+		public void UnMount()
 		{
 			_cartridge.Flush();													// let it finalize any writes.
 			_cartridge.UnMount();												// .. then unmount from drive
