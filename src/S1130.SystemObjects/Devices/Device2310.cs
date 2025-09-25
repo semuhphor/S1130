@@ -20,6 +20,10 @@ namespace S1130.SystemObjects.Devices
 	 *		.... .... .... ..11		Next sector
 	 * ******************************************************************************************/
 
+	/// <summary>
+	/// Emulates an IBM 2310 Single Platter Disk Drive.
+	/// Provides read/write operations, cylinder seeking, and status reporting.
+	/// </summary>
 	public class Device2310 : DeviceBase
 	{
 		public const ushort OperationComplete = 0x4000;
