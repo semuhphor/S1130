@@ -5,23 +5,89 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Run Unit Tests",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/bin/Debug/netcoreapp3.1/UnitTests.S1130.SystemObjects.dll",
+            "program": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/bin/Debug/net8.0/UnitTests.S1130.SystemObjects.dll",
             "args": [],
             "cwd": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "suppressJITOptimizations": true
+        },
+        {
+            "name": "Debug Single Test Class",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "dotnet",
+            "args": [
+                "test",
+                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
+                "--filter",
+                "${input:testClassName}",
+                "--logger",
+                "console;verbosity=detailed"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "suppressJITOptimizations": true
+        },
+        {
+            "name": "Debug Specific Test",
+            "type": "coreclr",
+            "request": "launch", 
+            "preLaunchTask": "build",
+            "program": "dotnet",
+            "args": [
+                "test",
+                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
+                "--filter",
+                "${input:testMethodName}",
+                "--logger",
+                "console;verbosity=detailed"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "suppressJITOptimizations": true
+        },
+        {
+            "name": "Build Solution",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/S1130.sln",
+                "--verbosity",
+                "normal"
+            ],
+            "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
         },
         {
-            "name": ".NET Core Attach",
+            "name": ".NET Attach to Process",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testClassName",
+            "description": "Enter test class name (e.g., CpuTests, AddTests)",
+            "default": "CpuTests",
+            "type": "promptString"
+        },
+        {
+            "id": "testMethodName", 
+            "description": "Enter specific test method name",
+            "default": "",
+            "type": "promptString"
         }
     ]
 }

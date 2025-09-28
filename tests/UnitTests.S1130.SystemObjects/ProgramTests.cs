@@ -56,7 +56,7 @@ namespace UnitTests.S1130.SystemObjects
 				numberOfInstructions++;
 			}
 			watch.Stop();
-			Console.Out.WriteLine("1M Instructions in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
+			Console.Error.WriteLine("1M Instructions in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
 		}
 
 		private int RunUntilWait()

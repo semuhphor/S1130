@@ -11,7 +11,67 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build-solution",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/S1130.sln",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
+                "--logger",
+                "console;verbosity=normal"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "dependsOn": "build"
+        },
+        {
+            "label": "test-coverage",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
+                "--collect:\"XPlat Code Coverage\"",
+                "--logger",
+                "console;verbosity=normal"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "test",
+            "dependsOn": "build"
+        },
+        {
+            "label": "clean",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "${workspaceFolder}/S1130.sln"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
         },
         {
             "label": "publish",
@@ -23,7 +83,8 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "group": "build"
         },
         {
             "label": "watch",
@@ -36,7 +97,22 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "isBackground": true,
+            "group": "build"
+        },
+        {
+            "label": "watch-test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "test",
+                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "isBackground": true,
+            "group": "test"
         }
     ]
 }

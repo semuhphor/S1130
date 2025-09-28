@@ -1,3 +1,15 @@
 {
-    "dotnet.defaultSolution": "S1130.sln"
+    "dotnet.defaultSolution": "S1130.sln",
+    "dotnet.enablePackageRestore": true,
+    "dotnet.server.useOmnisharp": false,
+    "dotnetTestExplorer.testProjectPath": "**/UnitTests.S1130.SystemObjects.csproj",
+    "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "openFiles",
+    "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "openFiles",
+    "testExplorer.useNativeTesting": true,
+    "testExplorer.gutterDecoration": true,
+    "xunit.parallelizeTestCollections": false,
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true
+    }
 }
