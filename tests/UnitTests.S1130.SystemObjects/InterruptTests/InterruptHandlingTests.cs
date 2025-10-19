@@ -119,7 +119,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;															// set the interrupt vector
 			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 0, InsCpu, 0x100);							// build a NOOP instruction
 			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, InsCpu, 0x101);								// .. then wait
-			InstructionBuilder.BuildLongAtAddress(OpCodes.ExecuteInputOuput, 0, 0x400, InsCpu, 0x501);				// XIO to reset device
+			InstructionBuilder.BuildLongAtAddress(OpCodes.ExecuteInputOutput, 0, 0x400, InsCpu, 0x501);				// XIO to reset device
 			InstructionBuilder.BuildLongIndirectBranchAtAddress(OpCodes.BranchSkip, 0, 0x40, 0x500, InsCpu, 0x503); // .. and the return from interrupt
 			dummyDevice.GetInterrupt(InsCpu, 4);																	// start the interrupt
 			Assert.Equal(0x100, InsCpu.Iar);																		// not in routine
@@ -155,7 +155,7 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			InsCpu[Constants.InterruptVectors[4]] = 0x500;															// set the interrupt vector
 			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 0, InsCpu, 0x100);							// build a NOOP instruction
 			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, InsCpu, 0x101);								// .. then wait
-			InstructionBuilder.BuildLongAtAddress(OpCodes.ExecuteInputOuput, 0, 0x400, InsCpu, 0x501);				// XIO to sense, NOT reset device
+			InstructionBuilder.BuildLongAtAddress(OpCodes.ExecuteInputOutput, 0, 0x400, InsCpu, 0x501);				// XIO to sense, NOT reset device
 			InstructionBuilder.BuildLongIndirectBranchAtAddress(OpCodes.BranchSkip, 0, 0x40, 0x500, InsCpu, 0x503); // .. and the return from interrupt
 			dummyDevice.GetInterrupt(InsCpu, 4);																	// start the interrupt
 			Assert.Equal(0x100, InsCpu.Iar);																		// not in routine

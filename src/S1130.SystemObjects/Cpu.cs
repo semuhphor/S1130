@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.InterruptManagement;
@@ -47,8 +48,8 @@ namespace S1130.SystemObjects
 		/// Gets or sets the debug settings for memory locations.
 		/// </summary>
 		public IDebugSetting[] _debugSettings { get; set; }
-		
-		/// <summary>
+
+     	/// <summary>
 		/// Gets or sets the size of system memory in words.
 		/// </summary>
 		public int MemorySize { get; set; }
@@ -423,6 +424,12 @@ namespace S1130.SystemObjects
 			IoccFunction = (DevFunction)((secondWord & 0x0700) >> 8);           // .. extract function
 			IoccModifiers = secondWord & 0xff;                                  // .. and extract modifiers
 			IoccDevice = Devices[IoccDeviceCode];                               // .. finally, get the device reference
+		}
+
+		public AssemblyResult Assemble(string sourceCode)                     // Implement ICpu.Assemble
+		{
+            var assembler = new Assembler(this);
+            return assembler.Assemble(sourceCode);
 		}
 
 		private void BuildDefaultDevices()                                  // add default devices to system

@@ -28,7 +28,7 @@ namespace S1130.SystemObjects.Instructions
 		,BranchStore = 0x08
 		,ModifyIndex = 0x0e
 		,Wait = 0x06
-		,ExecuteInputOuput = 0x01
+		,ExecuteInputOutput = 0x01
     };
 
 	public class OpcodeReference
@@ -61,7 +61,7 @@ namespace S1130.SystemObjects.Instructions
 						{OpCodes.BranchStore, new BranchStore()},
 						{OpCodes.ModifyIndex, new ModifyIndex()},
 						{OpCodes.Wait, new Wait()},
-						{OpCodes.ExecuteInputOuput, new ExecuteInputOuput()}
+						{OpCodes.ExecuteInputOutput, new ExecuteInputOutput()}
 					};
 				}
 		}

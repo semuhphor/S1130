@@ -66,5 +66,12 @@ namespace S1130.SystemObjects
 		bool IgnoreInstructionCount { get; set; }
 
 		void LetInstuctionsExecute(ulong numberOfInstructions);
+
+        /// <summary>
+        /// Assembles IBM 1130 assembly code into memory.
+        /// </summary>
+        /// <param name="sourceCode">Assembly source code with lines separated by CR, LF or CRLF</param>
+        /// <returns>Assembly result containing listing, errors and success flag</returns>
+        AssemblyResult Assemble(string sourceCode);
 	}
 }

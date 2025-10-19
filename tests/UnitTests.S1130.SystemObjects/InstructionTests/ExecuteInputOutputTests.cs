@@ -6,13 +6,13 @@ using S1130.SystemObjects.Instructions;
 namespace UnitTests.S1130.SystemObjects.InstructionTests
 {
 	
-	public class ExecuteInputOuputTests : InstructionTestBase
+	public class ExecuteInputOutputTests : InstructionTestBase
 	{
 		[Fact]
 		public void Execute_XIO_GetConsoleSwitches()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOuput, 0, 0x11);
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOutput, 0, 0x11);
 			InsCpu.NextInstruction();
 			InstructionBuilder.BuildIoccAt(new ConsoleEntrySwitches(InsCpu), DevFunction.Read,0,0x500, InsCpu, 0x112);
 			InsCpu.ConsoleSwitches = 0x4321;
@@ -22,7 +22,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 
 		protected override void BuildAnInstruction()
 		{
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOuput, 0, 0x11);
+			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOutput, 0, 0x11);
 		}
 
 		protected override string OpName
@@ -32,7 +32,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 
 		protected override OpCodes OpCode
 		{
-			get { return OpCodes.ExecuteInputOuput; }
+			get { return OpCodes.ExecuteInputOutput; }
 		}
 
 		[Fact]
