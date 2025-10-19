@@ -24,7 +24,14 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.NextInstruction();
 			InsCpu.Xr[2] = 0x1000;
 			InsCpu[InsCpu.Iar + 0x10] = 0;
-			ExecAndTestForOverflow(initialAccExt: 0x00002001);
+			
+			// Division by zero: verify Overflow set and Acc/Ext preserved
+			uint initialAccExt = 0x00002001;
+			InsCpu.AccExt = initialAccExt;
+			InsCpu.ExecuteInstruction();
+			
+			Assert.True(InsCpu.Overflow);
+			Assert.Equal(initialAccExt, InsCpu.AccExt); // Verify registers unchanged
 		}
 
 		[Fact]
@@ -69,7 +76,15 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Xr[2] = 0x1000;
 			InsCpu[InsCpu.Xr[2] + 0x1010] = 0x0400;
 			InsCpu[0x0400] = 0x0005;
-			ExecAndTestForOverflow(initialAccExt: 0x78921445);
+			
+			// Note: Quotient overflow is undefined in IBM 1130 hardware.
+			// This test verifies our implementation choice: set Overflow flag, preserve Acc/Ext
+			uint initialAccExt = 0x78921445;
+			InsCpu.AccExt = initialAccExt;
+			InsCpu.ExecuteInstruction();
+			
+			Assert.True(InsCpu.Overflow);
+			Assert.Equal(initialAccExt, InsCpu.AccExt); // Verify registers unchanged
 		}
 
 		protected override void BuildAnInstruction()

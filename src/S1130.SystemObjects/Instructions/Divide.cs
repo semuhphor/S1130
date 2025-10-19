@@ -21,6 +21,10 @@ namespace S1130.SystemObjects.Instructions
 		/// Executes the Divide instruction on the specified CPU.
 		/// </summary>
 		/// <param name="cpu">The CPU instance to execute the instruction on</param>
+		/// <remarks>
+		/// Note: Quotient overflow behavior is undefined in IBM 1130 hardware.
+		/// This implementation sets the Overflow flag and leaves Acc/Ext unchanged.
+		/// </remarks>
 		public void Execute(ICpu cpu)
 		{
 			var divider = cpu[GetEffectiveAddress(cpu)];
@@ -29,8 +33,8 @@ namespace S1130.SystemObjects.Instructions
 				var quotient = (int) cpu.AccExt / (int) SignExtend(divider);
 				if (quotient > short.MaxValue)
 				{
+					// Quotient overflow: Set overflow flag, preserve Acc/Ext (undefined in hardware)
 					cpu.Overflow = true;
-					cpu.AccExt = (uint) quotient & 0xffffffff; /* Undefined... let's make AccExt the quotient */
 				}
 				else
 				{
