@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using S1130.SystemObjects.Utility;
 
 namespace S1130.SystemObjects.Devices
 {
@@ -36,6 +38,7 @@ namespace S1130.SystemObjects.Devices
 		private bool _readInProgess;
 		private bool _complete;
 		private bool _lastCard;
+		private bool _ipl;  // Track if this is an IPL operation
 
 		public Device2501(ICpu cpu)
 		{
@@ -47,6 +50,35 @@ namespace S1130.SystemObjects.Devices
 			get { return 0x09; }
 		}
 
+		/// <summary>
+        /// Initiates an IPL (Initial Program Load) sequence by loading the appropriate boot card
+        /// </summary>
+        /// <param name="apl">If true, load APL boot card, otherwise load DMS boot card</param>
+        /// <param name="privileged">If true and apl is true, load privileged APL boot card</param>
+        /// <returns>True if IPL card was loaded successfully</returns>
+        public bool InitiateIpl(bool apl = false, bool privileged = false)
+        {
+            // Clear any existing cards and reset flags
+            while (Hopper.TryDequeue(out _)) { }
+            _complete = false;
+            _lastCard = false;
+            _readInProgess = false;
+            _ipl = true;
+
+            // Get appropriate IPL card data
+            ushort[] bootData = apl 
+                ? (privileged ? IplCards.IPLCardAplPriv : IplCards.IPLCardApl)
+                : IplCards.IPLCardDms12;
+
+            // Create and load IPL card
+            var card = new Card();
+            Array.Copy(bootData, card.Columns, Math.Min(bootData.Length, 80));
+            Hopper.Enqueue(card);
+
+            // Return success
+            return true;
+        }
+
 		public override void ExecuteIocc()
 		{
 			switch (CpuInstance.IoccFunction)
@@ -57,7 +89,11 @@ namespace S1130.SystemObjects.Devices
 						_complete = _lastCard = false;
 						DeactivateInterrupt(CpuInstance);
 					}
-					CpuInstance.Acc = (ushort) (Hopper.IsEmpty ? CpuInstance.Acc = NotReadyOrBusyStatus : 0);
+					CpuInstance.Acc = 0;
+					if (Hopper.IsEmpty && !_complete) // Only show not ready if we're not completing an operation
+					{
+						CpuInstance.Acc |= NotReadyOrBusyStatus;
+					}
 					if (_readInProgess)
 					{
 						CpuInstance.Acc |= BusyStatus;
@@ -89,17 +125,22 @@ namespace S1130.SystemObjects.Devices
 				if (Hopper.TryDequeue(out card))
 				{
 					CpuInstance.TransferToMemory(_address, card.Columns, 80);
+					if (_ipl)
+					{
+						// For IPL operations, we want to indicate both complete and last card
+						_complete = true;
+						_lastCard = true;
+						_ipl = false; // Reset IPL flag since it's done
+					}
+					else
+					{
+						// For normal operations, only mark complete if not the last card
+						_complete = !Hopper.IsEmpty;
+						_lastCard = Hopper.IsEmpty;
+					}
 				}
 			}
 			_readInProgess = false;
-			if (Hopper.IsEmpty)
-			{
-				_lastCard = true;
-			}
-			else
-			{
-				_complete = true;
-			}
 			ActivateInterrupt(CpuInstance, 4, Ilsw);
 			base.Run();
 		}
