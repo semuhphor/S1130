@@ -100,7 +100,7 @@ DATA   DC   42"
             {
                 SourceCode = @"       ORG  /100
 LOOP   LD   L DATA
-       BSC  L ZPM,LOOP
+       BSC  L ZPM LOOP
 DATA   DC   1"
             };
             var assembleResponse = await _client.PostAsJsonAsync("/api/assembler/assemble", loopProgram);
@@ -138,7 +138,7 @@ DATA   DC   1"
             {
                 SourceCode = @"       ORG  /100
 LOOP   LD   L DATA
-       BSC  L ZPM,LOOP
+       BSC  L ZPM LOOP
 DATA   DC   1"
             };
             await _client.PostAsJsonAsync("/api/assembler/assemble", loopProgram);

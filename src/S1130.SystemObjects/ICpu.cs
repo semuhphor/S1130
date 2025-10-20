@@ -73,5 +73,12 @@ namespace S1130.SystemObjects
         /// <param name="sourceCode">Assembly source code with lines separated by CR, LF or CRLF</param>
         /// <returns>Assembly result containing listing, errors and success flag</returns>
         AssemblyResult Assemble(string sourceCode);
+        
+        /// <summary>
+        /// Disassembles the instruction at the specified memory address.
+        /// </summary>
+        /// <param name="address">Memory address to disassemble</param>
+        /// <returns>Assembly source string for the instruction, or error message if invalid</returns>
+        string Disassemble(ushort address);
 	}
 }

@@ -501,7 +501,7 @@ RES2  DC   0";
             
             var source = @"      ORG /100
       LD   L VAL1
-      BSC  Z,ZERO
+      BSC  Z ZERO
       A    L VAL2
 ZERO  STO  L RES
       WAIT
@@ -606,7 +606,7 @@ IOCC2 DC   /300
       STO  L RES6
 * Test branches
       LD   L VAL1
-      BSC  Z,SKIP
+      BSC  Z SKIP
       A    L VAL2
 SKIP  STO  L RES7
       WAIT
@@ -1283,6 +1283,68 @@ RESULT DC  0";
             // LD . (1) + A L (2) + STO . (1) + WAIT (1) = 5 words
             // VALUE at 0x105, RESULT at 0x106
             Assert.Equal((ushort)10, cpu[0x105]); // VALUE
+        }
+
+        [Fact]
+        public void BSC_Syntax_AllFormats()
+        {
+            // Test all valid BSC syntax variations
+            var cpu = new Cpu();
+            
+            var source = @"      ORG /100
+* Test all BSC condition codes
+      BSC  O NEXT1
+NEXT1 BSC  C NEXT2
+NEXT2 BSC  E NEXT3
+NEXT3 BSC  + NEXT4
+NEXT4 BSC  & NEXT5
+NEXT5 BSC  - NEXT6
+NEXT6 BSC  Z NEXT7
+NEXT7 BSC  ZPM NEXT8
+* Test long format
+NEXT8 BSC  L O TARG1
+TARG1 BSC  L + TARG2
+* Test with index registers
+TARG2 BSC  O,1 TARG3
+TARG3 BSC  L +,2 TARG4
+* Test indirect
+TARG4 BSC  L O TARG5 I
+* Test unconditional
+TARG5 BSC  DONE
+      BSC  L DONE
+DONE  WAIT";
+
+            var result = cpu.Assemble(source);
+            
+            Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
+            Assert.Empty(result.Errors);
+        }
+
+        [Fact]
+        public void BSC_ConditionCodes_CorrectModifiers()
+        {
+            // Verify that condition codes map to correct modifier bits
+            var cpu = new Cpu();
+            
+            var source = @"      ORG /100
+      BSC  O NEXT
+      BSC  C NEXT
+      BSC  E NEXT
+      BSC  + NEXT
+      BSC  - NEXT
+      BSC  Z NEXT
+NEXT  WAIT";
+
+            cpu.Assemble(source);
+            
+            // Check that the modifiers are correctly set in the instructions
+            // Short format BSC: bits 7-0 contain modifiers
+            Assert.Equal(0x01, cpu[0x100] & 0xFF); // O
+            Assert.Equal(0x02, cpu[0x101] & 0xFF); // C
+            Assert.Equal(0x04, cpu[0x102] & 0xFF); // E
+            Assert.Equal(0x08, cpu[0x103] & 0xFF); // +
+            Assert.Equal(0x10, cpu[0x104] & 0xFF); // -
+            Assert.Equal(0x20, cpu[0x105] & 0xFF); // Z
         }
     }
 }

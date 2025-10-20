@@ -70,5 +70,87 @@
 	    {
 		    return ((cpu.Tag == 0) ? cpu.Displacement : cpu.Xr[cpu.Tag]) & 0x3f;
 	    }
+	    
+	    /// <summary>
+	    /// Disassembles a standard format instruction (Load, Store, Arithmetic, etc.).
+	    /// Override this method for instructions with special formats (BSC, MDX, Shift, etc.).
+	    /// </summary>
+	    public virtual string Disassemble(ICpu cpu, ushort address)
+	    {
+		    // Get the instruction name from the IInstruction implementation
+		    var instruction = cpu.CurrentInstruction;
+		    if (instruction == null)
+			    return "; Unknown instruction";
+		    
+		    var parts = new System.Collections.Generic.List<string>();
+		    parts.Add(instruction.OpName.PadRight(5)); // Mnemonic padded to 5 chars
+		    
+		    // Build format/modifiers string
+		    // Note: Indirect addressing (I) only exists in long format (bit 8 of word 1)
+		    // Short format has no indirect bit, so indirect always implies long
+		    var formatParts = new System.Collections.Generic.List<string>();
+		    
+		    if (cpu.IndirectAddress)
+		    {
+			    // Indirect addressing
+			    if (cpu.Tag > 0)
+			    {
+				    // Indirect with index: "I1", "I2", "I3"
+				    formatParts.Add($"I{cpu.Tag}");
+			    }
+			    else
+			    {
+				    // Indirect without index: just "I" (long is implied)
+				    formatParts.Add("I");
+			    }
+		    }
+		    else if (cpu.FormatLong)
+		    {
+			    // Long format without indirect
+			    if (cpu.Tag > 0)
+			    {
+				    // Long with index: "L1", "L2", "L3"
+				    formatParts.Add($"L{cpu.Tag}");
+			    }
+			    else
+			    {
+				    // Just long: "L"
+				    formatParts.Add("L");
+			    }
+		    }
+		    else
+		    {
+			    // Short format
+			    if (cpu.Tag > 0)
+			    {
+				    // Short with index: "1", "2", "3"
+				    formatParts.Add(cpu.Tag.ToString());
+			    }
+			    // If no tag and short format, omit format specifier entirely
+		    }
+		    
+		    // Add format part if we have one
+		    if (formatParts.Count > 0)
+			    parts.Add(string.Join("", formatParts));
+		    
+		    // Calculate the target address
+		    ushort targetAddress;
+		    if (cpu.FormatLong)
+		    {
+			    targetAddress = cpu.Displacement;
+		    }
+		    else
+		    {
+			    // Short format: displacement is relative to IAR after instruction fetch
+			    // IAR was advanced past the instruction (1 word for short format)
+			    int relativeAddress = (address + 1) + (sbyte)cpu.Displacement;
+			    targetAddress = (ushort)(relativeAddress & 0xFFFF);
+		    }
+		    
+		    // Format address in hex with / prefix (matching assembler input format)
+		    parts.Add($"/{targetAddress:X4}");
+		    
+		    return string.Join(" ", parts);
+	    }
     }
 }

@@ -8,17 +8,20 @@ interface AssemblerEditorProps {
 }
 
 const EXAMPLE_PROGRAM = `       ORG  /100
-* Animate a bit shifting across the accumulator
-* Watch the LED display as the bit moves left!
+* Animate a bit shifting through ACC and EXT registers
+* Multiply by 2 each iteration - watch the bit move!
+* When overflow occurs, restart from 1
 * Use Step to see it move slowly, or Run to animate
 
-START  LD   . BIT
-       A    . BIT
-       STO  . BIT
-       BSC  L START
+START  LDD  L ONE      Load ACC:EXT with 0001:0000
+LOOP   M    L TWO      Multiply by 2 (shifts left)
+       BSC  O LOOP     Branch if overflow OFF (keep going)
+       BSC  L START    Overflow ON - restart
 
 * Data section
-BIT    DC   1
+ONE    DC   1          Initial value for ACC
+       DC   0          Initial value for EXT
+TWO    DC   2          Multiply by 2
 `;
 
 const AssemblerEditor: React.FC<AssemblerEditorProps> = ({ onAssemblyComplete }) => {

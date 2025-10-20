@@ -26,7 +26,7 @@ namespace S1130.SystemObjects.Instructions
 		,ShiftRight = 0x03
 		,BranchSkip = 0x09
 		,BranchStore = 0x08
-		,ModifyIndex = 0x0e
+		,ModifyIndex = 0x0a
 		,Wait = 0x06
 		,ExecuteInputOutput = 0x01
     };

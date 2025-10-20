@@ -131,7 +131,7 @@ DATA   DC   10";
         // Simple infinite loop - BSC with ZPM conditions (zero, plus, or minus - always true)
         string code = @"       ORG  /100
 LOOP   LD   L DATA
-       BSC  L ZPM,LOOP
+       BSC  L ZPM LOOP
 DATA   DC   1";
         var assembleResult = service.Assemble(code);
         Assert.True(assembleResult.Success, $"Assembly failed: {string.Join(", ", assembleResult.Errors)}");
@@ -153,7 +153,7 @@ DATA   DC   1";
         var service = new EmulatorService();
         string code = @"       ORG  /100
 LOOP   LD   L DATA
-       BSC  L ZPM,LOOP
+       BSC  L ZPM LOOP
 DATA   DC   1";
         var assembleResult = service.Assemble(code);
         Assert.True(assembleResult.Success, $"Assembly failed: {string.Join(", ", assembleResult.Errors)}");

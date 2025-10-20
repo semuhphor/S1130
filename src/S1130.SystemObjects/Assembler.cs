@@ -299,7 +299,7 @@ namespace S1130.SystemObjects
                 _context.LocationCounter += isLongFormat ? 2 : 1;
             }
             else if (operation == "WAIT" || operation == "SLA" || operation == "SLT" || 
-                     operation == "SLC" || operation == "SLCA" || operation == "SRA" || operation == "SRT")
+                     operation == "SLC" || operation == "SLCA" || operation == "SRA" || operation == "SRT" || operation == "RTE")
             {
                 // Short format: 1 word
                 _context.LocationCounter++;
@@ -326,6 +326,24 @@ namespace S1130.SystemObjects
                 
                 bool isLongFormat = formatSpec == "L" || formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3";
                 _context.LocationCounter += isLongFormat ? 2 : 1;
+            }
+            // Pseudo operations - generate BSC instructions
+            else if (operation == "B" || operation == "BP" || operation == "BNP" || 
+                     operation == "BN" || operation == "BNN" || operation == "BZ" || 
+                     operation == "BNZ" || operation == "BC" || operation == "BO" || operation == "BOD")
+            {
+                // These are BSC instructions with preset conditions - can be short or long
+                var operandTrim = parts.Operand?.Trim() ?? "";
+                var firstToken = operandTrim.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+                var formatSpec = firstToken.ToUpper();
+                
+                bool isLongFormat = formatSpec == "L" || formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3";
+                _context.LocationCounter += isLongFormat ? 2 : 1;
+            }
+            else if (operation == "SKP")
+            {
+                // SKP is always short format (skip next instruction)
+                _context.LocationCounter++;
             }
             else
             {
@@ -494,7 +512,7 @@ namespace S1130.SystemObjects
             else if (operation == "LDS")
             {
                 FormatListingLine(line);
-                ProcessArithmetic(parts.Operand, 0x04, "LDS");
+                ProcessLoadStatus(parts.Operand);
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "STS")
@@ -506,49 +524,55 @@ namespace S1130.SystemObjects
             else if (operation == "SLA")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 0, "SLA");
+                ProcessShift(parts.Operand, 0x02, 0, "SLA");  // Type 0: Shift Left Accumulator
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SLT")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 1, "SLT");
+                ProcessShift(parts.Operand, 0x02, 2, "SLT");  // Type 2: Shift Left AccExt Together (FIXED: was 1, should be 2)
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SLC")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 2, "SLC");
+                ProcessShift(parts.Operand, 0x02, 3, "SLC");  // Type 3: Shift Left and Count AccExt (FIXED: was 2, should be 3)
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SLCA")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 3, "SLCA");
+                ProcessShift(parts.Operand, 0x02, 1, "SLCA");  // Type 1: Shift Left and Count Accumulator (FIXED: was 3, should be 1)
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SRA")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x03, 0, "SRA");
+                ProcessShift(parts.Operand, 0x03, 0, "SRA");  // Type 0: Shift Right Accumulator
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SRT")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x03, 1, "SRT");
+                ProcessShift(parts.Operand, 0x03, 2, "SRT");  // Type 2: Shift Right AccExt Together (FIXED: was 1, should be 2)
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "RTE")
+            {
+                FormatListingLine(line);
+                ProcessShift(parts.Operand, 0x03, 3, "RTE");  // Type 3: Rotate Ext
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "BSC")
             {
                 FormatListingLine(line);
-                ProcessBranch(parts.Operand, 0x08, "BSC");
+                ProcessBranch(parts.Operand, 0x09, "BSC");
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "BSI")
             {
                 FormatListingLine(line);
-                ProcessBranch(parts.Operand, 0x09, "BSI");
+                ProcessBranch(parts.Operand, 0x08, "BSI");
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "MDX")
@@ -567,6 +591,121 @@ namespace S1130.SystemObjects
             {
                 FormatListingLine(line);
                 ProcessWait();
+                AddInstructionListingLine(line, addressBefore);
+            }
+            // Pseudo operations - convenience mnemonics for branch instructions
+            // These generate BSC (Branch or Skip on Condition) instructions with preset condition codes
+            // BSC long format INVERTS the condition: branches when TestCondition returns FALSE
+            // Strategy: To "Branch if X", test for "NOT X" so TestCondition returns FALSE, then inverts to TRUE
+            else if (operation == "B")
+            {
+                // Unconditional branch: Test for all ACC conditions (Z|P|M)
+                // Always at least one will be false, so TestCondition often returns TRUE
+                // But we want ALWAYS branch, so use all 3: ensures condition logic always TRUE, inverted to FALSE... 
+                // Wait, that's wrong. Let me think: We want to ALWAYS branch.
+                // Set all ACC bits: if ACC is in any state, at least one matches, TestCondition=TRUE, inverted=FALSE, no branch?
+                // Actually, for unconditional: any modifier will fail sometimes. Better to use modifier 0 and handle specially?
+                // Or: ACC is always exactly ONE of Z, P, or M. So Z|P|M always has one TRUE, TestCondition=TRUE, inverted=FALSE.
+                // That means we'd NEVER branch! We need TestCondition to return FALSE.
+                // Unconditional branch needs to set NO condition bits, or use special BSC logic.
+                // Actually reviewing user's opcode: B=0x4C0. That's modifier=0x00!
+                // With modifier 0, TestCondition checks nothing, returns FALSE, inverted to TRUE → always branches! ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x00, "B");  // No conditions = always FALSE = always branch
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BP")
+            {
+                // Branch if Positive (ACC > 0): Test for Z|M (NOT positive)
+                // When ACC>0: neither Z nor M match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                // When ACC≤0: Z or M matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x30, "BP");  // Z|M = 0x20|0x10
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BNP")
+            {
+                // Branch if Not Positive (ACC ≤ 0): Test for P
+                // When ACC>0: P matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                // When ACC≤0: P doesn't match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x08, "BNP");  // P = 0x08
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BN")
+            {
+                // Branch if Negative (ACC < 0): Test for Z|P (NOT negative)
+                // When ACC<0: neither Z nor P match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                // When ACC≥0: Z or P matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x28, "BN");  // Z|P = 0x20|0x08
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BNN")
+            {
+                // Branch if Not Negative (ACC ≥ 0): Test for M
+                // When ACC<0: M matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                // When ACC≥0: M doesn't match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x10, "BNN");  // M = 0x10
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BZ")
+            {
+                // Branch if Zero (ACC == 0): Test for P|M (NOT zero)
+                // When ACC=0: neither P nor M match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                // When ACC≠0: P or M matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x18, "BZ");  // P|M = 0x08|0x10
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BNZ")
+            {
+                // Branch if Not Zero (ACC ≠ 0): Test for Z
+                // When ACC=0: Z matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                // When ACC≠0: Z doesn't match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x20, "BNZ");  // Z = 0x20
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BC")
+            {
+                // Branch on Carry OFF: Carry bit (0x02) in TestCondition checks for Carry OFF
+                // When Carry ON: doesn't match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                // When Carry OFF: matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                // WAIT - this is backwards! BC should branch when Carry is ON, not OFF!
+                // Need to rethink: TestCondition returns TRUE when Carry is OFF
+                // Inverted: TRUE → FALSE, so NO branch when Carry is OFF
+                // That means branch when Carry is ON, which is correct! ✓
+                // Actually no... if Carry OFF returns TRUE, inverted is FALSE, no branch.
+                // If Carry ON, doesn't match, returns FALSE, inverted is TRUE, branch! ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x02, "BC");  // C = 0x02
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BO")
+            {
+                // Branch on Overflow: Overflow bit (0x01) checks for Overflow OFF (see TestCondition)
+                // When Overflow ON: doesn't match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                // When Overflow OFF: matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x01, "BO");  // O = 0x01
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BOD")
+            {
+                // Branch if Odd: Even bit (0x04) checks for ACC Even (bit 15 = 0)
+                // When ACC Odd: doesn't match, TestCondition=FALSE, inverted=TRUE, branch ✓
+                // When ACC Even: matches, TestCondition=TRUE, inverted=FALSE, no branch ✓
+                FormatListingLine(line);
+                ProcessPseudoBranch(parts.Operand, 0x04, "BOD");  // E = 0x04
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "SKP")
+            {
+                // Skip on condition - short format only
+                FormatListingLine(line);
+                ProcessSkip(parts.Operand);
                 AddInstructionListingLine(line, addressBefore);
             }
             else
@@ -944,6 +1083,62 @@ namespace S1130.SystemObjects
             }
         }
 
+        private void ProcessLoadStatus(string operand)
+        {
+            // LDS is special - it takes an immediate value (0-3) in the displacement field
+            // Bit 1 = Carry, Bit 0 = Overflow
+            // The operand is the literal value to put in the displacement, not an address
+            
+            if (string.IsNullOrWhiteSpace(operand))
+            {
+                _context.AddError(_currentLine, "Missing operand in LDS instruction");
+                return;
+            }
+
+            if (_context.LocationCounter >= _cpu.MemorySize)
+            {
+                _context.AddError(_currentLine, "Address overflow");
+                return;
+            }
+
+            // Parse the immediate value (can be hex with / or decimal)
+            ushort value;
+            operand = operand.Trim();
+            
+            if (operand.StartsWith("/"))
+            {
+                // Hex format
+                if (!TryParseHex(operand.Substring(1), out value))
+                {
+                    _context.AddError(_currentLine, $"Invalid hex value in LDS: {operand}");
+                    return;
+                }
+            }
+            else
+            {
+                // Decimal format
+                if (!ushort.TryParse(operand, out value))
+                {
+                    _context.AddError(_currentLine, $"Invalid decimal value in LDS: {operand}");
+                    return;
+                }
+            }
+
+            // Value must be 0-3 (2 bits: carry and overflow)
+            if (value > 3)
+            {
+                _context.AddError(_currentLine, $"LDS value must be 0-3, got {value}");
+                return;
+            }
+
+            // Build instruction: OpCode 0x04 (LoadStatus), tag 0, displacement = value
+            byte displacement = (byte)value;
+            ushort instruction = (ushort)((0x04 << 11) | displacement);
+            
+            _cpu[_context.LocationCounter] = instruction;
+            _context.LocationCounter++;
+        }
+
         private void ProcessShift(string operand, byte opcode, byte shiftType, string mnemonic)
         {
             if (_context.LocationCounter >= _cpu.MemorySize)
@@ -989,11 +1184,18 @@ namespace S1130.SystemObjects
                 return;
             }
 
-            // Parse branch operand format: "condition_codes,address" or "L condition_codes,address"
-            // Condition codes: Z (zero), P (plus), M (minus), O (overflow off), C (carry off), E (even)
-            // Example: "BSC Z,LOOP" or "BSC L O,/500" or "BSC ZP,NEXT" (multiple conditions)
+            // Parse branch operand format: [L] [condition][,Xn] address [I]
+            // Condition codes: O (overflow off), C (carry off), E (even), + or & (positive), - (negative), Z (zero)
+            // Examples: 
+            //   BSC O LOOP         - Short format, skip if overflow OFF
+            //   BSC L O LOOP       - Long format, branch if overflow OFF  
+            //   BSC L +,2 LOOP I   - Long format, indexed by XR2, indirect, branch if positive
+            //   BSC ZPM LOOP       - Multiple conditions (zero, positive, or minus - always true)
+            //   BSC LOOP           - Unconditional (no condition)
             
             bool isLong = false;
+            bool isIndirect = false;
+            byte tag = 0;
             string remainingOperand = operand.Trim();
             
             // Check for "L" prefix (long format)
@@ -1003,30 +1205,82 @@ namespace S1130.SystemObjects
                 remainingOperand = remainingOperand.Substring(2).TrimStart();
             }
             
-            // Parse conditions and address
-            var parts = remainingOperand.Split(',');
+            // Check for "I" suffix (indirect) - must be at the very end
+            if (remainingOperand.ToUpper().EndsWith(" I"))
+            {
+                isIndirect = true;
+                remainingOperand = remainingOperand.Substring(0, remainingOperand.Length - 2).TrimEnd();
+            }
             
-            // Special case: For unconditional branch (BSI), allow just an address without comma
-            // Format can be "address" or ",address" or "conditions,address"
-            string conditions;
-            string addressPart;
+            // Now parse: [condition][,Xn] address
+            // Strategy: Look for space-separated parts
+            var parts = remainingOperand.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            string conditions = "";
+            string addressPart = "";
             
             if (parts.Length == 1)
             {
-                // No comma found - treat as unconditional with just address
+                // Single part: unconditional branch (just address)
+                addressPart = parts[0];
                 conditions = "";
-                addressPart = parts[0].Trim();
             }
             else if (parts.Length == 2)
             {
-                // Normal format: "conditions,address"
-                conditions = parts[0].Trim().ToUpper();
-                addressPart = parts[1].Trim();
+                // Two parts: "condition address" or just address if first part isn't a condition
+                // Check if first part contains only valid condition characters
+                // Accept both traditional (P, M) and new (+, -, &) syntax
+                string firstPart = parts[0].ToUpper();
+                string firstNoComma = firstPart.Contains(',') ? firstPart.Split(',')[0] : firstPart;
+                
+                bool isCondition = firstNoComma.Length > 0;
+                foreach (char c in firstNoComma)
+                {
+                    if (c != 'O' && c != 'C' && c != 'E' && 
+                        c != '+' && c != '&' && c != '-' && 
+                        c != 'P' && c != 'M' &&  // Traditional syntax
+                        c != 'Z')
+                    {
+                        isCondition = false;
+                        break;
+                    }
+                }
+                
+                if (isCondition)
+                {
+                    conditions = firstPart;
+                    addressPart = parts[1];
+                }
+                else
+                {
+                    // Not a condition - this is an error
+                    _context.AddError(_currentLine, $"{mnemonic} invalid condition codes '{parts[0]}'");
+                    return;
+                }
             }
             else
             {
-                _context.AddError(_currentLine, $"{mnemonic} operand must be in format 'conditions,address' or 'L conditions,address'");
+                _context.AddError(_currentLine, $"{mnemonic} operand format should be: [L] [condition][,Xn] address [I]");
                 return;
+            }
+            
+            // Parse condition codes (may include index register)
+            // Check if conditions part has ",Xn" suffix
+            if (conditions.Contains(","))
+            {
+                var condParts = conditions.Split(',');
+                conditions = condParts[0];  // Actual conditions
+                
+                // Parse index register
+                var xreg = condParts[1].Trim();
+                if (xreg == "1" || xreg == "X1") tag = 1;
+                else if (xreg == "2" || xreg == "X2") tag = 2;
+                else if (xreg == "3" || xreg == "X3") tag = 3;
+                else
+                {
+                    _context.AddError(_currentLine, $"Invalid index register: {xreg}");
+                    return;
+                }
             }
             
             // Parse condition codes into modifier byte
@@ -1036,44 +1290,18 @@ namespace S1130.SystemObjects
                 switch (c)
                 {
                     case 'Z': modifiers |= 0x20; break; // Zero
-                    case 'P': modifiers |= 0x08; break; // Plus  
-                    case 'M': modifiers |= 0x10; break; // Minus
+                    case '+':                            // Plus (positive)
+                    case '&':                            // & is alternate for +
+                    case 'P': modifiers |= 0x08; break; // P is traditional syntax for plus
+                    case '-':                            // Minus (negative)
+                    case 'M': modifiers |= 0x10; break; // M is traditional syntax for minus
                     case 'O': modifiers |= 0x01; break; // Overflow off
                     case 'C': modifiers |= 0x02; break; // Carry off
                     case 'E': modifiers |= 0x04; break; // Even
+                    case ' ': break;                     // Ignore spaces
                     default:
-                        _context.AddError(_currentLine, $"Invalid condition code '{c}' in {mnemonic}");
+                        _context.AddError(_currentLine, $"Invalid condition code '{c}' in {mnemonic}. Valid: O C E + & - Z");
                         return;
-                }
-            }
-            
-            // Parse address with potential indirect and index register modifiers
-            bool isIndirect = false;
-            byte tag = 0;
-            
-            // Check for "I" suffix (indirect)
-            if (addressPart.ToUpper().EndsWith(" I"))
-            {
-                isIndirect = true;
-                addressPart = addressPart.Substring(0, addressPart.Length - 2).TrimEnd();
-            }
-            
-            // Check for index register suffix (,X1, ,X2, ,X3)
-            if (addressPart.ToUpper().Contains(",X"))
-            {
-                var addressParts = addressPart.Split(',');
-                if (addressParts.Length == 2)
-                {
-                    var xreg = addressParts[1].Trim().ToUpper();
-                    if (xreg == "X1") tag = 1;
-                    else if (xreg == "X2") tag = 2;
-                    else if (xreg == "X3") tag = 3;
-                    else
-                    {
-                        _context.AddError(_currentLine, $"Invalid index register: {xreg}");
-                        return;
-                    }
-                    addressPart = addressParts[0].Trim();
                 }
             }
             
@@ -1130,6 +1358,140 @@ namespace S1130.SystemObjects
             ushort instruction = (ushort)(0x06 << 11); // OpCode WAIT
             _cpu[_context.LocationCounter] = instruction;
             
+            _context.LocationCounter++;
+        }
+
+        private void ProcessPseudoBranch(string operand, byte modifiers, string mnemonic)
+        {
+            // Pseudo branch operations: B, BP, BNP, BN, BNN, BZ, BNZ, BC, BO, BOD
+            // These generate BSC instructions with specific condition codes
+            // The modifiers parameter contains the inverted condition bits for the BSC instruction
+            
+            if (string.IsNullOrWhiteSpace(operand))
+            {
+                _context.AddError(_currentLine, $"Missing operand in {mnemonic} instruction");
+                return;
+            }
+
+            // Parse operand: [L] address [I] or [L] address,Xn [I]
+            // Note: No condition codes in operand for pseudo-ops
+            bool isLong = false;
+            bool isIndirect = false;
+            byte tag = 0;
+            string remainingOperand = operand.Trim();
+            
+            // Check for "L" prefix (long format)
+            if (remainingOperand.ToUpper().StartsWith("L "))
+            {
+                isLong = true;
+                remainingOperand = remainingOperand.Substring(2).TrimStart();
+            }
+            
+            // Check for "I" suffix (indirect)
+            if (remainingOperand.ToUpper().EndsWith(" I"))
+            {
+                isIndirect = true;
+                remainingOperand = remainingOperand.Substring(0, remainingOperand.Length - 2).TrimEnd();
+            }
+            
+            // Check for index register (,X1, ,X2, ,X3 or ,1, ,2, ,3)
+            string addressPart = remainingOperand;
+            if (addressPart.Contains(","))
+            {
+                var parts = addressPart.Split(',');
+                addressPart = parts[0].Trim();
+                var xreg = parts[1].Trim().ToUpper();
+                if (xreg == "1" || xreg == "X1") tag = 1;
+                else if (xreg == "2" || xreg == "X2") tag = 2;
+                else if (xreg == "3" || xreg == "X3") tag = 3;
+                else
+                {
+                    _context.AddError(_currentLine, $"Invalid index register: {xreg}");
+                    return;
+                }
+            }
+            
+            ushort address = ResolveOperand(addressPart);
+            if (_context.Errors.Any())
+                return;
+
+            // Build BSC instruction with the specified modifiers
+            byte bscOpcode = 0x09; // BSC opcode (BranchSkip)
+            
+            if (isLong)
+            {
+                // Long format: 2 words
+                if (_context.LocationCounter + 1 >= _cpu.MemorySize)
+                {
+                    _context.AddError(_currentLine, "Address overflow");
+                    return;
+                }
+                
+                ushort instruction = (ushort)((bscOpcode << 11) | (tag << 8) | modifiers | 0x400);
+                if (isIndirect) instruction |= 0x80;
+                
+                _cpu[_context.LocationCounter] = instruction;
+                _cpu[_context.LocationCounter + 1] = address;
+                _context.LocationCounter += 2;
+            }
+            else
+            {
+                // Short format: skip instruction
+                int displacement = address - (_context.LocationCounter + 1);
+                if (displacement < -128 || displacement > 127)
+                {
+                    _context.AddError(_currentLine, $"Displacement {displacement} out of range for short format (use 'L' for long format)");
+                    return;
+                }
+                
+                ushort instruction = (ushort)((bscOpcode << 11) | (tag << 8) | modifiers);
+                if (isIndirect) instruction |= 0x80;
+                
+                _cpu[_context.LocationCounter] = instruction;
+                _context.LocationCounter++;
+            }
+        }
+
+        private void ProcessSkip(string operand)
+        {
+            // SKP - Skip on condition (short format only)
+            // Operand is just the condition codes: O, C, E, +, -, Z, P, M
+            
+            if (string.IsNullOrWhiteSpace(operand))
+            {
+                _context.AddError(_currentLine, "Missing condition codes in SKP instruction");
+                return;
+            }
+
+            string conditions = operand.Trim().ToUpper();
+            
+            // Parse condition codes into modifier byte
+            byte modifiers = 0;
+            foreach (char c in conditions)
+            {
+                switch (c)
+                {
+                    case 'Z': modifiers |= 0x20; break; // Zero
+                    case '+':
+                    case '&':
+                    case 'P': modifiers |= 0x08; break; // Plus/Positive
+                    case '-':
+                    case 'M': modifiers |= 0x10; break; // Minus/Negative
+                    case 'O': modifiers |= 0x01; break; // Overflow off
+                    case 'C': modifiers |= 0x02; break; // Carry off
+                    case 'E': modifiers |= 0x04; break; // Even
+                    case ' ': break; // Ignore spaces
+                    default:
+                        _context.AddError(_currentLine, $"Invalid condition code '{c}' in SKP. Valid: O C E + & - Z P M");
+                        return;
+                }
+            }
+
+            // Generate short format BSC instruction (skip next instruction if condition true)
+            byte bscOpcode = 0x09; // BSC opcode (BranchSkip)
+            ushort instruction = (ushort)((bscOpcode << 11) | modifiers);
+            
+            _cpu[_context.LocationCounter] = instruction;
             _context.LocationCounter++;
         }
 
@@ -1198,16 +1560,40 @@ namespace S1130.SystemObjects
             }
             else if (firstToken == "I")
             {
-                // Indirect with separate space: "I ADDRESS"
+                // Indirect addressing: "I ADDRESS" or "I L ADDRESS"
+                // Note: Indirect ALWAYS implies long format (bit 8 only exists in long format)
                 isIndirect = true;
+                isLong = true;  // Indirect forces long format
                 tag = 0;
-                addressToken = tokens.Length > 1 ? tokens[1] : "";
+                // Check if next token is "L" (redundant but allowed)
+                if (tokens.Length > 1 && tokens[1].ToUpper() == "L")
+                {
+                    addressToken = tokens.Length > 2 ? tokens[2] : "";
+                }
+                else
+                {
+                    addressToken = tokens.Length > 1 ? tokens[1] : "";
+                }
             }
             else if (firstToken == "I1" || firstToken == "I2" || firstToken == "I3")
             {
                 // Indirect with index (combined): "I1 ADDRESS", "I2 ADDRESS", "I3 ADDRESS"
+                // Note: Indirect ALWAYS implies long format
                 isIndirect = true;
+                isLong = true;  // Indirect forces long format
                 tag = byte.Parse(firstToken.Substring(1));
+                addressToken = tokens.Length > 1 ? tokens[1] : "";
+            }
+            else if (firstToken == "IL" || firstToken == "IL1" || firstToken == "IL2" || firstToken == "IL3")
+            {
+                // Indirect long (combined): "IL ADDRESS", "IL1 ADDRESS", "IL2 ADDRESS", "IL3 ADDRESS"
+                // Note: "L" is redundant since indirect always implies long, but accept it for clarity
+                isIndirect = true;
+                isLong = true;  // Indirect forces long format
+                if (firstToken.Length > 2)
+                {
+                    tag = byte.Parse(firstToken.Substring(2));
+                }
                 addressToken = tokens.Length > 1 ? tokens[1] : "";
             }
             else

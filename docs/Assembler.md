@@ -518,21 +518,39 @@ Complex shift operation with counting.
 #### BSC - Branch or Skip on Condition
 
 ```
-      BSC  condition target
+      BSC  [L] [condition][,Xn] target [I]
 ```
 
-**Condition Codes (bit flags):**
-- `0x10`: Carry set
-- `0x08`: Overflow set
-- `0x04`: Accumulator zero
-- `0x02`: Accumulator positive
-- `0x01`: Even (bit 15 = 0)
+**Format:**
+- `L` - Long format (optional, default is short)
+- `condition` - Condition codes (optional, unconditional if omitted)
+- `,Xn` - Index register 1, 2, or 3 (optional)
+- `target` - Branch/skip target address or label
+- `I` - Indirect addressing (optional, at end)
+
+**Condition Codes (inverse conditions - branches/skips when condition is FALSE):**
+- `O` - Overflow OFF (branches if overflow is NOT set)
+- `C` - Carry OFF (branches if carry is NOT set)
+- `E` - Even (branches if ACC bit 15 = 0)
+- `+` or `&` or `P` - Positive (branches if ACC > 0)
+- `-` or `M` - Negative (branches if ACC < 0)
+- `Z` - Zero (branches if ACC = 0)
+
+Multiple conditions can be combined: `ZPM` means "branch if zero, positive, or negative" (always branches).
+
+**Behavior:**
+- **Short format**: Skip next instruction if condition is TRUE
+- **Long format**: Branch to target if condition is TRUE
 
 **Examples:**
 ```
-      BSC  /10 LOOP    Branch if carry set
-      BSC  /04 DONE    Branch if accumulator zero
-      BSC  /14 ERROR   Branch if carry OR zero
+      BSC  O LOOP      Skip if overflow OFF
+      BSC  L O LOOP    Branch if overflow OFF
+      BSC  ZPM ALWAYS  Always skip (any value matches)
+      BSC  +,2 NEXT    Skip if ACC positive, indexed by XR2
+      BSC  L C DONE I  Branch if carry OFF, indirect
+      BSC  TARGET      Unconditional skip
+      BSC  L TARGET    Unconditional branch
 ```
 
 #### BSI - Branch and Store IAR
