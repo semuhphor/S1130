@@ -30,6 +30,13 @@ All instructions inherit from `InstructionBase` and implement:
 - Use `ExecuteIocc()` for I/O Channel Command execution
 - Device state accessed via CPU properties: `IoccDeviceCode`, `IoccFunction`, `IoccAddress`, `IoccModifiers`
 
+**Two Device Architectures:**
+1. **Block-Mode Devices** (2501, 2310): DMA-like, single InitRead/InitWrite transfers entire block automatically
+2. **Character-Mode Devices** (1442): CPU-intensive, CPU must issue Read/Write command for EACH character
+   - IoccAddress used as direct memory address (not IOCC pointer)
+   - Device generates interrupt for each character ready
+   - Timing critical: Must respond within 700-800µs
+
 ## Testing Patterns
 
 ### Test Organization
@@ -105,6 +112,9 @@ Always use CPU indexer for memory access: `cpu[address] = value` respects addres
 
 ## Project State
 - ✅ CPU core and instruction set complete
-- ✅ 2501 Card Reader fully implemented
+- ✅ IBM 1130 Assembler fully implemented
+- ✅ 2501 Card Reader (block-mode) fully implemented
+- ✅ 1442 Card Read Punch (character-mode) fully implemented
 - 🚧 2310 Disk Drive partially complete
-- Tests provide comprehensive coverage of implemented features
+- 395 comprehensive unit tests passing
+- Complete documentation in docs/ folder
