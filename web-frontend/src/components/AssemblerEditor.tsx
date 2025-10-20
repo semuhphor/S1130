@@ -11,18 +11,14 @@ const EXAMPLE_PROGRAM = `       ORG  /100
 * Animate a bit shifting across the accumulator
 * Watch the LED display as the bit moves left!
 * Use Step to see it move slowly, or Run to animate
-*
-* Format specifiers:
-*   L = Long format (absolute address)
-*   . = Short format (IAR-relative, ±127 words)
 
-LOOP   LD   . BIT      Load current bit pattern
-       A    . BIT      Double it (shift left 1)
-       STO  . BIT      Store it back
-       BSI  . LOOP     Branch back unconditionally
+START  LD   . BIT
+       A    . BIT
+       STO  . BIT
+       BSC  L START
 
 * Data section
-BIT    DC   1          Start with bit 0 set (value 1)
+BIT    DC   1
 `;
 
 const AssemblerEditor: React.FC<AssemblerEditorProps> = ({ onAssemblyComplete }) => {
@@ -33,6 +29,10 @@ const AssemblerEditor: React.FC<AssemblerEditorProps> = ({ onAssemblyComplete })
   const handleAssemble = async () => {
     setIsAssembling(true);
     try {
+      // Reset the CPU first to ensure clean state
+      await emulatorApi.assembler.reset();
+      
+      // Then assemble and load the program
       const result = await emulatorApi.assembler.assemble({ sourceCode });
       setAssemblyResult(result);
       if (onAssemblyComplete) {
