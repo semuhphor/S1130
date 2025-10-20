@@ -35,6 +35,11 @@ namespace S1130.SystemObjects
         public bool HasOrigin { get; set; }
 
         /// <summary>
+        /// Symbol table mapping labels to addresses
+        /// </summary>
+        public Dictionary<string, ushort> Symbols { get; } = new Dictionary<string, ushort>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
         /// Constructor initializes with source code
         /// </summary>
         /// <param name="sourceCode">Assembly source code</param>
