@@ -281,11 +281,14 @@ namespace S1130.SystemObjects
                      operation == "AND" || operation == "OR" || operation == "EOR")
             {
                 // These can be short or long format
-                // Check format specifier: L, L1-L3 = long (2 words), others = short (1 word)
+                // Check format specifier: L, L1-L3 = long (2 words)
+                // Default (no format specifier or . or 1-3 or I or I1-I3) = short (1 word)
                 var operandTrim = parts.Operand?.Trim() ?? "";
                 var firstToken = operandTrim.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
                 var formatSpec = firstToken.ToUpper();
                 
+                // Only L, L1, L2, L3 indicate long format
+                // Everything else (., 1, 2, 3, I, I1, I2, I3, or no prefix) = short format
                 bool isLongFormat = formatSpec == "L" || formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3";
                 
                 // Long format = 2 words, all others = 1 word
@@ -300,7 +303,8 @@ namespace S1130.SystemObjects
             else if (operation == "BSC" || operation == "BSI" || operation == "MDX")
             {
                 // Branch instructions can be short or long format
-                // For branches, format can be before conditions: "L condition,address" or just "condition,address"
+                // Only L, L1, L2, L3 indicate long format
+                // Everything else defaults to short format
                 var operandTrim = parts.Operand?.Trim() ?? "";
                 var firstToken = operandTrim.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
                 var formatSpec = firstToken.ToUpper();
@@ -311,6 +315,7 @@ namespace S1130.SystemObjects
             else if (operation == "XIO")
             {
                 // XIO can be short or long format
+                // Only L, L1, L2, L3 indicate long format
                 var operandTrim = parts.Operand?.Trim() ?? "";
                 var firstToken = operandTrim.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
                 var formatSpec = firstToken.ToUpper();
@@ -1088,7 +1093,9 @@ namespace S1130.SystemObjects
         }
 
         /// <summary>
-        /// Parse an operand with all modifiers: L (long format), I (indirect), ,X1/X2/X3 (index registers)
+        /// Parse an operand with all modifiers supporting both modern and DMS syntax:
+        /// Modern: . BIT, L BIT, 1 BIT, L1 BIT, I BIT, I1 BIT
+        /// DMS: BIT, L BIT, 1 BIT, L1 BIT, I BIT, I1 BIT
         /// Returns: (isLong, isIndirect, tag, address)
         /// </summary>
         private (bool isLong, bool isIndirect, byte tag, ushort address) ParseOperand(string operand)
@@ -1099,83 +1106,76 @@ namespace S1130.SystemObjects
                 return (false, false, 0, 0);
             }
 
-            // Instruction operands consist of:
-            // [format_spec] address
-            // Where format_spec matches IBM 1130 card format (column 16-18):
-            //   . = no format/index (short format, no index)
-            //   L = long format, no index
-            //   1,2,3 = short format with index register 1,2,3
-            //   L1,L2,L3 = long format with index register 1,2,3
-            //   I = indirect, no index
-            //   I1,I2,I3 = indirect with index register 1,2,3
-            // Legacy comma syntax still supported: address,X1 or L address,X1 I
             var tokens = operand.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             
             bool isLong = false;
             bool isIndirect = false;
             byte tag = 0;
+            string addressToken = "";
+            
+            if (tokens.Length == 0)
+            {
+                _context.AddError(_currentLine, "Missing operand");
+                return (false, false, 0, 0);
+            }
             
             // Parse format specifier (first token)
-            var formatSpec = tokens[0].ToUpper();
+            var firstToken = tokens[0].ToUpper();
             
-            // Check if first token is a format specifier (new card-style syntax)
-            if (formatSpec == "." || 
-                formatSpec == "1" || formatSpec == "2" || formatSpec == "3" ||
-                formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3" ||
-                formatSpec == "I" || formatSpec == "I1" || formatSpec == "I2" || formatSpec == "I3")
+            // Check for format specifier patterns (must be EXACT match to avoid false positives)
+            if (firstToken == ".")
             {
-                // Parse the format specifier
-                if (formatSpec == ".")
-                {
-                    // Explicit short format, no index
-                    isLong = false;
-                    tag = 0;
-                }
-                else if (formatSpec == "I")
-                {
-                    // Indirect, no index
-                    isIndirect = true;
-                    tag = 0;
-                }
-                else if (formatSpec == "1" || formatSpec == "2" || formatSpec == "3")
-                {
-                    // Short format with index register
-                    tag = byte.Parse(formatSpec);
-                }
-                else if (formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3")
-                {
-                    // Long format with index register
-                    isLong = true;
-                    tag = byte.Parse(formatSpec.Substring(1));
-                }
-                else if (formatSpec == "I1" || formatSpec == "I2" || formatSpec == "I3")
-                {
-                    // Indirect with index register
-                    isIndirect = true;
-                    tag = byte.Parse(formatSpec.Substring(1));
-                }
-                
-                // Skip the format specifier, operand is next token
-                operand = tokens.Length > 1 ? tokens[1] : "";
+                // Modern syntax: explicit short format
+                isLong = false;
+                tag = 0;
+                addressToken = tokens.Length > 1 ? tokens[1] : "";
             }
-            else if (formatSpec == "L" && tokens.Length > 1)
+            else if (firstToken == "L")
             {
-                // Legacy "L address" or "L address I" syntax
+                // Long format with separate space: "L ADDRESS"
                 isLong = true;
-                operand = tokens[1];
-                
-                // Check for trailing "I"
+                tag = 0;
+                addressToken = tokens.Length > 1 ? tokens[1] : "";
+                // Check for trailing "I" for indirect
                 if (tokens.Length > 2 && tokens[2].ToUpper() == "I")
                 {
                     isIndirect = true;
                 }
             }
+            else if (firstToken == "1" || firstToken == "2" || firstToken == "3")
+            {
+                // Short format with index register: "1 ADDRESS", "2 ADDRESS", "3 ADDRESS"
+                tag = byte.Parse(firstToken);
+                addressToken = tokens.Length > 1 ? tokens[1] : "";
+            }
+            else if (firstToken == "L1" || firstToken == "L2" || firstToken == "L3")
+            {
+                // Long format with index (combined): "L1 ADDRESS", "L2 ADDRESS", "L3 ADDRESS"
+                isLong = true;
+                tag = byte.Parse(firstToken.Substring(1));
+                addressToken = tokens.Length > 1 ? tokens[1] : "";
+            }
+            else if (firstToken == "I")
+            {
+                // Indirect with separate space: "I ADDRESS"
+                isIndirect = true;
+                tag = 0;
+                addressToken = tokens.Length > 1 ? tokens[1] : "";
+            }
+            else if (firstToken == "I1" || firstToken == "I2" || firstToken == "I3")
+            {
+                // Indirect with index (combined): "I1 ADDRESS", "I2 ADDRESS", "I3 ADDRESS"
+                isIndirect = true;
+                tag = byte.Parse(firstToken.Substring(1));
+                addressToken = tokens.Length > 1 ? tokens[1] : "";
+            }
             else
             {
-                // No format specifier - just address, possibly with comma syntax
-                operand = tokens[0];
+                // No format specifier - DMS style with just address
+                // This is the default case for authentic DMS code
+                addressToken = firstToken;
                 
-                // Check for trailing "I" 
+                // Check for trailing "I" for indirect (legacy DMS syntax: "ADDRESS I")
                 if (tokens.Length > 1 && tokens[1].ToUpper() == "I")
                 {
                     isIndirect = true;
@@ -1183,9 +1183,9 @@ namespace S1130.SystemObjects
             }
             
             // Check for legacy comma-based index register syntax (,X1, ,X2, ,X3)
-            if (operand.ToUpper().Contains(",X"))
+            if (addressToken.ToUpper().Contains(",X"))
             {
-                var parts = operand.Split(',');
+                var parts = addressToken.Split(',');
                 if (parts.Length == 2)
                 {
                     var xreg = parts[1].Trim().ToUpper();
@@ -1197,11 +1197,11 @@ namespace S1130.SystemObjects
                         _context.AddError(_currentLine, $"Invalid index register: {xreg}");
                         return (isLong, isIndirect, 0, 0);
                     }
-                    operand = parts[0].Trim();
+                    addressToken = parts[0].Trim();
                 }
             }
             
-            ushort address = ResolveOperand(operand);
+            ushort address = ResolveOperand(addressToken);
             return (isLong, isIndirect, tag, address);
         }
 
