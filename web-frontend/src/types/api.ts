@@ -17,6 +17,13 @@ export interface CpuState {
   timestamp: string;
 }
 
+export interface ListingLine {
+  lineNumber: number;
+  address: string; // Hex string
+  opCode?: string; // Hex string, optional
+  sourceCode: string;
+}
+
 export interface AssembleRequest {
   sourceCode: string;
   startAddress?: number;
@@ -27,6 +34,7 @@ export interface AssembleResponse {
   errors: string[];
   loadedAddress?: number;
   wordsLoaded: number;
+  listingLines: ListingLine[];
 }
 
 export interface ExecutionStatus {

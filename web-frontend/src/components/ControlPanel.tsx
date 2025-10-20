@@ -5,10 +5,18 @@ import './ControlPanel.css';
 interface ControlPanelProps {
   isRunning: boolean;
   onStatusChange?: () => void;
+  onSpeedChange?: (speed: number) => void;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ isRunning, onStatusChange }) => {
-  const [speed, setSpeed] = useState(1000); // Instructions per second
+const ControlPanel: React.FC<ControlPanelProps> = ({ isRunning, onStatusChange, onSpeedChange }) => {
+  const [speed, setSpeed] = useState(5); // Instructions per second - default 5 ips
+  
+  const handleSpeedChange = (newSpeed: number) => {
+    setSpeed(newSpeed);
+    if (onSpeedChange) {
+      onSpeedChange(newSpeed);
+    }
+  };
 
   const handleStep = async () => {
     try {
@@ -100,7 +108,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ isRunning, onStatusChange }
             max="1000000"
             step="1"
             value={speed}
-            onChange={(e) => setSpeed(Number(e.target.value))}
+            onChange={(e) => handleSpeedChange(Number(e.target.value))}
             disabled={isRunning}
           />
           <div className="speed-value">{formatSpeed(speed)}</div>

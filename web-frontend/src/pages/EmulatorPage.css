@@ -51,6 +51,12 @@
   gap: 20px;
 }
 
+.listing-panel {
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
 .footer {
   text-align: center;
   color: white;

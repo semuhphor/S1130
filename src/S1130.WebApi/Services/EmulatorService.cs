@@ -78,35 +78,28 @@ public class EmulatorService
             var response = new AssembleResponse
             {
                 Success = result.Success,
-                Errors = result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}").ToList()
+                Errors = result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}").ToList(),
+                ListingLines = result.ListingLines.Select(l => new ListingLineDto
+                {
+                    LineNumber = l.LineNumber,
+                    Address = l.Address.ToString("X4"),
+                    OpCode = l.OpCode?.ToString("X4"),
+                    SourceCode = l.SourceCode
+                }).ToList()
             };
 
             if (result.Success)
             {
-                // Parse the first address from the listing to find where code was loaded
-                ushort? firstAddress = null;
-                foreach (var line in result.Listing)
-                {
-                    // Listing format: "0100  C801 0103  LD L DATA"
-                    // First 4 chars are the address in hex
-                    if (line.Length >= 4 && !string.IsNullOrWhiteSpace(line))
-                    {
-                        var addressStr = line.Substring(0, 4).Trim();
-                        if (ushort.TryParse(addressStr, System.Globalization.NumberStyles.HexNumber, null, out ushort addr))
-                        {
-                            firstAddress = addr;
-                            break;
-                        }
-                    }
-                }
+                // Get the first address with actual code (has an opcode)
+                ushort? firstAddress = result.ListingLines.FirstOrDefault(l => l.OpCode.HasValue)?.Address;
                 
                 // Set IAR to the starting address
                 var loadAddress = startAddress ?? firstAddress ?? 0;
                 _cpu.Iar = loadAddress;
                 response.LoadedAddress = loadAddress;
                 
-                // Count words loaded by examining the listing
-                response.WordsLoaded = result.Listing.Count(l => !string.IsNullOrWhiteSpace(l) && l.Length >= 4);
+                // Count words loaded (lines with opcodes)
+                response.WordsLoaded = result.ListingLines.Count(l => l.OpCode.HasValue);
             }
 
             return response;
@@ -137,7 +130,7 @@ public class EmulatorService
     /// Starts continuous execution at the specified speed
     /// </summary>
     /// <param name="instructionsPerSecond">Target execution speed (instructions per second)</param>
-    public void StartExecution(int instructionsPerSecond = 1000)
+    public void StartExecution(int instructionsPerSecond = 5)
     {
         lock (_lock)
         {

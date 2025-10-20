@@ -19,6 +19,32 @@ namespace S1130.SystemObjects
     }
 
     /// <summary>
+    /// Represents a single line in the assembly listing
+    /// </summary>
+    public class ListingLine
+    {
+        /// <summary>
+        /// 1-based source line number
+        /// </summary>
+        public int LineNumber { get; init; }
+
+        /// <summary>
+        /// Memory address in hex (4 digits)
+        /// </summary>
+        public ushort Address { get; init; }
+
+        /// <summary>
+        /// Instruction opcode in hex (null for comments, directives without code)
+        /// </summary>
+        public ushort? OpCode { get; init; }
+
+        /// <summary>
+        /// Original source code line
+        /// </summary>
+        public string SourceCode { get; init; }
+    }
+
+    /// <summary>
     /// Results from an assembly operation
     /// </summary>
     public class AssemblyResult
@@ -37,5 +63,10 @@ namespace S1130.SystemObjects
         /// Assembly listing showing the processed code
         /// </summary>
         public string[] Listing { get; init; }
+
+        /// <summary>
+        /// Structured listing with line numbers, addresses, opcodes
+        /// </summary>
+        public ListingLine[] ListingLines { get; init; }
     }
 }

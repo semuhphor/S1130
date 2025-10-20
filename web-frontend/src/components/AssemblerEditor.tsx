@@ -44,6 +44,7 @@ const AssemblerEditor: React.FC<AssemblerEditorProps> = ({ onAssemblyComplete })
         success: false,
         errors: ['Failed to connect to emulator API'],
         wordsLoaded: 0,
+        listingLines: [],
       });
     } finally {
       setIsAssembling(false);

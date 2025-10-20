@@ -25,6 +25,11 @@ namespace S1130.SystemObjects
         public List<string> Listing { get; } = new List<string>();
 
         /// <summary>
+        /// Structured listing lines with addresses and opcodes
+        /// </summary>
+        public List<ListingLine> ListingLines { get; } = new List<ListingLine>();
+
+        /// <summary>
         /// Raw source lines being processed
         /// </summary>
         public string[] SourceLines { get; set; }
@@ -71,6 +76,24 @@ namespace S1130.SystemObjects
         public void AddListingLine(string line)
         {
             Listing.Add(line);
+        }
+
+        /// <summary>
+        /// Add a structured listing line
+        /// </summary>
+        /// <param name="lineNumber">1-based source line number</param>
+        /// <param name="address">Memory address</param>
+        /// <param name="opCode">Instruction opcode (null for non-code lines)</param>
+        /// <param name="sourceCode">Original source line</param>
+        public void AddListingLine(int lineNumber, ushort address, ushort? opCode, string sourceCode)
+        {
+            ListingLines.Add(new ListingLine
+            {
+                LineNumber = lineNumber,
+                Address = address,
+                OpCode = opCode,
+                SourceCode = sourceCode
+            });
         }
     }
 }

@@ -74,12 +74,14 @@ namespace S1130.SystemObjects
                 var success = !_context.Errors.Any();
                 var errors = _context.Errors.ToArray();
                 var listing = _context.Listing.ToArray();
+                var listingLines = _context.ListingLines.ToArray();
                 
                 return new AssemblyResult 
                 { 
                     Success = success,
                     Errors = errors,
-                    Listing = listing
+                    Listing = listing,
+                    ListingLines = listingLines
                 };
             }
             catch (Exception ex)
@@ -89,12 +91,14 @@ namespace S1130.SystemObjects
                 var success = false;
                 var errors = _context.Errors.ToArray();
                 var listing = _context.Listing.ToArray();
+                var listingLines = _context.ListingLines.ToArray();
                 
                 return new AssemblyResult 
                 { 
                     Success = success,
                     Errors = errors,
-                    Listing = listing
+                    Listing = listing,
+                    ListingLines = listingLines
                 };
             }
         }
@@ -341,6 +345,7 @@ namespace S1130.SystemObjects
             if (line.TrimStart().StartsWith("*"))
             {
                 FormatListingLine(line);
+                AddStructuredListingLine(line, (ushort)_context.LocationCounter, null);
                 return;
             }
 
@@ -354,10 +359,13 @@ namespace S1130.SystemObjects
             }
 
             var operation = parts.Operation.ToUpper();
+            var addressBefore = (ushort)_context.LocationCounter;
+            
             if (operation == "ORG")
             {
                 ProcessOrg(parts.Operand);
                 FormatListingLine(line);
+                AddStructuredListingLine(line, addressBefore, null);
             }
             else if (!_context.HasOrigin)
             {
@@ -369,11 +377,14 @@ namespace S1130.SystemObjects
                 // Format listing BEFORE incrementing location counter
                 FormatListingLine(line);
                 ProcessDc(parts.Operand);
+                // DC stores a value, capture it
+                AddStructuredListingLine(line, addressBefore, _context.HasOrigin && addressBefore < _cpu.MemorySize ? _cpu[addressBefore] : (ushort?)null);
             }
             else if (operation == "EQU")
             {
                 // EQU just defines a symbol, no code generation
                 FormatListingLine(line);
+                AddStructuredListingLine(line, addressBefore, null);
                 // Symbol was already handled in Pass1
             }
             else if (operation == "BSS")
@@ -381,152 +392,182 @@ namespace S1130.SystemObjects
                 // BSS reserves storage, no initialization
                 FormatListingLine(line);
                 ProcessBss(parts.Operand);
+                AddStructuredListingLine(line, addressBefore, null);
             }
             else if (operation == "BES")
             {
                 // BES ends a BSS block
                 FormatListingLine(line);
                 ProcessBes(parts.Operand);
+                AddStructuredListingLine(line, addressBefore, null);
             }
             else if (operation == "LD")
             {
                 FormatListingLine(line);
                 ProcessLoad(parts.Operand);
+                AddStructuredListingLine(line, addressBefore, _context.HasOrigin && addressBefore < _cpu.MemorySize ? _cpu[addressBefore] : (ushort?)null);
             }
             else if (operation == "STO")
             {
                 FormatListingLine(line);
                 ProcessStore(parts.Operand);
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "LDD")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x19, "LDD");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "STD")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x1B, "STD");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "LDX")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x0C, "LDX");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "STX")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x0D, "STX");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "A")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x10, "A");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "S")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x12, "S");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "M")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x14, "M");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "D")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x15, "D");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "AD")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x11, "AD");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SD")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x13, "SD");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "AND")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x1C, "AND");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "OR")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x1D, "OR");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "EOR")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x1E, "EOR");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "LDS")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x04, "LDS");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "STS")
             {
                 FormatListingLine(line);
                 ProcessArithmetic(parts.Operand, 0x05, "STS");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SLA")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 0, "SLA"); // OpCode 0x02, shift type 0
+                ProcessShift(parts.Operand, 0x02, 0, "SLA");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SLT")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 1, "SLT"); // OpCode 0x02, shift type 1
+                ProcessShift(parts.Operand, 0x02, 1, "SLT");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SLC")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 2, "SLC"); // OpCode 0x02, shift type 2
+                ProcessShift(parts.Operand, 0x02, 2, "SLC");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SLCA")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x02, 3, "SLCA"); // OpCode 0x02, shift type 3
+                ProcessShift(parts.Operand, 0x02, 3, "SLCA");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SRA")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x03, 0, "SRA"); // OpCode 0x03, shift type 0
+                ProcessShift(parts.Operand, 0x03, 0, "SRA");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "SRT")
             {
                 FormatListingLine(line);
-                ProcessShift(parts.Operand, 0x03, 1, "SRT"); // OpCode 0x03, shift type 1
+                ProcessShift(parts.Operand, 0x03, 1, "SRT");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "BSC")
             {
                 FormatListingLine(line);
-                ProcessBranch(parts.Operand, 0x08, "BSC"); // OpCode 0x08
+                ProcessBranch(parts.Operand, 0x08, "BSC");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "BSI")
             {
                 FormatListingLine(line);
-                ProcessBranch(parts.Operand, 0x09, "BSI"); // OpCode 0x09
+                ProcessBranch(parts.Operand, 0x09, "BSI");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "MDX")
             {
                 FormatListingLine(line);
-                ProcessBranch(parts.Operand, 0x0A, "MDX"); // OpCode 0x0A
+                ProcessBranch(parts.Operand, 0x0A, "MDX");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "XIO")
             {
                 FormatListingLine(line);
-                ProcessArithmetic(parts.Operand, 0x01, "XIO"); // OpCode 0x01
+                ProcessArithmetic(parts.Operand, 0x01, "XIO");
+                AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "WAIT")
             {
                 FormatListingLine(line);
                 ProcessWait();
+                AddInstructionListingLine(line, addressBefore);
             }
             else
             {
@@ -1304,6 +1345,22 @@ namespace S1130.SystemObjects
                 // No label - use 7 spaces, trim leading whitespace
                 _context.AddListingLine($"{_context.LocationCounter:X4}       {line.TrimStart()}");
             }
+        }
+
+        private void AddStructuredListingLine(string line, ushort address, ushort? opCode)
+        {
+            _context.AddListingLine(_currentLine, address, opCode, line);
+        }
+
+        private void AddInstructionListingLine(string line, ushort address)
+        {
+            // Capture the opcode from memory after instruction was written
+            ushort? opCode = null;
+            if (_context.HasOrigin && address < _cpu.MemorySize)
+            {
+                opCode = _cpu[address];
+            }
+            _context.AddListingLine(_currentLine, address, opCode, line);
         }
 
         private static bool TryParseHex(string hex, out ushort result)
