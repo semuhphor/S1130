@@ -123,6 +123,9 @@ public class EmulatorService
         {
             if (!_isRunning)
             {
+                // Clear wait state to allow execution
+                _cpu.Wait = false;
+                
                 _cpu.NextInstruction();  // Fetch and decode the instruction
                 _cpu.ExecuteInstruction();  // Execute it
             }
@@ -142,6 +145,9 @@ public class EmulatorService
             {
                 return; // Already running
             }
+
+            // Clear wait state to allow execution to start
+            _cpu.Wait = false;
 
             _isRunning = true;
             _executionCts = new CancellationTokenSource();
