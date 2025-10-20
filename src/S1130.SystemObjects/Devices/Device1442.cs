@@ -26,7 +26,7 @@ namespace S1130.SystemObjects.Devices
         
         // Fields for tracking device state
         private int _currentColumn;
-        private int _address;
+        private int _address = 0;  // Legacy field for ProcessNextColumn() compatibility
         private bool _readInProgress;
         private bool _punchInProgress;
         private bool _complete;
@@ -97,41 +97,85 @@ namespace S1130.SystemObjects.Devices
                 case DevFunction.Control:
                     HandleControlCommand();
                     break;
+                
+                case DevFunction.Read:
+                    // Read command (010): Transfer one column from device buffer to memory at IoccAddress
+                    // Called by CPU in response to Level 0 (Read Response) interrupt
+                    if (_readInProgress && _currentCard != null && _currentColumn < 80)
+                    {
+                        // Read column twice and compare (simulating read check)
+                        var firstRead = _currentCard.Columns[_currentColumn];
+                        var secondRead = _currentCard.Columns[_currentColumn];
 
-                case DevFunction.InitRead:
-                    if (!_operationStarted && ReadHopper.TryDequeue(out _currentCard))
-                    {
-                        _readInProgress = true;
-                        _currentColumn = 0;
-                        _complete = false;
-                        _lastCard = false;
-                        _operationStarted = true;
-                        CpuInstance.Acc = BusyStatus;
-                        _address = CpuInstance.IoccAddress;
-                        ProcessNextReadColumn();
-                    }
-                    else if (_readInProgress && _currentCard != null)
-                    {
-                        _address = CpuInstance.IoccAddress;
-                        ProcessNextReadColumn();
+                        if (firstRead == secondRead)
+                        {
+                            // Transfer column to memory at specified address
+                            CpuInstance[CpuInstance.IoccAddress] = firstRead;
+                            _currentColumn++;
+                            HasColumnInterrupt = false; // Clear column interrupt after servicing
+                            
+                            if (_currentColumn < 80)
+                            {
+                                // More columns to read - generate next column interrupt
+                                HasColumnInterrupt = true;
+                                ActivateInterrupt(CpuInstance, 0, ReadIlsw);
+                            }
+                            else
+                            {
+                                // All columns read - complete the operation
+                                CompleteReadOperation();
+                            }
+                        }
+                        else
+                        {
+                            // Read check error
+                            _complete = true;
+                            _readInProgress = false;
+                            CpuInstance.Acc |= ReadCheckStatus;
+                            ActivateInterrupt(CpuInstance, 4, ReadIlsw);
+                        }
                     }
                     break;
-
+                
                 case DevFunction.Write:
-                    if (!_operationStarted && PunchHopper.TryDequeue(out _currentCard))
+                    // Write command (001): Transfer one column from memory at IoccAddress to device buffer
+                    // Called by CPU in response to Level 0 (Punch Response) interrupt
+                    // Also handles legacy test mode when punch not yet started
+                    if (_punchInProgress && _currentCard != null && _currentColumn < 80)
                     {
+                        ProcessNextPunchColumn();
+                    }
+                    else if (!_operationStarted && !_punchInProgress && PunchHopper.TryDequeue(out _currentCard))
+                    {
+                        // Legacy test mode: start punch operation
                         _punchInProgress = true;
                         _currentColumn = 0;
                         _complete = false;
                         _operationStarted = true;
                         CpuInstance.Acc = BusyStatus;
-                        _address = CpuInstance.IoccAddress;
-                        ProcessNextPunchColumn();
                     }
-                    else if (_punchInProgress && _currentCard != null)
+                    break;
+                
+                case DevFunction.InitRead:
+                    // InitRead is a test/compatibility helper that processes all columns at once
+                    // Real programs should use Control Start Read + 80 Read commands
+                    if (!_operationStarted && ReadHopper.TryDequeue(out _currentCard))
                     {
-                        _address = CpuInstance.IoccAddress;
-                        ProcessNextPunchColumn();
+                        _readInProgress = true;
+                        _currentColumn = 0;
+                        _complete = false;
+                        _lastCard = ReadHopper.IsEmpty;
+                        _operationStarted = true;
+                        CpuInstance.Acc = BusyStatus;
+                        
+                        // Process all 80 columns automatically (for testing)
+                        int wca = CpuInstance.IoccAddress;
+                        for (int col = 0; col < 80; col++)
+                        {
+                            CpuInstance[wca + col + 1] = _currentCard.Columns[col];
+                        }
+                        _currentColumn = 80;
+                        // Don't call CompleteReadOperation() - let test call CompleteCurrentOperation()
                     }
                     break;
             }
@@ -189,13 +233,16 @@ namespace S1130.SystemObjects.Devices
 
         private void StartReadOperation()
         {
-            if (!_readInProgress && !_punchInProgress && ReadHopper.Count > 0)
+            if (!_readInProgress && !_punchInProgress && ReadHopper.TryDequeue(out _currentCard))
             {
                 _operationStarted = false;
                 _readInProgress = true;
+                _currentColumn = 0;
+                _complete = false;
+                _lastCard = ReadHopper.IsEmpty; // Set last card indicator if hopper is now empty
                 CpuInstance.Acc = BusyStatus;
                 HasColumnInterrupt = true;
-                ActivateInterrupt(CpuInstance, 4, ReadIlsw);
+                ActivateInterrupt(CpuInstance, 0, ReadIlsw); // Activate Level 0 interrupt for first column
             }
         }
 

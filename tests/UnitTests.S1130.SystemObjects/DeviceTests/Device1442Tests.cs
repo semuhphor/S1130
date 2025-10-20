@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Xunit;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Devices;
@@ -48,6 +49,7 @@ public class Device1442Tests : DeviceTestBase
         {
             BeforeEachTest();
             _1442.ReadHopper.Enqueue(new Card());
+            _1442.ReadHopper.Enqueue(new Card()); // Enqueue second card so first isn't "last card"
             InitiateRead(_1442, 0x400, 80);
             _1442.CompleteCurrentOperation(); // Simulate completion of read
             SenseDevice(_1442);
@@ -161,12 +163,15 @@ public class Device1442Tests : DeviceTestBase
             Assert.True(_1442.HasColumnInterrupt);
         }
 
-        [Fact(Skip = "runs forever.")]
+        [Fact]
         public void ShouldReadRandomCardToMemory()
         {
             BeforeEachTest();
-            const ushort memoryStart = 0x400;
-            const int programStart = 0x100;
+            
+            // Register the device with the CPU so XIO can find it
+            InsCpu.AddDevice(_1442);
+            
+            const ushort cardBuffer = 0x200; // Card data buffer address
             
             // Create a card with random data
             var cardData = new ushort[80];
@@ -178,48 +183,41 @@ public class Device1442Tests : DeviceTestBase
             var testCard = new Card(cardData);
             _1442.ReadHopper.Enqueue(testCard);
             
-            // Build program to read the card
-            var currentAddress = (ushort)programStart;
+            // Set up card buffer with word count
+            InsCpu[cardBuffer] = 80; // Word count
             
-            // Control instruction to start read (0x20 = start read bit)
-            InstructionBuilder.BuildIoccAt(_1442, DevFunction.Control, 0x20, 0, InsCpu, currentAddress);
-            currentAddress += 2;
+            // Simulate the proper 1442 read sequence as described in the IBM 1130 Functional Characteristics manual:
+            // 1. Control Start Read command - starts card moving, triggers read response interrupts for each column
+            IssueControl(_1442, 0, 0x20); // Start Read bit (bit 13)
             
-            // Wait for not busy
-            var waitLoop = currentAddress;
-            InstructionBuilder.BuildIoccAt(_1442, DevFunction.SenseDevice, 0, 0, InsCpu, currentAddress);
-            currentAddress += 2;
-            InstructionBuilder.BuildShortAtAddress(OpCodes.BranchSkip, 0, 0x2, InsCpu, currentAddress); // Skip if acc bit 14 on (busy)
-            currentAddress++;
-            InstructionBuilder.BuildShortAtAddress(OpCodes.BranchSkip, 0, 0x1, InsCpu, currentAddress); // Branch to next if bit 15 on (not ready)
-            currentAddress++;
-            InstructionBuilder.BuildShortAtAddress(OpCodes.BranchStore, 0, (uint)(waitLoop - currentAddress), InsCpu, currentAddress);
-            currentAddress++;
-
-            // Initiate read operation
-            InstructionBuilder.BuildIoccAt(_1442, DevFunction.InitRead, 0, memoryStart, InsCpu, currentAddress);
-            currentAddress += 2;
+            Assert.True(_1442.IsReading, "Card read should have started");
             
-            // Wait for completion
-            waitLoop = currentAddress;
-            InstructionBuilder.BuildIoccAt(_1442, DevFunction.SenseDevice, 0, 0, InsCpu, currentAddress);
-            currentAddress += 2;
-            InstructionBuilder.BuildShortAtAddress(OpCodes.BranchSkip, 0, 0x4, InsCpu, currentAddress); // Skip if acc bit 12 on (complete)
-            currentAddress++;
-            InstructionBuilder.BuildShortAtAddress(OpCodes.BranchStore, 0, (uint)(waitLoop - currentAddress), InsCpu, currentAddress);
-            currentAddress++;
-            
-            // Execute the program
-            InsCpu.Iar = programStart;
-            while (InsCpu.Iar < currentAddress)
+            // 2. For each of the 80 columns:
+            //    - Device generates a Level 0 (Read Response) interrupt
+            //    - Interrupt handler issues a Read command (function 010 = 2) with the address where to store the column
+            //    - This must happen within 800µs for model 6, 700µs for model 7
+            for (int column = 0; column < 80; column++)
             {
-                InsCpu.ExecuteInstruction();
+                // Check that column interrupt is active
+                Assert.True(_1442.HasColumnInterrupt, $"Expected column interrupt for column {column}");
+                
+                // Issue Read command to transfer column data from buffer to memory
+                // Function code 010 (2) = Read
+                // For character-mode devices, IoccAddress is the target memory address (not an IOCC structure)
+                InsCpu.IoccDeviceCode = _1442.DeviceCode;
+                InsCpu.IoccFunction = (DevFunction)2; // Read function
+                InsCpu.IoccAddress = cardBuffer + column + 1; // Direct memory address where to store this column
+                _1442.ExecuteIocc();
             }
             
-            // Verify the card data was transferred to memory
+            // 3. After all 80 columns are read, device generates Level 4 (Operation Complete) interrupt
+            // The device should no longer be reading
+            Assert.False(_1442.IsReading, "Card read should be complete");
+            
+            // Verify the card data was transferred to memory (starts at cardBuffer+1)
             for (int i = 0; i < 80; i++)
             {
-                Assert.Equal(cardData[i], InsCpu[memoryStart + i]);
+                Assert.Equal(cardData[i], InsCpu[cardBuffer + 1 + i]);
             }
             
             // Verify card moved to stacker

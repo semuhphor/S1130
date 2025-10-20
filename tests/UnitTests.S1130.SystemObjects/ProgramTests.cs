@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Xunit;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Instructions;
@@ -57,6 +58,35 @@ namespace UnitTests.S1130.SystemObjects
 			}
 			watch.Stop();
 			Console.Error.WriteLine("1M Instructions in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
+		}
+
+		[Fact]
+		public void DoAMillionAddsWithAssembler()
+		{
+			BeforeEachTest();
+			
+			var source = @"      ORG  /100
+LOOP  A    L ONE
+      LDX  L LOOP
+ONE   DC   1";
+
+			var result = _cpu.Assemble(source);
+			
+			Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
+			Assert.Empty(result.Errors);
+			
+			var numberOfInstructions = 0;
+			var watch = Stopwatch.StartNew();
+			_cpu.Iar = 0x100;
+			
+			while(watch.ElapsedMilliseconds < 1000)
+			{
+				_cpu.NextInstruction();
+				_cpu.ExecuteInstruction();
+				numberOfInstructions++;
+			}
+			watch.Stop();
+			Console.Error.WriteLine("1M Instructions (Assembler) in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
 		}
 
 		private int RunUntilWait()

@@ -7,7 +7,8 @@ namespace S1130.SystemObjects.Instructions
 
 		public void Execute(ICpu cpu)										// execute XIO
 		{
-			cpu.IoccDecode(GetEffectiveAddress(cpu));							// Decode the IOCC
+			var address = GetEffectiveAddress(cpu);
+			cpu.IoccDecode(address);											// Decode the IOCC
 			if (cpu.IoccDevice != null)											// q. device found?
 			{																	// a. yes ..
 				cpu.IoccDevice.ExecuteIocc();									// .. do what it says

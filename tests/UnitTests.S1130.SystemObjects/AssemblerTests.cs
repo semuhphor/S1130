@@ -562,12 +562,12 @@ IOCC2 DC   /300
             // IOCC1 @ 0x104
             // Displacement = 0x104 - 0x101 = 3
             var xio1 = cpu[0x100];
-            Assert.Equal((ushort)0x5803, xio1); // OpCode 0x0B (XIO), displacement 0x03
+            Assert.Equal((ushort)0x0803, xio1); // OpCode 0x01 (XIO), displacement 0x03
             
             // XIO L IOCC2 @ 0x101-0x102 - long format
             var xio2Word1 = cpu[0x101];
             var xio2Word2 = cpu[0x102];
-            Assert.Equal((ushort)0x5C00, xio2Word1); // OpCode 0x0B (XIO), long format
+            Assert.Equal((ushort)0x0C00, xio2Word1); // OpCode 0x01 (XIO), long format
             Assert.Equal((ushort)0x106, xio2Word2); // Address of IOCC2
             
             // Verify IOCC structures

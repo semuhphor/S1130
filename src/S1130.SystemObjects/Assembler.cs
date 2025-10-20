@@ -503,7 +503,7 @@ namespace S1130.SystemObjects
             else if (operation == "XIO")
             {
                 FormatListingLine(line);
-                ProcessArithmetic(parts.Operand, 0x0B, "XIO"); // OpCode 0x0B
+                ProcessArithmetic(parts.Operand, 0x01, "XIO"); // OpCode 0x01
             }
             else if (operation == "WAIT")
             {

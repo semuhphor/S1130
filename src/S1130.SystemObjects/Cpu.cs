@@ -298,6 +298,7 @@ namespace S1130.SystemObjects
 				var formatBit = (firstWord & 0x0400) != 0;                      // .. extract the format bit
 				Tag = (ushort)((firstWord & 0x0300) >> 8);                      // .. get the Xr, if any, from tag bits
 				Modifiers = (ushort)(firstWord & 0xff);                     // .. get out modifiers/displacement
+				
 				if (formatBit && CurrentInstruction.HasLongFormat)              // q. long format instruction?
 				{                                                               // a. yes ...
 					FormatLong = true;                                          // .. show it is long
@@ -418,8 +419,8 @@ namespace S1130.SystemObjects
 		}
 		public void IoccDecode(int address)                                 // Decode an IOCC
 		{
-			IoccAddress = Memory[address];                                      // get the memory address (Note even address?)
-			ushort secondWord = Memory[address | 1];                                // then pull second word (Note odd address!)
+			IoccAddress = Memory[address];                                      // get the memory address (WCA from first word)
+			ushort secondWord = Memory[address | 1];                            // then pull second word (force odd address for second word)
 			IoccDeviceCode = (secondWord & 0xf800) >> 11;                       // .. extract device code
 			IoccFunction = (DevFunction)((secondWord & 0x0700) >> 8);           // .. extract function
 			IoccModifiers = secondWord & 0xff;                                  // .. and extract modifiers
