@@ -101,10 +101,9 @@ namespace S1130.SystemObjects
 
         private void Pass1ProcessLine(string line)
         {
-            // Reject blank lines
+            // Skip blank lines (treat as comments)
             if (string.IsNullOrWhiteSpace(line))
             {
-                _context.AddError(_currentLine, "Blank lines are not allowed");
                 return;
             }
 
@@ -282,8 +281,14 @@ namespace S1130.SystemObjects
                      operation == "AND" || operation == "OR" || operation == "EOR")
             {
                 // These can be short or long format
-                // Check if it has "L" prefix to determine size
-                bool isLongFormat = parts.Operand?.Trim().ToUpper().StartsWith("L ") ?? false;
+                // Check format specifier: L, L1-L3 = long (2 words), others = short (1 word)
+                var operandTrim = parts.Operand?.Trim() ?? "";
+                var firstToken = operandTrim.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+                var formatSpec = firstToken.ToUpper();
+                
+                bool isLongFormat = formatSpec == "L" || formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3";
+                
+                // Long format = 2 words, all others = 1 word
                 _context.LocationCounter += isLongFormat ? 2 : 1;
             }
             else if (operation == "WAIT" || operation == "SLA" || operation == "SLT" || 
@@ -295,13 +300,22 @@ namespace S1130.SystemObjects
             else if (operation == "BSC" || operation == "BSI" || operation == "MDX")
             {
                 // Branch instructions can be short or long format
-                bool isLongFormat = parts.Operand?.Trim().ToUpper().StartsWith("L ") ?? false;
+                // For branches, format can be before conditions: "L condition,address" or just "condition,address"
+                var operandTrim = parts.Operand?.Trim() ?? "";
+                var firstToken = operandTrim.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+                var formatSpec = firstToken.ToUpper();
+                
+                bool isLongFormat = formatSpec == "L" || formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3";
                 _context.LocationCounter += isLongFormat ? 2 : 1;
             }
             else if (operation == "XIO")
             {
                 // XIO can be short or long format
-                bool isLongFormat = parts.Operand?.Trim().ToUpper().StartsWith("L ") ?? false;
+                var operandTrim = parts.Operand?.Trim() ?? "";
+                var firstToken = operandTrim.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+                var formatSpec = firstToken.ToUpper();
+                
+                bool isLongFormat = formatSpec == "L" || formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3";
                 _context.LocationCounter += isLongFormat ? 2 : 1;
             }
             else
@@ -312,10 +326,9 @@ namespace S1130.SystemObjects
 
         private void Pass2ProcessLine(string line)
         {
-            // Reject blank lines
+            // Skip blank lines (treat as comments)
             if (string.IsNullOrWhiteSpace(line))
             {
-                _context.AddError(_currentLine, "Blank lines are not allowed");
                 return;
             }
 
@@ -946,7 +959,25 @@ namespace S1130.SystemObjects
             
             // Parse conditions and address
             var parts = remainingOperand.Split(',');
-            if (parts.Length != 2)
+            
+            // Special case: For unconditional branch (BSI), allow just an address without comma
+            // Format can be "address" or ",address" or "conditions,address"
+            string conditions;
+            string addressPart;
+            
+            if (parts.Length == 1)
+            {
+                // No comma found - treat as unconditional with just address
+                conditions = "";
+                addressPart = parts[0].Trim();
+            }
+            else if (parts.Length == 2)
+            {
+                // Normal format: "conditions,address"
+                conditions = parts[0].Trim().ToUpper();
+                addressPart = parts[1].Trim();
+            }
+            else
             {
                 _context.AddError(_currentLine, $"{mnemonic} operand must be in format 'conditions,address' or 'L conditions,address'");
                 return;
@@ -954,7 +985,6 @@ namespace S1130.SystemObjects
             
             // Parse condition codes into modifier byte
             byte modifiers = 0;
-            var conditions = parts[0].Trim().ToUpper();
             foreach (char c in conditions)
             {
                 switch (c)
@@ -972,7 +1002,6 @@ namespace S1130.SystemObjects
             }
             
             // Parse address with potential indirect and index register modifiers
-            var addressPart = parts[1].Trim();
             bool isIndirect = false;
             byte tag = 0;
             
@@ -1071,47 +1100,89 @@ namespace S1130.SystemObjects
             }
 
             // Instruction operands consist of:
-            // [L] address[,X#][I]
-            // Where address is a single token (symbol, hex, or number)
-            // Anything after the operand is inline comment
-            // Strategy: Take tokens intelligently based on format
+            // [format_spec] address
+            // Where format_spec matches IBM 1130 card format (column 16-18):
+            //   . = no format/index (short format, no index)
+            //   L = long format, no index
+            //   1,2,3 = short format with index register 1,2,3
+            //   L1,L2,L3 = long format with index register 1,2,3
+            //   I = indirect, no index
+            //   I1,I2,I3 = indirect with index register 1,2,3
+            // Legacy comma syntax still supported: address,X1 or L address,X1 I
             var tokens = operand.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             
             bool isLong = false;
             bool isIndirect = false;
             byte tag = 0;
-            int operandTokenCount = 1;  // Default: just one token (the address)
             
-            // Check for "L" prefix (long format)
-            if (tokens[0].ToUpper() == "L")
+            // Parse format specifier (first token)
+            var formatSpec = tokens[0].ToUpper();
+            
+            // Check if first token is a format specifier (new card-style syntax)
+            if (formatSpec == "." || 
+                formatSpec == "1" || formatSpec == "2" || formatSpec == "3" ||
+                formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3" ||
+                formatSpec == "I" || formatSpec == "I1" || formatSpec == "I2" || formatSpec == "I3")
             {
+                // Parse the format specifier
+                if (formatSpec == ".")
+                {
+                    // Explicit short format, no index
+                    isLong = false;
+                    tag = 0;
+                }
+                else if (formatSpec == "I")
+                {
+                    // Indirect, no index
+                    isIndirect = true;
+                    tag = 0;
+                }
+                else if (formatSpec == "1" || formatSpec == "2" || formatSpec == "3")
+                {
+                    // Short format with index register
+                    tag = byte.Parse(formatSpec);
+                }
+                else if (formatSpec == "L1" || formatSpec == "L2" || formatSpec == "L3")
+                {
+                    // Long format with index register
+                    isLong = true;
+                    tag = byte.Parse(formatSpec.Substring(1));
+                }
+                else if (formatSpec == "I1" || formatSpec == "I2" || formatSpec == "I3")
+                {
+                    // Indirect with index register
+                    isIndirect = true;
+                    tag = byte.Parse(formatSpec.Substring(1));
+                }
+                
+                // Skip the format specifier, operand is next token
+                operand = tokens.Length > 1 ? tokens[1] : "";
+            }
+            else if (formatSpec == "L" && tokens.Length > 1)
+            {
+                // Legacy "L address" or "L address I" syntax
                 isLong = true;
-                operandTokenCount = 2;  // "L address"
+                operand = tokens[1];
+                
+                // Check for trailing "I"
+                if (tokens.Length > 2 && tokens[2].ToUpper() == "I")
+                {
+                    isIndirect = true;
+                }
             }
-            
-            // Check if last operand token is "I" (indirect)
-            if (tokens.Length > operandTokenCount && tokens[operandTokenCount].ToUpper() == "I")
+            else
             {
-                isIndirect = true;
-                operandTokenCount++;  // Include the "I"
+                // No format specifier - just address, possibly with comma syntax
+                operand = tokens[0];
+                
+                // Check for trailing "I" 
+                if (tokens.Length > 1 && tokens[1].ToUpper() == "I")
+                {
+                    isIndirect = true;
+                }
             }
             
-            // Reconstruct operand from just the tokens we need (ignore inline comments)
-            operand = string.Join(" ", tokens.Take(operandTokenCount));
-            
-            // Now strip the L prefix if present
-            if (isLong)
-            {
-                operand = operand.Substring(2).TrimStart();
-            }
-            
-            // Strip the I suffix if present  
-            if (isIndirect && operand.ToUpper().EndsWith(" I"))
-            {
-                operand = operand.Substring(0, operand.Length - 2).TrimEnd();
-            }
-            
-            // Check for index register suffix (,X1, ,X2, ,X3)
+            // Check for legacy comma-based index register syntax (,X1, ,X2, ,X3)
             if (operand.ToUpper().Contains(",X"))
             {
                 var parts = operand.Split(',');

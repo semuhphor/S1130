@@ -1184,5 +1184,105 @@ RES2  DC   0";
             Assert.Equal((ushort)0x00F0, cpu[0x10D]); // RES1 = shift left result
             Assert.Equal((ushort)0x3FC0, cpu[0x10E]); // RES2 = shift right result
         }
+
+        [Fact]
+        public void ShortFormatWithDotSpecifierShouldSucceed()
+        {
+            // Test the explicit short format specifier (.)
+            var cpu = new Cpu();
+            
+            var source = @"      ORG /100
+START LD   . VALUE   Load using short format
+      A    . VALUE   Add using short format  
+      STO  . RESULT  Store using short format
+      WAIT
+VALUE DC   42
+RESULT DC  0";
+            
+            var result = cpu.Assemble(source);
+
+            Assert.True(result.Success);
+            Assert.Empty(result.Errors);
+            
+            // Verify instruction sizes:
+            // Each LD/A/STO with . should be 1 word (short format)
+            // START at 0x100, LD (1 word), A (1 word), STO (1 word), WAIT (1 word) = 4 words
+            // VALUE at 0x104, RESULT at 0x105
+            Assert.Equal((ushort)42, cpu[0x104]); // VALUE
+            Assert.Equal((ushort)0, cpu[0x105]);  // RESULT (initial)
+            
+            // Execute and verify
+            cpu.Iar = 0x100;
+            while (!cpu.Wait)
+            {
+                cpu.NextInstruction();
+                cpu.ExecuteInstruction();
+            }
+            
+            Assert.Equal((ushort)84, cpu[0x105]); // RESULT = 42 + 42
+        }
+
+        [Fact]
+        public void LongFormatWithLSpecifierShouldSucceed()
+        {
+            // Test explicit long format (for comparison with dot syntax)
+            // Use a fresh CPU to avoid test isolation issues
+            var cpu = new Cpu();
+            
+            var source = @"      ORG /100
+START LD   L VALUE   Load using long format
+      A    L VALUE   Add using long format  
+      STO  L RESULT  Store using long format
+      WAIT
+VALUE DC   42
+RESULT DC  0";
+            
+            var result = cpu.Assemble(source);
+
+            Assert.True(result.Success);
+            Assert.Empty(result.Errors);
+            
+            // Verify instruction sizes:
+            // Each LD/A/STO with L should be 2 words (long format)
+            // START at 0x100, LD (2), A (2), STO (2), WAIT (1) = 7 words
+            // VALUE at 0x107, RESULT at 0x108
+            Assert.Equal((ushort)42, cpu[0x107]); // VALUE
+            Assert.Equal((ushort)0, cpu[0x108]);  // RESULT (initial)
+            
+            // Execute and verify
+            cpu.Iar = 0x100;
+            while (!cpu.Wait)
+            {
+                cpu.NextInstruction();
+                cpu.ExecuteInstruction();
+            }
+            
+            Assert.Equal((ushort)84, cpu[0x108]); // RESULT = 42 + 42
+        }
+
+        [Fact]
+        public void MixedFormatSpecifiersShouldSucceed()
+        {
+            // Test mixing . (short) and L (long) format specifiers
+            var cpu = new Cpu();
+            
+            var source = @"      ORG /100
+START LD   . VALUE   Short format load (1 word)
+      A    L /0500   Long format add (2 words)
+      STO  . RESULT  Short format store (1 word)
+      WAIT
+VALUE DC   10
+RESULT DC  0";
+            
+            var result = cpu.Assemble(source);
+
+            Assert.True(result.Success);
+            Assert.Empty(result.Errors);
+            
+            // Verify mixed format generates correct sizes
+            // LD . (1) + A L (2) + STO . (1) + WAIT (1) = 5 words
+            // VALUE at 0x105, RESULT at 0x106
+            Assert.Equal((ushort)10, cpu[0x105]); // VALUE
+        }
     }
 }

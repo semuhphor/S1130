@@ -308,11 +308,15 @@ STACK BES  100         Stack grows downward from 0x1063
 All instructions follow the pattern:
 
 ```
-[label] OPERATION [L] operand [,Xn] [I]
+[label] OPERATION [format] operand [,Xn] [I]
 ```
 
-**Modifiers:**
-- `L`: Long format (16-bit address)
+**Format Specifiers:**
+- `.`: Short format (explicit, IAR-relative ±127 words)
+- `L`: Long format (absolute 16-bit address)
+- (none): Auto-detect based on operand
+
+**Other Modifiers:**
 - `,X1`, `,X2`, `,X3`: Index register
 - `I`: Indirect addressing
 
@@ -321,21 +325,23 @@ All instructions follow the pattern:
 #### LD - Load Accumulator
 
 ```
-LD   operand         Load accumulator from memory
-LD   L operand       Long format
+LD   . operand       Short format (explicit)
+LD   L operand       Long format (explicit)
 LD   operand,X1      With index register
 LD   L operand I     Long format, indirect
 ```
 
 **Examples:**
 ```
-      LD   5           Load from IAR+5 (short format)
-      LD   -3          Load from IAR-3 (short format)
-      LD   L /0400     Load from address 0x0400
-      LD   L VALUE     Load from VALUE address
-      LD   TABLE,X1    Load from TABLE+XR1
-      LD   L PTR I     Load from address pointed to by PTR
+      LD   . 5         Load from IAR+5 (short format, explicit)
+      LD   . -3        Load from IAR-3 (short format, explicit)
+      LD   L /0400     Load from address 0x0400 (long format)
+      LD   L VALUE     Load from VALUE address (long format)
+      LD   . TABLE,X1  Load from TABLE+XR1 (short format)
+      LD   L PTR I     Load from address pointed to by PTR (long, indirect)
 ```
+
+**Note:** The dot (`.`) format specifier makes the short format explicit, matching the fixed-column card format used by the original IBM 1130 assembler where column position indicated format.
 
 #### STO - Store Accumulator
 
