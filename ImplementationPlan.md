@@ -1,14 +1,30 @@
 # IBM 1130 Web Frontend Implementation Plan
 
-Goal
-- Add a small, incremental web UI for the S1130 IBM 1130 emulator.
-- Keep tasks small, testable, and reversible.
+## Primary Goal (Phase 1 Focus)
+Create a simple web interface that:
+1. Starts an IBM 1130 emulator instance
+2. Provides a text box to enter assembler code
+3. Has an "Assemble" button to compile the code into the emulator's memory
+4. Can Run or Step through the assembled program
+5. Shows dynamically-updated registers:
+   - IAR (Instruction Address Register)
+   - ACC (Accumulator)
+   - EXT (Extension Register)
+   - XR1, XR2, XR3 (Index Registers)
+   - Current Interrupt Level being serviced
+6. Register values update in real-time during execution
+
+## Overall Approach
+- Add a small, incremental web UI for the S1130 IBM 1130 emulator
+- Keep tasks small, testable, and reversible
+- Focus on the assembler-driven workflow first, add complexity later
 
 Notes
-- Backend: ASP.NET Core 8 Web API
-- Frontend: React 18 + TypeScript
+- Backend: ASP.NET Core 8 Web API (cross-platform: Windows, Linux, macOS)
+- Frontend: React 18 + TypeScript (cross-platform: runs in any modern browser)
+- The emulator and web interface can run on Windows, Linux, or macOS
 - Follow ICpu/InstructionBase/DeviceBase patterns from the emulator
-- Windows PowerShell commands shown
+- Windows PowerShell commands shown (use bash equivalents on Linux/macOS)
 
 ------------------------------------------------------------
 Phase 0 — Preparation (30–45 min total)
@@ -26,7 +42,7 @@ Task 0.2: Ensure solution builds and tests pass
 - Accept: All tests green; no new warnings.
 
 ------------------------------------------------------------
-Phase 1 — Minimal Web API to expose CPU state (1–2 hours)
+Phase 1 — Core Assembler Web Interface (Priority: Highest)
 ------------------------------------------------------------
 
 Task 1.1: Create Web API project and reference emulator
@@ -44,60 +60,212 @@ Task 1.2: Enable Swagger + CORS
 
 Task 1.3: EmulatorService (singleton)
 - Add Services/EmulatorService.cs:
-  - Hold a single Cpu instance
+  - Hold a single Cpu instance with assembler
   - Thread-safe lock
-  - Methods: GetState(), Reset(), ExecuteStep(), LoadMemory(addr, data[]), ReadMemory(addr, count), StartExecution(ips), StopExecution(), IsRunning
+  - Methods: 
+    - GetState() → CpuStateDto with IAR, ACC, EXT, XR1-3, current interrupt level
+    - Reset()
+    - Assemble(sourceCode) → returns success/error + line numbers for errors
+    - ExecuteStep() → step one instruction
+    - StartExecution(ips) → continuous run
+    - StopExecution()
+    - IsRunning
 - Accept: Service compiles; no behavior change yet.
 
-Task 1.4: CPU DTO and Controller
-- Add Models/CpuStateDto.cs mapping ICpu: Acc, Ext, Iar, Carry, Overflow, Wait, InstructionCount, Xr1–Xr3, Timestamp.
-- Add Controllers/CpuController.cs:
-  - GET /api/cpu/state
-  - POST /api/cpu/reset
-  - POST /api/cpu/step
-  - GET /api/cpu/registers (subset for fast polling)
+Task 1.4: CPU DTO for assembler workflow
+- Add Models/CpuStateDto.cs mapping ICpu:
+  - Iar (Instruction Address Register)
+  - Acc (Accumulator)
+  - Ext (Extension Register)
+  - Xr1, Xr2, Xr3 (Index Registers)
+  - CurrentInterruptLevel (0-5, or -1 if none active)
+  - Carry, Overflow, Wait flags
+  - InstructionCount
+  - Timestamp
+- Add Models/AssembleRequest.cs { SourceCode: string, StartAddress?: ushort }
+- Add Models/AssembleResponse.cs { Success: bool, Errors: string[], LoadedAddress: ushort? }
+- Accept: DTOs compile.
+
+Task 1.5: AssemblerController
+- Add Controllers/AssemblerController.cs:
+  - POST /api/assembler/assemble (body: AssembleRequest) → AssembleResponse
+    - Compiles assembler source using S1130 assembler
+    - Loads into emulator memory
+    - Returns errors with line numbers if any
+  - POST /api/assembler/reset
+    - Resets CPU and clears memory
 - Accept: Endpoints return data in Swagger.
 
-------------------------------------------------------------
-Phase 2 — Memory API (1–2 hours)
-------------------------------------------------------------
-
-Task 2.1: Memory DTOs
-- Add Models/MemoryBlockDto.cs { Address, Data[] }, and LoadMemoryRequest { Address, Instructions[] }.
-- Accept: Compiles.
-
-Task 2.2: MemoryController
-- Endpoints:
-  - GET /api/memory/{address}?count=16
-  - POST /api/memory/load
-  - PUT /api/memory/{address} (single word)
-- Validate bounds [0..32767], support decimal and 0x-prefixed hex.
-- Accept: CRUD verified via Swagger.
+Task 1.6: ExecutionController (simplified for assembler workflow)
+- Add Controllers/ExecutionController.cs:
+  - POST /api/execution/step → returns updated CpuStateDto
+  - POST /api/execution/run?instructionsPerSecond=1000 → background execution loop
+  - POST /api/execution/stop → halts execution
+  - GET /api/execution/status → { isRunning: bool, cpuState: CpuStateDto }
+- Stop automatically on WAIT instruction.
+- Accept: Can start/stop/step via Swagger; state updates reflect execution.
 
 ------------------------------------------------------------
-Phase 3 — Execution control API (1 hour)
+Phase 2 — React Frontend with Assembler Editor (Priority: Highest)
 ------------------------------------------------------------
 
-Task 3.1: ExecutionController
-- Endpoints:
-  - POST /api/execution/step (return CpuStateDto)
-  - POST /api/execution/run?instructionsPerSecond=1000 (background loop)
-  - POST /api/execution/stop
-  - GET /api/execution/status (isRunning + CpuStateDto)
-- Stop automatically on WAIT.
-- Accept: Can start/stop and step via Swagger.
+Task 2.1: Create React TypeScript app
+- Commands (from solution root):
+  - npx create-react-app web-frontend --template typescript
+  - cd .\web-frontend
+  - npm i axios
+  - Add to package.json: "proxy": "http://localhost:5000"
+- Accept: npm start runs at http://localhost:3000
+
+Task 2.2: API client for assembler workflow
+- Create src/services/apiClient.ts:
+  - Methods:
+    - assemble(sourceCode: string, startAddress?: number)
+    - resetCpu()
+    - step() → CpuStateDto
+    - run(instructionsPerSecond: number)
+    - stop()
+    - getExecutionStatus() → { isRunning: bool, cpuState: CpuStateDto }
+- Accept: TypeScript compiles.
+
+Task 2.3: RegisterDisplay component
+- Create src/components/RegisterDisplay.tsx
+- Props: name (IAR/ACC/EXT/XR1/XR2/XR3), value (ushort), format (hex/octal/decimal)
+- Show 16 LED-like bits for visual feedback
+- Accept: Reusable component renders with all formats.
+
+Task 2.4: AssemblerEditor component
+- Create src/components/AssemblerEditor.tsx
+- Features:
+  - Large textarea for assembler source code
+  - "Assemble" button (calls API)
+  - Display assembler errors with line numbers
+  - Syntax highlighting (optional, use react-syntax-highlighter or plain textarea)
+- Accept: Can enter code, click Assemble, see errors or success message.
+
+Task 2.5: CPUConsole component
+- Create src/components/CPUConsole.tsx
+- Display registers dynamically:
+  - IAR, ACC, EXT (main registers)
+  - XR1, XR2, XR3 (index registers)
+  - Current Interrupt Level (0-5, or "None")
+  - Carry, Overflow, Wait LEDs/indicators
+- Poll /api/execution/status every 200ms for updates during execution
+- Accept: Registers update in real-time during Step or Run.
+
+Task 2.6: ControlPanel component
+- Create src/components/ControlPanel.tsx
+- Buttons:
+  - RESET (calls resetCpu)
+  - STEP (calls step, updates registers)
+  - RUN (starts continuous execution)
+  - STOP (halts execution)
+- Disable buttons appropriately (e.g., STEP/RUN disabled while running)
+- Accept: All controls functional and synchronized with backend state.
+
+Task 2.7: Main Page integration
+- Create src/pages/EmulatorPage.tsx combining:
+  - AssemblerEditor (top or left panel)
+  - CPUConsole (right panel showing registers)
+  - ControlPanel (below or beside console)
+- Layout: responsive, clear separation between editor and console
+- Accept: Complete workflow works: Write code → Assemble → Step/Run → See registers update.
 
 ------------------------------------------------------------
-Phase 4 — Device status API (1–2 hours)
+Phase 3 — SignalR for Real-Time Updates (Priority: Medium)
 ------------------------------------------------------------
 
-Task 4.1: DeviceStatusDto
+Task 3.1: SignalR backend
+- Add Microsoft.AspNetCore.SignalR to Web API
+- Create Hubs/EmulatorHub.cs:
+  - Method: BroadcastCpuState(CpuStateDto)
+- EmulatorService triggers hub broadcast on:
+  - Each step during Run mode (throttle to ~10-50 updates/sec max)
+  - Each manual Step
+  - State changes (WAIT, interrupts)
+- Accept: Hub reachable; sample broadcast works in Swagger/testing.
+
+Task 3.2: SignalR frontend
+- npm i @microsoft/signalr
+- Create src/services/signalRClient.ts:
+  - Connect to /hubs/emulator on app load
+  - Subscribe to CpuState updates
+  - Update React state via callback
+- Replace polling in CPUConsole with SignalR push updates
+- Accept: Registers update smoothly via push instead of polling.
+
+------------------------------------------------------------
+Phase 4 — Memory Viewer (Priority: Low, Optional Enhancement)
+------------------------------------------------------------
+
+Task 4.1: Memory API
+- Add GET /api/memory/{address}?count=16
+- Add PUT /api/memory/{address} (write single word)
+- Accept: Can read/write memory via Swagger.
+
+Task 4.2: MemoryViewer component
+- Create src/components/MemoryViewer.tsx
+- Show memory around IAR (±16 words)
+- Display: Address | Hex | Octal | Decimal
+- Highlight current IAR row
+- Accept: Memory view updates as IAR changes.
+
+------------------------------------------------------------
+Phase 5 — Device Status (Priority: Low, Future Enhancement)
+------------------------------------------------------------
+
+------------------------------------------------------------
+Phase 5 — Device Status (Priority: Low, Future Enhancement)
+------------------------------------------------------------
+
+Task 5.1: DeviceStatusDto
 - Properties: DeviceCode, Name, Busy, InterruptActive, Details (optional).
 - Accept: Compiles.
 
-Task 4.2: DeviceController (read-only baseline)
+Task 5.2: DeviceController (read-only baseline)
 - GET /api/devices
 - GET /api/devices/{code}
+- Note: Cpu should expose IEnumerable<IDevice> GetAttachedDevices().
+- Accept: Returns empty or real device list depending on emulator exposure.
+
+------------------------------------------------------------
+Phase 6 — Additional Polish (Future)
+------------------------------------------------------------
+
+Task 6.1: Syntax highlighting in assembler editor
+- Use react-syntax-highlighter or CodeMirror
+- Highlight IBM 1130 assembly instructions, comments, labels
+- Accept: Code is more readable.
+
+Task 6.2: Breakpoint support
+- Add breakpoints array to EmulatorService
+- Stop execution when IAR matches breakpoint
+- UI: Click line numbers to toggle breakpoints
+- Accept: Can set breakpoints, execution stops correctly.
+
+Task 6.3: Step Over / Step Into for subroutines
+- Implement BSC (Branch and Store) awareness
+- Step Over: run until return from subroutine
+- Step Into: normal single step
+- Accept: Buttons work for subroutine debugging.
+
+Task 6.4: Load/Save programs
+- Save assembler source to localStorage or file download
+- Load previous programs
+- Accept: User can persist work between sessions.
+
+------------------------------------------------------------
+Removed/Deferred Tasks (Lower Priority)
+------------------------------------------------------------
+
+The following from the original plan are now deferred:
+- Detailed MemoryEditor with inline editing
+- LoadProgram dialog for hex/binary
+- Full device panel UI (2501 Card Reader UI, etc.)
+- Memory block load APIs beyond assembler workflow
+- Advanced memory inspection tools
+
+These can be added later once the core assembler workflow is solid.
 - Note: Cpu should expose IEnumerable<IDevice> GetAttachedDevices().
 - Accept: Returns empty or real device list depending on emulator exposure.
 
@@ -233,26 +401,39 @@ Commit steps:
 - git push origin feature/web-frontend
 
 ------------------------------------------------------------
-Acceptance Checklist
+Acceptance Checklist (Updated for Assembler-First Focus)
 ------------------------------------------------------------
 
-Backend
+Phase 1 & 2 — Core Functionality (Highest Priority)
 - [ ] S1130.WebApi builds and runs with Swagger and CORS
-- [ ] EmulatorService (singleton) exposes Cpu safely
-- [ ] CPU endpoints: state/reset/step
-- [ ] Memory endpoints: read/write/load
-- [ ] Execution endpoints: run/stop/status
-- [ ] Optional: devices list
+- [ ] EmulatorService (singleton) exposes Cpu with assembler
+- [ ] Assembler endpoint: compile source code, return errors
+- [ ] Execution endpoints: step/run/stop/status
+- [ ] React app boots and connects to API
+- [ ] AssemblerEditor: enter code, click Assemble, see errors
+- [ ] CPUConsole: shows IAR, ACC, EXT, XR1-3, interrupt level
+- [ ] Registers update dynamically (polling initially)
+- [ ] ControlPanel: Reset, Step, Run, Stop buttons work
+- [ ] Complete workflow: Write assembler → Assemble → Step/Run → See updates
 
-Frontend
-- [ ] React app boots
-- [ ] API client typed and working
-- [ ] CPU panel shows registers and flags
-- [ ] Controls: Reset, Step, Start/Stop
-- [ ] Memory: view/edit/load
-- [ ] Devices panel (basic list)
+Phase 3 — Real-Time Enhancement (Medium Priority)
+- [ ] SignalR backend broadcasts CpuState on execution
+- [ ] SignalR frontend replaces polling with push updates
+- [ ] Registers update smoothly during continuous Run
 
-Quality
-- [ ] Back/Front tests added for key paths
-- [ ] Docs for dev setup
+Phase 4 — Optional Enhancements (Low Priority)
+- [ ] MemoryViewer shows memory around IAR
+- [ ] Memory updates as IAR changes
+
+Phase 5 & 6 — Future Features (Lowest Priority)
+- [ ] Device status panel
+- [ ] Syntax highlighting in assembler editor
+- [ ] Breakpoint support
+- [ ] Step Over/Step Into for subroutines
+- [ ] Load/Save programs (localStorage or file)
+
+Quality (Ongoing)
+- [ ] Backend tests for assembler and execution
+- [ ] Frontend tests for key components
+- [ ] Docs for dev setup and usage
 - [ ] No breaking changes to S1130.SystemObjects
