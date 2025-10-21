@@ -9,19 +9,18 @@ interface AssemblerEditorProps {
 
 const EXAMPLE_PROGRAM = `       ORG  /100
 * Animate a bit shifting through ACC and EXT registers
-* Multiply by 2 each iteration - watch the bit move!
-* When overflow occurs, restart from 1
+* Shift left by 1 each iteration - watch the bit move!
+* When carry occurs, restart from 1
 * Use Step to see it move slowly, or Run to animate
-
-START  LDD  L ONE      Load ACC:EXT with 0001:0000
-LOOP   M    L TWO      Multiply by 2 (shifts left)
-       BSC  O LOOP     Branch if overflow OFF (keep going)
-       BSC  L START    Overflow ON - restart
-
+*
+START  LDD  L ONE
+LOOP   SLT  1
+       BSC  L LOOP,C
+       BSC  L START
+*
 * Data section
-ONE    DC   1          Initial value for ACC
-       DC   0          Initial value for EXT
-TWO    DC   2          Multiply by 2
+ONE    DC   1
+       DC   0
 `;
 
 const AssemblerEditor: React.FC<AssemblerEditorProps> = ({ onAssemblyComplete }) => {
