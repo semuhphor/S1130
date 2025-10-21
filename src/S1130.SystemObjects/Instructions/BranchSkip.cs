@@ -33,8 +33,8 @@
 		
 		/// <summary>
 		/// Disassembles BSC instruction with condition codes.
-		/// Format: BSC [L] [condition_codes][,Xn] /address [I]
-		/// Example: "BSC L Z /0500", "BSC Z /0100", "BSC L +- /0200"
+		/// IBM 1130 ACTUAL Format: BSC [L] address[,condition][,Xn] [I]
+		/// Example: "BSC L /0500,Z", "BSC /0100,Z", "BSC L /0200,+-"
 		/// </summary>
 		public override string Disassemble(ICpu cpu, ushort address)
 		{
@@ -44,30 +44,6 @@
 			// Long format
 			if (cpu.FormatLong)
 				parts.Add("L");
-			
-			// Condition codes
-			var conditions = new System.Text.StringBuilder();
-			var modifiers = cpu.Modifiers & 0x3F; // Mask out reset interrupt bit (0x40)
-			
-			if ((modifiers & Zero) != 0) conditions.Append("Z");
-			if ((modifiers & Minus) != 0) conditions.Append("-");
-			if ((modifiers & Plus) != 0) conditions.Append("+");
-			if ((modifiers & Even) != 0) conditions.Append("E");
-			if ((modifiers & Carry) != 0) conditions.Append("C");
-			if ((modifiers & Overflow) != 0) conditions.Append("O");
-			
-			if (conditions.Length > 0)
-			{
-				// Add index register to conditions if present
-				if (cpu.Tag > 0)
-					parts.Add($"{conditions},{cpu.Tag}");
-				else
-					parts.Add(conditions.ToString());
-			}
-			else if (cpu.Tag > 0)
-			{
-				parts.Add($",{cpu.Tag}");
-			}
 			
 			// Calculate target address
 			ushort targetAddress;
@@ -81,7 +57,33 @@
 				targetAddress = (ushort)(relativeAddress & 0xFFFF);
 			}
 			
-			parts.Add($"/{targetAddress:X4}");
+			// Build address with optional conditions and index register
+			var addressPart = new System.Text.StringBuilder($"/{targetAddress:X4}");
+			
+			// Condition codes
+			var conditions = new System.Text.StringBuilder();
+			var modifiers = cpu.Modifiers & 0x3F; // Mask out reset interrupt bit (0x40)
+			
+			if ((modifiers & Zero) != 0) conditions.Append("Z");
+			if ((modifiers & Minus) != 0) conditions.Append("-");
+			if ((modifiers & Plus) != 0) conditions.Append("+");
+			if ((modifiers & Even) != 0) conditions.Append("E");
+			if ((modifiers & Carry) != 0) conditions.Append("C");
+			if ((modifiers & Overflow) != 0) conditions.Append("O");
+			
+			// Add conditions after address
+			if (conditions.Length > 0)
+			{
+				addressPart.Append($",{conditions}");
+			}
+			
+			// Add index register after conditions
+			if (cpu.Tag > 0)
+			{
+				addressPart.Append($",{cpu.Tag}");
+			}
+			
+			parts.Add(addressPart.ToString());
 			
 			// Indirect
 			if (cpu.IndirectAddress)
