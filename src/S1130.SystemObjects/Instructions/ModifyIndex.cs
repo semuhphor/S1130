@@ -51,15 +51,35 @@
 		public override string Disassemble(ICpu cpu, ushort address)
 		{
 			var parts = new System.Collections.Generic.List<string>();
-			parts.Add("MDX");
+			parts.Add("MDX  "); // Padded to 5 chars
 			
-			// Format
-			if (cpu.FormatLong)
-				parts.Add("L");
+			// Build format/tag string
+			var formatTag = new System.Text.StringBuilder();
 			
-			// Index register
-			if (cpu.Tag > 0)
-				parts.Add(cpu.Tag.ToString());
+			if (cpu.IndirectAddress)
+			{
+				// Indirect addressing
+				formatTag.Append("I");
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+			}
+			else if (cpu.FormatLong)
+			{
+				// Long format
+				formatTag.Append("L");
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+			}
+			else
+			{
+				// Short format
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+				else
+					formatTag.Append(".");
+			}
+			
+			parts.Add(formatTag.ToString());
 			
 			// Calculate target address
 			ushort targetAddress;
@@ -74,10 +94,6 @@
 			}
 			
 			parts.Add($"/{targetAddress:X4}");
-			
-			// Indirect
-			if (cpu.IndirectAddress)
-				parts.Add("I");
 			
 			return string.Join(" ", parts);
 		}

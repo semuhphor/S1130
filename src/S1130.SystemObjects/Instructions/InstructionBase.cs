@@ -126,7 +126,11 @@
 				    // Short with index: "1", "2", "3"
 				    formatParts.Add(cpu.Tag.ToString());
 			    }
-			    // If no tag and short format, omit format specifier entirely
+			    else
+			    {
+				    // Short format with no index: "."
+				    formatParts.Add(".");
+			    }
 		    }
 		    
 		    // Add format part if we have one

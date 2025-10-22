@@ -111,8 +111,8 @@ namespace S1130.SystemObjects
                 return;
             }
 
-            // Handle comments (lines starting with *)
-            if (line.TrimStart().StartsWith("*"))
+            // Handle comments (lines with * in column 1)
+            if (line.Length > 0 && line[0] == '*')
             {
                 return;
             }
@@ -304,7 +304,7 @@ namespace S1130.SystemObjects
                 // Short format: 1 word
                 _context.LocationCounter++;
             }
-            else if (operation == "BSC" || operation == "BSI" || operation == "MDX")
+            else if (operation == "BSC" || operation == "BOSC" || operation == "BSI" || operation == "MDX")
             {
                 // Branch instructions can be short or long format
                 // Only L, L1, L2, L3 indicate long format
@@ -359,8 +359,8 @@ namespace S1130.SystemObjects
                 return;
             }
 
-            // Handle comments (lines starting with *)
-            if (line.TrimStart().StartsWith("*"))
+            // Handle comments (lines with * in column 1)
+            if (line.Length > 0 && line[0] == '*')
             {
                 FormatListingLine(line);
                 AddStructuredListingLine(line, (ushort)_context.LocationCounter, null);
@@ -567,6 +567,12 @@ namespace S1130.SystemObjects
             {
                 FormatListingLine(line);
                 ProcessBranch(parts.Operand, 0x09, "BSC");
+                AddInstructionListingLine(line, addressBefore);
+            }
+            else if (operation == "BOSC")
+            {
+                FormatListingLine(line);
+                ProcessBranch(parts.Operand, 0x09, "BOSC");
                 AddInstructionListingLine(line, addressBefore);
             }
             else if (operation == "BSI")
@@ -1184,103 +1190,174 @@ namespace S1130.SystemObjects
                 return;
             }
 
-            // Parse branch operand format: [L] [condition][,Xn] address [I]
-            // Condition codes: O (overflow off), C (carry off), E (even), + or & (positive), - (negative), Z (zero)
-            // Examples: 
-            //   BSC O LOOP         - Short format, skip if overflow OFF
-            //   BSC L O LOOP       - Long format, branch if overflow OFF  
-            //   BSC L +,2 LOOP I   - Long format, indexed by XR2, indirect, branch if positive
-            //   BSC ZPM LOOP       - Multiple conditions (zero, positive, or minus - always true)
-            //   BSC LOOP           - Unconditional (no condition)
+            // New format: formatTag [condition] address
+            // Examples:
+            //   BSC . O LOOP       - Short format, no index, overflow off
+            //   BSC 1 O LOOP       - Short format, XR1, overflow off
+            //   BSC L O LOOP       - Long format, no index, overflow off
+            //   BSC L2 O LOOP      - Long format, XR2, overflow off
+            //   BSC I O LOOP       - Short indirect, no index, overflow off
+            //   BSC I1 O LOOP      - Short indirect, XR1, overflow off
+            //   BSC . LOOP         - Unconditional (no condition)
+            //   BSC L LOOP         - Unconditional long format
+            //   Condition codes: O (overflow off), C (carry off), E (even), + or & (positive), - (negative), Z (zero), P/M (traditional)
             
+            var tokens = operand.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (tokens.Length < 2)
+            {
+                _context.AddError(_currentLine, $"{mnemonic} requires format/tag followed by address (e.g., '. LOOP' or 'L O LOOP')");
+                return;
+            }
+
+            // Parse format/tag token
+            string formatTag = tokens[0].ToUpper();
             bool isLong = false;
             bool isIndirect = false;
             byte tag = 0;
-            string remainingOperand = operand.Trim();
             
-            // Check for "L" prefix (long format)
-            if (remainingOperand.ToUpper().StartsWith("L "))
+            if (formatTag == ".")
+            {
+                // Short format, no index, no indirect
+            }
+            else if (formatTag == "L")
             {
                 isLong = true;
-                remainingOperand = remainingOperand.Substring(2).TrimStart();
             }
-            
-            // Check for "I" suffix (indirect) - must be at the very end
-            if (remainingOperand.ToUpper().EndsWith(" I"))
+            else if (formatTag == "1")
+            {
+                tag = 1;
+            }
+            else if (formatTag == "2")
+            {
+                tag = 2;
+            }
+            else if (formatTag == "3")
+            {
+                tag = 3;
+            }
+            else if (formatTag == "L1")
+            {
+                isLong = true;
+                tag = 1;
+            }
+            else if (formatTag == "L2")
+            {
+                isLong = true;
+                tag = 2;
+            }
+            else if (formatTag == "L3")
+            {
+                isLong = true;
+                tag = 3;
+            }
+            else if (formatTag == "I")
             {
                 isIndirect = true;
-                remainingOperand = remainingOperand.Substring(0, remainingOperand.Length - 2).TrimEnd();
+            }
+            else if (formatTag == "I1")
+            {
+                isIndirect = true;
+                tag = 1;
+            }
+            else if (formatTag == "I2")
+            {
+                isIndirect = true;
+                tag = 2;
+            }
+            else if (formatTag == "I3")
+            {
+                isIndirect = true;
+                tag = 3;
+            }
+            else
+            {
+                _context.AddError(_currentLine, $"{mnemonic} invalid format/tag '{formatTag}'. Use: . L 1 2 3 L1 L2 L3 I I1 I2 I3");
+                return;
             }
             
-            // Now parse: [condition][,Xn] address
-            // Strategy: Look for space-separated parts
-            var parts = remainingOperand.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            
+            // Remaining tokens: [condition] [address]
+            // For short format: either just condition (skip) or condition + address (not standard)
+            // For long/indirect format: must have address
             string conditions = "";
             string addressPart = "";
             
-            if (parts.Length == 1)
+            if (tokens.Length == 1)
             {
-                // Single part: unconditional branch (just address)
-                addressPart = parts[0];
-                conditions = "";
-            }
-            else if (parts.Length == 2)
-            {
-                // Two parts: "condition address" or just address if first part isn't a condition
-                // Check if first part contains only valid condition characters
-                // Accept both traditional (P, M) and new (+, -, &) syntax
-                string firstPart = parts[0].ToUpper();
-                string firstNoComma = firstPart.Contains(',') ? firstPart.Split(',')[0] : firstPart;
-                
-                bool isCondition = firstNoComma.Length > 0;
-                foreach (char c in firstNoComma)
+                // Just format tag - unconditional skip (short only)
+                if (!isLong && !isIndirect)
                 {
-                    if (c != 'O' && c != 'C' && c != 'E' && 
-                        c != '+' && c != '&' && c != '-' && 
-                        c != 'P' && c != 'M' &&  // Traditional syntax
-                        c != 'Z')
-                    {
-                        isCondition = false;
-                        break;
-                    }
-                }
-                
-                if (isCondition)
-                {
-                    conditions = firstPart;
-                    addressPart = parts[1];
+                    // Unconditional skip - no address needed
+                    addressPart = "";
+                    conditions = "";
                 }
                 else
                 {
-                    // Not a condition - this is an error
-                    _context.AddError(_currentLine, $"{mnemonic} invalid condition codes '{parts[0]}'");
+                    _context.AddError(_currentLine, $"{mnemonic} long/indirect format requires address");
                     return;
+                }
+            }
+            else if (tokens.Length == 2)
+            {
+                // Could be: "format address" OR "format condition" (for short skip)
+                if (!isLong && !isIndirect)
+                {
+                    // Short format - check if token[1] is a condition or address
+                    string secondToken = tokens[1].ToUpper();
+                    bool isCondition = true;
+                    foreach (char c in secondToken)
+                    {
+                        if (c != 'O' && c != 'C' && c != 'E' && 
+                            c != '+' && c != '&' && c != '-' && 
+                            c != 'P' && c != 'M' && c != 'Z')
+                        {
+                            isCondition = false;
+                            break;
+                        }
+                    }
+                    
+                    if (isCondition)
+                    {
+                        // It's a condition - this is a conditional skip
+                        conditions = secondToken;
+                        addressPart = "";
+                    }
+                    else
+                    {
+                        // It's an address - unconditional branch (short format with address)
+                        addressPart = secondToken;
+                        conditions = "";
+                    }
+                }
+                else
+                {
+                    // Long/indirect format - must be "format address"
+                    addressPart = tokens[1];
+                    conditions = "";
+                }
+            }
+            else if (tokens.Length == 3)
+            {
+                // format, condition, address
+                conditions = tokens[1].ToUpper();
+                addressPart = tokens[2];
+                
+                // Validate conditions - must be only valid condition characters
+                foreach (char c in conditions)
+                {
+                    if (c != 'O' && c != 'C' && c != 'E' && 
+                        c != '+' && c != '&' && c != '-' && 
+                        c != 'P' && c != 'M' && c != 'Z')
+                    {
+                        _context.AddError(_currentLine, $"{mnemonic} invalid condition code '{c}'. Valid: O C E + & - P M Z");
+                        return;
+                    }
                 }
             }
             else
             {
-                _context.AddError(_currentLine, $"{mnemonic} operand format should be: [L] [condition][,Xn] address [I]");
+                _context.AddError(_currentLine, $"{mnemonic} operand format: formatTag [condition] [address]");
                 return;
-            }
-            
-            // Parse condition codes (may include index register)
-            // Check if conditions part has ",Xn" suffix
-            if (conditions.Contains(","))
-            {
-                var condParts = conditions.Split(',');
-                conditions = condParts[0];  // Actual conditions
-                
-                // Parse index register
-                var xreg = condParts[1].Trim();
-                if (xreg == "1" || xreg == "X1") tag = 1;
-                else if (xreg == "2" || xreg == "X2") tag = 2;
-                else if (xreg == "3" || xreg == "X3") tag = 3;
-                else
-                {
-                    _context.AddError(_currentLine, $"Invalid index register: {xreg}");
-                    return;
-                }
             }
             
             // Parse condition codes into modifier byte
@@ -1298,16 +1375,26 @@ namespace S1130.SystemObjects
                     case 'O': modifiers |= 0x01; break; // Overflow off
                     case 'C': modifiers |= 0x02; break; // Carry off
                     case 'E': modifiers |= 0x04; break; // Even
-                    case ' ': break;                     // Ignore spaces
                     default:
-                        _context.AddError(_currentLine, $"Invalid condition code '{c}' in {mnemonic}. Valid: O C E + & - Z");
+                        _context.AddError(_currentLine, $"Invalid condition code '{c}' in {mnemonic}");
                         return;
                 }
             }
             
-            ushort address = ResolveOperand(addressPart);
-            if (_context.Errors.Any())
-                return;
+            // BOSC sets the interrupt reset bit (0x40)
+            if (mnemonic == "BOSC")
+            {
+                modifiers |= 0x40;
+            }
+            
+            // Resolve address (if present - short skip has no address)
+            ushort address = 0;
+            if (!string.IsNullOrEmpty(addressPart))
+            {
+                address = ResolveOperand(addressPart);
+                if (_context.Errors.Any())
+                    return;
+            }
 
             // Build instruction
             if (isLong)
@@ -1328,15 +1415,9 @@ namespace S1130.SystemObjects
             }
             else
             {
-                // Short format: 1 word, displacement relative to IAR
-                // Note: For BSC short format, displacement field contains modifiers, not an address offset
-                // Short format BSC skips next instruction if condition is met
-                int displacement = address - (_context.LocationCounter + 1);
-                if (displacement < -128 || displacement > 127)
-                {
-                    _context.AddError(_currentLine, $"Displacement {displacement} out of range for short format (use 'L' for long format)");
-                    return;
-                }
+                // Short format: 1 word
+                // For BSC/BOSC, the low 8 bits contain modifiers, not displacement
+                // Short format BSC just skips the next instruction if condition is met (no address needed)
                 
                 ushort instruction = (ushort)((opcode << 11) | (tag << 8) | modifiers);
                 if (isIndirect) instruction |= 0x80;
@@ -1516,116 +1597,68 @@ namespace S1130.SystemObjects
             byte tag = 0;
             string addressToken = "";
             
-            if (tokens.Length == 0)
+            if (tokens.Length < 2)
             {
-                _context.AddError(_currentLine, "Missing operand");
+                _context.AddError(_currentLine, "Operand must have format/tag specifier (. for none) followed by address");
                 return (false, false, 0, 0);
             }
             
-            // Parse format specifier (first token)
+            // Parse format/tag specifier (first token) - REQUIRED
             var firstToken = tokens[0].ToUpper();
             
-            // Check for format specifier patterns (must be EXACT match to avoid false positives)
+            // New mandatory dot syntax
             if (firstToken == ".")
             {
-                // Modern syntax: explicit short format
+                // Short format, no tag, no indirect: ". ADDRESS"
                 isLong = false;
+                isIndirect = false;
                 tag = 0;
-                addressToken = tokens.Length > 1 ? tokens[1] : "";
+                addressToken = tokens[1];
             }
             else if (firstToken == "L")
             {
-                // Long format with separate space: "L ADDRESS"
+                // Long format, no tag: "L ADDRESS"
                 isLong = true;
+                isIndirect = false;
                 tag = 0;
-                addressToken = tokens.Length > 1 ? tokens[1] : "";
-                // Check for trailing "I" for indirect
-                if (tokens.Length > 2 && tokens[2].ToUpper() == "I")
-                {
-                    isIndirect = true;
-                }
+                addressToken = tokens[1];
             }
             else if (firstToken == "1" || firstToken == "2" || firstToken == "3")
             {
                 // Short format with index register: "1 ADDRESS", "2 ADDRESS", "3 ADDRESS"
+                isLong = false;
+                isIndirect = false;
                 tag = byte.Parse(firstToken);
-                addressToken = tokens.Length > 1 ? tokens[1] : "";
+                addressToken = tokens[1];
             }
             else if (firstToken == "L1" || firstToken == "L2" || firstToken == "L3")
             {
-                // Long format with index (combined): "L1 ADDRESS", "L2 ADDRESS", "L3 ADDRESS"
+                // Long format with index: "L1 ADDRESS", "L2 ADDRESS", "L3 ADDRESS"
                 isLong = true;
+                isIndirect = false;
                 tag = byte.Parse(firstToken.Substring(1));
-                addressToken = tokens.Length > 1 ? tokens[1] : "";
+                addressToken = tokens[1];
             }
             else if (firstToken == "I")
             {
-                // Indirect addressing: "I ADDRESS" or "I L ADDRESS"
-                // Note: Indirect ALWAYS implies long format (bit 8 only exists in long format)
+                // Indirect (always long format): "I ADDRESS"
+                isLong = true;
                 isIndirect = true;
-                isLong = true;  // Indirect forces long format
                 tag = 0;
-                // Check if next token is "L" (redundant but allowed)
-                if (tokens.Length > 1 && tokens[1].ToUpper() == "L")
-                {
-                    addressToken = tokens.Length > 2 ? tokens[2] : "";
-                }
-                else
-                {
-                    addressToken = tokens.Length > 1 ? tokens[1] : "";
-                }
+                addressToken = tokens[1];
             }
             else if (firstToken == "I1" || firstToken == "I2" || firstToken == "I3")
             {
-                // Indirect with index (combined): "I1 ADDRESS", "I2 ADDRESS", "I3 ADDRESS"
-                // Note: Indirect ALWAYS implies long format
+                // Indirect with index: "I1 ADDRESS", "I2 ADDRESS", "I3 ADDRESS"
+                isLong = true;
                 isIndirect = true;
-                isLong = true;  // Indirect forces long format
                 tag = byte.Parse(firstToken.Substring(1));
-                addressToken = tokens.Length > 1 ? tokens[1] : "";
-            }
-            else if (firstToken == "IL" || firstToken == "IL1" || firstToken == "IL2" || firstToken == "IL3")
-            {
-                // Indirect long (combined): "IL ADDRESS", "IL1 ADDRESS", "IL2 ADDRESS", "IL3 ADDRESS"
-                // Note: "L" is redundant since indirect always implies long, but accept it for clarity
-                isIndirect = true;
-                isLong = true;  // Indirect forces long format
-                if (firstToken.Length > 2)
-                {
-                    tag = byte.Parse(firstToken.Substring(2));
-                }
-                addressToken = tokens.Length > 1 ? tokens[1] : "";
+                addressToken = tokens[1];
             }
             else
             {
-                // No format specifier - DMS style with just address
-                // This is the default case for authentic DMS code
-                addressToken = firstToken;
-                
-                // Check for trailing "I" for indirect (legacy DMS syntax: "ADDRESS I")
-                if (tokens.Length > 1 && tokens[1].ToUpper() == "I")
-                {
-                    isIndirect = true;
-                }
-            }
-            
-            // Check for legacy comma-based index register syntax (,X1, ,X2, ,X3)
-            if (addressToken.ToUpper().Contains(",X"))
-            {
-                var parts = addressToken.Split(',');
-                if (parts.Length == 2)
-                {
-                    var xreg = parts[1].Trim().ToUpper();
-                    if (xreg == "X1") tag = 1;
-                    else if (xreg == "X2") tag = 2;
-                    else if (xreg == "X3") tag = 3;
-                    else
-                    {
-                        _context.AddError(_currentLine, $"Invalid index register: {xreg}");
-                        return (isLong, isIndirect, 0, 0);
-                    }
-                    addressToken = parts[0].Trim();
-                }
+                _context.AddError(_currentLine, $"Invalid format/tag specifier '{firstToken}'. Use: . L 1 2 3 L1 L2 L3 I I1 I2 I3");
+                return (false, false, 0, 0);
             }
             
             ushort address = ResolveOperand(addressToken);

@@ -23,17 +23,35 @@
 		public override string Disassemble(ICpu cpu, ushort address)
 		{
 			var parts = new System.Collections.Generic.List<string>();
-			parts.Add("BSI");
+			parts.Add("BSI  "); // Padded to 5 chars
 			
-			// For long format
-			if (cpu.FormatLong)
+			// Build format/tag string
+			var formatTag = new System.Text.StringBuilder();
+			
+			if (cpu.IndirectAddress)
 			{
-				parts.Add("L");
+				// Indirect addressing
+				formatTag.Append("I");
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+			}
+			else if (cpu.FormatLong)
+			{
+				// Long format
+				formatTag.Append("L");
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+			}
+			else
+			{
+				// Short format
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+				else
+					formatTag.Append(".");
 			}
 			
-			// Index register
-			if (cpu.Tag > 0)
-				parts.Add(cpu.Tag.ToString());
+			parts.Add(formatTag.ToString());
 			
 			// Calculate target address
 			ushort targetAddress;
@@ -48,10 +66,6 @@
 			}
 			
 			parts.Add($"/{targetAddress:X4}");
-			
-			// Indirect addressing
-			if (cpu.IndirectAddress)
-				parts.Add("I");
 			
 			return string.Join(" ", parts);
 		}

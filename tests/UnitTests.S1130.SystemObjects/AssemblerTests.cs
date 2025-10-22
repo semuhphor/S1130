@@ -440,10 +440,10 @@ RES3  DC   0";
             
             var source = @"      ORG /100
       LD   L VAL1
-      LD   VAL2
-      STO  RES1
-      LD   L VAL3,X1
-      STO  L RES2,X2
+      LD   . VAL2
+      STO  . RES1
+      LD   L1 VAL3
+      STO  L2 RES2
       WAIT
 VAL1  DC   10
 VAL2  DC   20
@@ -501,7 +501,7 @@ RES2  DC   0";
             
             var source = @"      ORG /100
       LD   L VAL1
-      BSC  Z ZERO
+      BSC  . Z ZERO
       A    L VAL2
 ZERO  STO  L RES
       WAIT
@@ -542,7 +542,7 @@ RES   DC   0";
             var cpu = new Cpu();
             
             var source = @"      ORG /100
-      XIO  IOCC1
+      XIO  . IOCC1
       XIO  L IOCC2
       WAIT
 IOCC1 DC   /200
@@ -586,10 +586,10 @@ IOCC2 DC   /300
             var source = @"* Comprehensive IBM 1130 Assembly Test
       ORG /100
 * Test data movement
-      LD   L VAL1      * Long format load
-      STO  RES1        * Short format store
-      LD   VAL2,X1     * Load with index register
-      STO  L RES2,X2   * Long format store with index
+      LD   L VAL1      // Long format load
+      STO  . RES1      // Short format store
+      LD   1 VAL2      // Load with index register
+      STO  L2 RES2     // Long format store with index
 * Test arithmetic
       LD   L VAL1
       A    L VAL2
@@ -606,7 +606,7 @@ IOCC2 DC   /300
       STO  L RES6
 * Test branches
       LD   L VAL1
-      BSC  Z SKIP
+      BSC  . Z SKIP
       A    L VAL2
 SKIP  STO  L RES7
       WAIT
@@ -822,13 +822,13 @@ VAL2  DC   2";
             
             var source = @"      ORG /100
 * Reserve a buffer with BSS
-BUFFER  BSS  10       * Should be at /100 (leftmost word)
-        DC   /5555    * Put a value at /10A
+BUFFER  BSS  10       // Should be at /100 (leftmost word)
+        DC   /5555    // Put a value at /10A
 * Store BUFFER address using indirect to verify symbol resolution
 START   LD   L ADDRPTR
         STO  L RESULT
         WAIT
-ADDRPTR DC   BUFFER   * This DC should contain the address /100
+ADDRPTR DC   BUFFER   // This DC should contain the address /100
 RESULT  DC   0";
 
             var result = cpu.Assemble(source);
@@ -1293,24 +1293,24 @@ RESULT DC  0";
             
             var source = @"      ORG /100
 * Test all BSC condition codes
-      BSC  O NEXT1
-NEXT1 BSC  C NEXT2
-NEXT2 BSC  E NEXT3
-NEXT3 BSC  + NEXT4
-NEXT4 BSC  & NEXT5
-NEXT5 BSC  - NEXT6
-NEXT6 BSC  Z NEXT7
-NEXT7 BSC  ZPM NEXT8
+      BSC  . O NEXT1
+NEXT1 BSC  . C NEXT2
+NEXT2 BSC  . E NEXT3
+NEXT3 BSC  . + NEXT4
+NEXT4 BSC  . & NEXT5
+NEXT5 BSC  . - NEXT6
+NEXT6 BSC  . Z NEXT7
+NEXT7 BSC  . ZPM NEXT8
 * Test long format
 NEXT8 BSC  L O TARG1
 TARG1 BSC  L + TARG2
 * Test with index registers
-TARG2 BSC  O,1 TARG3
-TARG3 BSC  L +,2 TARG4
+TARG2 BSC  1 O TARG3
+TARG3 BSC  L2 + TARG4
 * Test indirect
-TARG4 BSC  L O TARG5 I
+TARG4 BSC  I O TARG5
 * Test unconditional
-TARG5 BSC  DONE
+TARG5 BSC  . DONE
       BSC  L DONE
 DONE  WAIT";
 
@@ -1327,12 +1327,12 @@ DONE  WAIT";
             var cpu = new Cpu();
             
             var source = @"      ORG /100
-      BSC  O NEXT
-      BSC  C NEXT
-      BSC  E NEXT
-      BSC  + NEXT
-      BSC  - NEXT
-      BSC  Z NEXT
+      BSC  . O NEXT
+      BSC  . C NEXT
+      BSC  . E NEXT
+      BSC  . + NEXT
+      BSC  . - NEXT
+      BSC  . Z NEXT
 NEXT  WAIT";
 
             cpu.Assemble(source);
