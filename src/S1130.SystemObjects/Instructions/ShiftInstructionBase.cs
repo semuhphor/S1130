@@ -16,7 +16,8 @@
 		
 		/// <summary>
 		/// Disassembles shift instructions which have a special format.
-		/// Format: MNEMONIC shift_count  (e.g., "SLA 16", "SRT 5", "RTE 16")
+		/// New syntax format: MNEMONIC shift_count  (e.g., "SLA 16", "SRT 5", "RTE 16")
+		/// Or with index register: MNEMONIC |X| (e.g., "SLA |1|")
 		/// Shift count can come from displacement or from index register.
 		/// 
 		/// Shift Left (OpCode 0x02):
@@ -76,12 +77,13 @@
 			}
 			else
 			{
-				// Shift count in index register - can't determine type at disassembly time
-				// Just show the index register reference
-				// The type will be determined at runtime from the index register value
-				// Default to "T" variant for indexed shifts (most common)
-				string mnemonic = instruction.OpName == "SL" ? "SLT" : "SRT";
-				return $"{mnemonic} {cpu.Tag}";
+				// Shift count in index register
+				// The shift type bits are in the index register value at runtime,
+				// but we can't know them at disassembly time.
+				// We'll default to the basic type (SLA/SRA) since we can't determine
+				// the actual type without runtime register values.
+				string mnemonic = instruction.OpName == "SL" ? "SLA" : "SRA";
+				return $"{mnemonic} |{cpu.Tag}|";
 			}
 		}
 	}

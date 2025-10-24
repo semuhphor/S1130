@@ -72,8 +72,10 @@
 	    }
 	    
 	    /// <summary>
+	    /// <summary>
 	    /// Disassembles a standard format instruction (Load, Store, Arithmetic, etc.).
 	    /// Override this method for instructions with special formats (BSC, MDX, Shift, etc.).
+	    /// Output format matches new assembler syntax: LD |L|DATA or ADD |I1|/0100
 	    /// </summary>
 	    public virtual string Disassemble(ICpu cpu, ushort address)
 	    {
@@ -83,25 +85,25 @@
 			    return "; Unknown instruction";
 		    
 		    var parts = new System.Collections.Generic.List<string>();
-		    parts.Add(instruction.OpName.PadRight(5)); // Mnemonic padded to 5 chars
+		    parts.Add(instruction.OpName); // Mnemonic
 		    
-		    // Build format/modifiers string
+		    // Build format/modifiers string with new pipe syntax
 		    // Note: Indirect addressing (I) only exists in long format (bit 8 of word 1)
 		    // Short format has no indirect bit, so indirect always implies long
-		    var formatParts = new System.Collections.Generic.List<string>();
+		    string modifier = "";
 		    
 		    if (cpu.IndirectAddress)
 		    {
 			    // Indirect addressing
 			    if (cpu.Tag > 0)
 			    {
-				    // Indirect with index: "I1", "I2", "I3"
-				    formatParts.Add($"I{cpu.Tag}");
+				    // Indirect with index: "|I1|", "|I2|", "|I3|"
+				    modifier = $"|I{cpu.Tag}|";
 			    }
 			    else
 			    {
-				    // Indirect without index: just "I" (long is implied)
-				    formatParts.Add("I");
+				    // Indirect without index: "|I|" (long is implied)
+				    modifier = "|I|";
 			    }
 		    }
 		    else if (cpu.FormatLong)
@@ -109,33 +111,24 @@
 			    // Long format without indirect
 			    if (cpu.Tag > 0)
 			    {
-				    // Long with index: "L1", "L2", "L3"
-				    formatParts.Add($"L{cpu.Tag}");
+				    // Long with index: "|L1|", "|L2|", "|L3|"
+				    modifier = $"|L{cpu.Tag}|";
 			    }
 			    else
 			    {
-				    // Just long: "L"
-				    formatParts.Add("L");
+				    // Just long: "|L|"
+				    modifier = "|L|";
 			    }
 		    }
 		    else
 		    {
-			    // Short format
+			    // Short format - no modifier needed for short without index
 			    if (cpu.Tag > 0)
 			    {
-				    // Short with index: "1", "2", "3"
-				    formatParts.Add(cpu.Tag.ToString());
-			    }
-			    else
-			    {
-				    // Short format with no index: "."
-				    formatParts.Add(".");
+				    // Short with index: "|1|", "|2|", "|3|"
+				    modifier = $"|{cpu.Tag}|";
 			    }
 		    }
-		    
-		    // Add format part if we have one
-		    if (formatParts.Count > 0)
-			    parts.Add(string.Join("", formatParts));
 		    
 		    // Calculate the target address
 		    ushort targetAddress;
@@ -151,8 +144,8 @@
 			    targetAddress = (ushort)(relativeAddress & 0xFFFF);
 		    }
 		    
-		    // Format address in hex with / prefix (matching assembler input format)
-		    parts.Add($"/{targetAddress:X4}");
+		    // Format: MNEMONIC |modifier|/address (no spaces between modifier and address)
+		    parts.Add($"{modifier}/{targetAddress:X4}");
 		    
 		    return string.Join(" ", parts);
 	    }

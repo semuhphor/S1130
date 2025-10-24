@@ -45,41 +45,32 @@
 		
 		/// <summary>
 		/// Disassembles MDX instruction.
-		/// Format: MDX [L] [Xn] /address [I]
-		/// Example: "MDX L 2 /0100 I", "MDX 1 /0050", "MDX L /0200"
+		/// New Format: MDX |modifier|/address[,modifier] 
+		/// Examples: "MDX |L2|/0100", "MDX |1|/0050", "MDX |L|/0200,5"
+		/// Two operands when long format without tag: address and modifier value
 		/// </summary>
 		public override string Disassemble(ICpu cpu, ushort address)
 		{
 			var parts = new System.Collections.Generic.List<string>();
-			parts.Add("MDX  "); // Padded to 5 chars
+			parts.Add("MDX");
 			
-			// Build format/tag string
-			var formatTag = new System.Text.StringBuilder();
+			// Build format modifier string
+			string modifier = "";
 			
 			if (cpu.IndirectAddress)
 			{
-				// Indirect addressing
-				formatTag.Append("I");
-				if (cpu.Tag > 0)
-					formatTag.Append(cpu.Tag);
+				modifier = cpu.Tag > 0 ? $"|I{cpu.Tag}|" : "|I|";
 			}
 			else if (cpu.FormatLong)
 			{
-				// Long format
-				formatTag.Append("L");
-				if (cpu.Tag > 0)
-					formatTag.Append(cpu.Tag);
+				modifier = cpu.Tag > 0 ? $"|L{cpu.Tag}|" : "|L|";
 			}
 			else
 			{
 				// Short format
 				if (cpu.Tag > 0)
-					formatTag.Append(cpu.Tag);
-				else
-					formatTag.Append(".");
+					modifier = $"|{cpu.Tag}|";
 			}
-			
-			parts.Add(formatTag.ToString());
 			
 			// Calculate target address
 			ushort targetAddress;
@@ -93,7 +84,16 @@
 				targetAddress = (ushort)(relativeAddress & 0xFFFF);
 			}
 			
-			parts.Add($"/{targetAddress:X4}");
+			// For long format without tag, we have two operands: address and modifier
+			if (cpu.FormatLong && cpu.Tag == 0)
+			{
+				sbyte modifierValue = (sbyte)(cpu.Modifiers & 0xFF);
+				parts.Add($"{modifier}/{targetAddress:X4},{modifierValue}");
+			}
+			else
+			{
+				parts.Add($"{modifier}/{targetAddress:X4}");
+			}
 			
 			return string.Join(" ", parts);
 		}

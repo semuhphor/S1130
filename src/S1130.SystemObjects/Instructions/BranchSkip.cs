@@ -33,8 +33,9 @@
 		
 		/// <summary>
 		/// Disassembles BSC/BOSC instruction with condition codes.
-		/// New Format: BSC/BOSC formatTag [condition] address
-		/// Examples: "BSC . O /0500", "BSC L Z /0100", "BOSC L2 +- /0200", "BSC I1 E /0300"
+		/// New Format: BSC |formatTag|condition,address or BSC |formatTag|address,condition
+		/// Examples: "BSC O", "BSC |L|/0100,Z", "BOSC |L2|/0200,+-", "BSC |I1|/0300,E"
+		/// Short format conditions only (no address): "BSC Z", "BSC +-O"
 		/// </summary>
 		public override string Disassemble(ICpu cpu, ushort address)
 		{
@@ -42,65 +43,57 @@
 			
 			// Check for interrupt reset bit (0x40) to determine opcode
 			var resetInterrupt = (cpu.Modifiers & 0x40) != 0;
-			parts.Add((resetInterrupt ? "BOSC" : "BSC").PadRight(5));
+			parts.Add(resetInterrupt ? "BOSC" : "BSC");
 			
-			// Build format/tag string
-			var formatTag = new System.Text.StringBuilder();
-			
-			if (cpu.IndirectAddress)
-			{
-				// Indirect addressing
-				formatTag.Append("I");
-				if (cpu.Tag > 0)
-					formatTag.Append(cpu.Tag);
-			}
-			else if (cpu.FormatLong)
-			{
-				// Long format
-				formatTag.Append("L");
-				if (cpu.Tag > 0)
-					formatTag.Append(cpu.Tag);
-			}
-			else
-			{
-				// Short format
-				if (cpu.Tag > 0)
-					formatTag.Append(cpu.Tag);
-				else
-					formatTag.Append(".");
-			}
-			
-			parts.Add(formatTag.ToString());
-			
-			// Condition codes
+			// Build condition codes string in conventional order
 			var conditions = new System.Text.StringBuilder();
 			var modifiers = cpu.Modifiers & 0x3F; // Mask out reset interrupt bit (0x40)
 			
-			if ((modifiers & Zero) != 0) conditions.Append("Z");
-			if ((modifiers & Minus) != 0) conditions.Append("-");
+			// Order: + - Z E C O (typical IBM 1130 convention)
 			if ((modifiers & Plus) != 0) conditions.Append("+");
+			if ((modifiers & Minus) != 0) conditions.Append("-");
+			if ((modifiers & Zero) != 0) conditions.Append("Z");
 			if ((modifiers & Even) != 0) conditions.Append("E");
 			if ((modifiers & Carry) != 0) conditions.Append("C");
 			if ((modifiers & Overflow) != 0) conditions.Append("O");
 			
-			// Add conditions before address (if any)
-			if (conditions.Length > 0)
-				parts.Add(conditions.ToString());
+			string condStr = conditions.ToString();
 			
-			// Calculate target address
-			ushort targetAddress;
+			// Determine format
 			if (cpu.FormatLong)
 			{
-				targetAddress = cpu.Displacement;
+				// Long format: has address and conditions
+				// Format: MNEMONIC |modifier|/address,conditions
+				
+				// Build format modifier
+				string modifier = "";
+				if (cpu.IndirectAddress)
+				{
+					modifier = cpu.Tag > 0 ? $"|I{cpu.Tag}|" : "|I|";
+				}
+				else
+				{
+					modifier = cpu.Tag > 0 ? $"|L{cpu.Tag}|" : "|L|";
+				}
+				
+				ushort targetAddress = cpu.Displacement;
+				
+				// Format: MNEMONIC |modifier|/address,conditions
+				parts.Add($"{modifier}/{targetAddress:X4},{condStr}");
 			}
 			else
 			{
-				int relativeAddress = (address + 1) + (sbyte)cpu.Displacement;
-				targetAddress = (ushort)(relativeAddress & 0xFFFF);
+				// Short format: skip only (no address), just conditions
+				// or if has index: |X|conditions
+				if (cpu.Tag > 0)
+				{
+					parts.Add($"|{cpu.Tag}|{condStr}");
+				}
+				else
+				{
+					parts.Add(condStr);
+				}
 			}
-			
-			// Add address
-			parts.Add($"/{targetAddress:X4}");
 			
 			return string.Join(" ", parts);
 		}
