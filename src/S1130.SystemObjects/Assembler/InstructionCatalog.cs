@@ -272,6 +272,96 @@ namespace S1130.SystemObjects.Assembler
                 }
             });
 
+            // === SINGLE-LETTER ALIASES (IBM 1130 Assembler Syntax) ===
+            
+            // A - Add (alias for ADD)
+            Add("A", new InstructionDefinition
+            {
+                Mnemonic = "A",
+                Opcode = 0x10,
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.ShortIndex1,
+                    InstructionPattern.ShortIndex2,
+                    InstructionPattern.ShortIndex3,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.LongIndex1,
+                    InstructionPattern.LongIndex2,
+                    InstructionPattern.LongIndex3,
+                    InstructionPattern.IndirectNoIndex,
+                    InstructionPattern.IndirectIndex1,
+                    InstructionPattern.IndirectIndex2,
+                    InstructionPattern.IndirectIndex3
+                }
+            });
+
+            // S - Subtract (alias for SUB)
+            Add("S", new InstructionDefinition
+            {
+                Mnemonic = "S",
+                Opcode = 0x12,
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.ShortIndex1,
+                    InstructionPattern.ShortIndex2,
+                    InstructionPattern.ShortIndex3,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.LongIndex1,
+                    InstructionPattern.LongIndex2,
+                    InstructionPattern.LongIndex3,
+                    InstructionPattern.IndirectNoIndex,
+                    InstructionPattern.IndirectIndex1,
+                    InstructionPattern.IndirectIndex2,
+                    InstructionPattern.IndirectIndex3
+                }
+            });
+
+            // M - Multiply (alias for MUL)
+            Add("M", new InstructionDefinition
+            {
+                Mnemonic = "M",
+                Opcode = 0x14,
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.ShortIndex1,
+                    InstructionPattern.ShortIndex2,
+                    InstructionPattern.ShortIndex3,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.LongIndex1,
+                    InstructionPattern.LongIndex2,
+                    InstructionPattern.LongIndex3,
+                    InstructionPattern.IndirectNoIndex,
+                    InstructionPattern.IndirectIndex1,
+                    InstructionPattern.IndirectIndex2,
+                    InstructionPattern.IndirectIndex3
+                }
+            });
+
+            // D - Divide (alias for DIV)
+            Add("D", new InstructionDefinition
+            {
+                Mnemonic = "D",
+                Opcode = 0x15,
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.ShortIndex1,
+                    InstructionPattern.ShortIndex2,
+                    InstructionPattern.ShortIndex3,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.LongIndex1,
+                    InstructionPattern.LongIndex2,
+                    InstructionPattern.LongIndex3,
+                    InstructionPattern.IndirectNoIndex,
+                    InstructionPattern.IndirectIndex1,
+                    InstructionPattern.IndirectIndex2,
+                    InstructionPattern.IndirectIndex3
+                }
+            });
+
             // === LOGICAL INSTRUCTIONS ===
             
             Add("AND", new InstructionDefinition
@@ -502,6 +592,118 @@ namespace S1130.SystemObjects.Assembler
                     InstructionPattern.IndirectIndex1,
                     InstructionPattern.IndirectIndex2,
                     InstructionPattern.IndirectIndex3
+                }
+            });
+
+            // === BRANCH PSEUDO-OPS ===
+            
+            Add("B", new InstructionDefinition
+            {
+                Mnemonic = "B",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "", // Unconditional branch (no conditions)
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex
+                }
+            });
+
+            Add("BP", new InstructionDefinition
+            {
+                Mnemonic = "BP",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "+", // Branch if positive
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex
+                }
+            });
+
+            Add("BN", new InstructionDefinition
+            {
+                Mnemonic = "BN",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "-", // Branch if negative
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex
+                }
+            });
+
+            Add("BZ", new InstructionDefinition
+            {
+                Mnemonic = "BZ",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "Z", // Branch if zero
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex
+                }
+            });
+
+            Add("BNZ", new InstructionDefinition
+            {
+                Mnemonic = "BNZ",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "+C-O", // Branch if not zero (all conditions except Z and E)
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex
+                }
+            });
+
+            Add("BNP", new InstructionDefinition
+            {
+                Mnemonic = "BNP",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "-Z", // Branch if not positive (negative or zero)
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex
+                }
+            });
+
+            Add("BO", new InstructionDefinition
+            {
+                Mnemonic = "BO",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "O", // Branch on overflow
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex
+                }
+            });
+
+            Add("SKP", new InstructionDefinition
+            {
+                Mnemonic = "SKP",
+                Opcode = 0x09, // BSC opcode
+                IsPseudoOp = true,
+                PseudoOpCondition = "", // Skip (BSC with no conditions, short displacement 1)
+                ValidPatterns = new List<InstructionPattern>
+                {
+                    InstructionPattern.NoOperand // SKP has no operand, skips next instruction
                 }
             });
 

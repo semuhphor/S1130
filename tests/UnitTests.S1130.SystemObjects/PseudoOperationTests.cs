@@ -9,13 +9,13 @@ namespace UnitTests.S1130.SystemObjects
         [Fact]
         public void B_Unconditional_Long_Branch()
         {
-            // Test B L TARGET - unconditional long branch
+            // Test B |L|TARGET - unconditional long branch
             var cpu = new Cpu();
             
             var source = @"      ORG /100
-      B    L TARGET
-      DC   1
-TARGET DC  2";
+      B |L|TARGET
+      DC 1
+TARGET: DC 2";
 
             var result = cpu.Assemble(source);
             
@@ -40,7 +40,7 @@ TARGET DC  2";
             cpu.ExecuteInstruction();
             
             // Should branch to TARGET (0x103)
-            // Layout: 0x100-0x101: B L TARGET, 0x102: DC 1, 0x103: TARGET DC 2
+            // Layout: 0x100-0x101: B L TARGET, 0x102: DC 1, 0x103: TARGET: DC 2
             Assert.True(cpu.Iar == 0x103, $"Expected IAR=0x103, got 0x{cpu.Iar:X4}. {debugInfo}");
         }
 
@@ -54,8 +54,8 @@ TARGET DC  2";
       LD   L VAL
       BP   L TARGET
       DC   1
-TARGET DC  2
-VAL   DC   5";
+TARGET: DC  2
+VAL: DC   5";
 
             var result = cpu.Assemble(source);
             Assert.True(result.Success);
@@ -83,8 +83,8 @@ VAL   DC   5";
       LD   L VAL
       BNP  L TARGET
       DC   1
-TARGET DC  2
-VAL   DC   0";
+TARGET: DC  2
+VAL: DC   0";
 
             var result = cpu.Assemble(source);
             Assert.True(result.Success);
@@ -111,8 +111,8 @@ VAL   DC   0";
       LD   L VAL
       BZ   L TARGET
       DC   1
-TARGET DC  2
-VAL   DC   0";
+TARGET: DC  2
+VAL: DC   0";
 
             var result = cpu.Assemble(source);
             Assert.True(result.Success);
@@ -139,8 +139,8 @@ VAL   DC   0";
       LD   L VAL
       BNZ  L TARGET
       DC   1
-TARGET DC  2
-VAL   DC   5";
+TARGET: DC  2
+VAL: DC   5";
 
             var result = cpu.Assemble(source);
             Assert.True(result.Success);
@@ -167,8 +167,8 @@ VAL   DC   5";
       LD   L VAL
       BN   L TARGET
       DC   1
-TARGET DC  2
-VAL   DC   /FFFF";
+TARGET: DC  2
+VAL: DC   /FFFF";
 
             var result = cpu.Assemble(source);
             Assert.True(result.Success);
@@ -196,7 +196,7 @@ VAL   DC   /FFFF";
       SKP  Z
       DC   1
       DC   2
-VAL   DC   0";
+VAL: DC   0";
 
             var result = cpu.Assemble(source);
             Assert.True(result.Success);
@@ -209,7 +209,7 @@ VAL   DC   0";
             cpu.NextInstruction();
             cpu.ExecuteInstruction(); // SKP Z
             
-            // Should skip to 0x104 (skip the DC 1 at 0x103)
+            // Should skip to 0x104 (skip the: DC 1 at 0x103)
             Assert.Equal((ushort)0x104, cpu.Iar);
         }
 
@@ -224,9 +224,9 @@ VAL   DC   0";
       A    L VAL2
       BO   L TARGET
       DC   1
-TARGET DC  2
-VAL1  DC   /7FFF
-VAL2  DC   1";
+TARGET: DC  2
+VAL1: DC   /7FFF
+VAL2: DC   1";
 
             var result = cpu.Assemble(source);
             Assert.True(result.Success);

@@ -65,10 +65,10 @@ namespace UnitTests.S1130.SystemObjects
 		{
 			BeforeEachTest();
 			
-			var source = @"      ORG  /100
-LOOP  A    L ONE
-      LDX  L LOOP
-ONE   DC   1";
+			var source = @"      ORG /100
+LOOP: A |L|ONE
+      LDX |L|LOOP
+ONE:  DC 1";
 
 			var result = _cpu.Assemble(source);
 			

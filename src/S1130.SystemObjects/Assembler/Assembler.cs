@@ -91,7 +91,21 @@ namespace S1130.SystemObjects.Assembler
                     // Handle directives
                     if (!string.IsNullOrEmpty(parsed.Opcode))
                     {
-                        if (parsed.Opcode == "EQU")
+                        if (parsed.Opcode == "ORG")
+                        {
+                            // ORG sets the current address
+                            var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
+                            if (evaluator.Evaluate(parsed.Operand, out int address, out string error))
+                            {
+                                _currentAddress = address;
+                            }
+                            else
+                            {
+                                AddError(lineNumber, line, error, ErrorType.InvalidExpression);
+                            }
+                            continue;
+                        }
+                        else if (parsed.Opcode == "EQU")
                         {
                             // EQU assigns value to symbol (doesn't advance address)
                             if (!string.IsNullOrEmpty(parsed.Label))
@@ -111,8 +125,17 @@ namespace S1130.SystemObjects.Assembler
                         else if (parsed.Opcode == "BSS")
                         {
                             // BSS reserves space
+                            // Format can be: BSS n  or  BSS E n (E for equate, same as EQU + BSS)
+                            string sizeExpr = parsed.Operand;
+                            
+                            if (parsed.Operand != null && parsed.Operand.Trim().StartsWith("E ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // BSS E n format - treat as EQU for the label, then reserve n words
+                                sizeExpr = parsed.Operand.Substring(2).Trim();
+                            }
+                            
                             var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
-                            if (evaluator.Evaluate(parsed.Operand, out int size, out string error))
+                            if (evaluator.Evaluate(sizeExpr, out int size, out string error))
                             {
                                 _currentAddress += size;
                             }
@@ -174,6 +197,17 @@ namespace S1130.SystemObjects.Assembler
                     if (parsed.IsBlank)
                         continue;
 
+                    // Handle ORG directive
+                    if (parsed.Opcode == "ORG")
+                    {
+                        var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
+                        if (evaluator.Evaluate(parsed.Operand, out int address, out string error))
+                        {
+                            _currentAddress = address;
+                        }
+                        continue;
+                    }
+
                     // Skip directives that don't generate code
                     if (parsed.Opcode == "EQU" || parsed.Opcode == "BES")
                         continue;
@@ -181,8 +215,16 @@ namespace S1130.SystemObjects.Assembler
                     // Handle BSS (advance address without generating code)
                     if (parsed.Opcode == "BSS")
                     {
+                        string sizeExpr = parsed.Operand;
+                        
+                        if (parsed.Operand != null && parsed.Operand.Trim().StartsWith("E ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // BSS E n format
+                            sizeExpr = parsed.Operand.Substring(2).Trim();
+                        }
+                        
                         var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
-                        if (evaluator.Evaluate(parsed.Operand, out int size, out string error))
+                        if (evaluator.Evaluate(sizeExpr, out int size, out string error))
                         {
                             // Reserve space (fill with zeros)
                             for (int j = 0; j < size; j++)
@@ -192,9 +234,7 @@ namespace S1130.SystemObjects.Assembler
                             _currentAddress += size;
                         }
                         continue;
-                    }
-
-                    // Handle DC (define constant)
+                    }                    // Handle DC (define constant)
                     if (parsed.Opcode == "DC")
                     {
                         var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
@@ -220,13 +260,36 @@ namespace S1130.SystemObjects.Assembler
                     // Handle pseudo-ops
                     if (instrDef.IsPseudoOp)
                     {
-                        // Map pseudo-op to real instruction
-                        // e.g., NOP -> SLA 0, XCH -> RTE 16
-                        parsed = ParseLine(instrDef.PseudoOpMapping);
-                        if (!InstructionCatalog.TryGetInstruction(parsed.Opcode, out instrDef))
+                        if (!string.IsNullOrEmpty(instrDef.PseudoOpMapping))
                         {
-                            AddError(lineNumber, line, $"Pseudo-op mapping failed: {parsed.Opcode}", ErrorType.Other);
-                            continue;
+                            // Simple pseudo-ops like NOP -> SLA 0, XCH -> RTE 16
+                            parsed = ParseLine(instrDef.PseudoOpMapping);
+                            if (!InstructionCatalog.TryGetInstruction(parsed.Opcode, out instrDef))
+                            {
+                                AddError(lineNumber, line, $"Pseudo-op mapping failed: {parsed.Opcode}", ErrorType.Other);
+                                continue;
+                            }
+                        }
+                        else if (instrDef.PseudoOpCondition != null)
+                        {
+                            // Branch pseudo-ops like BP, BN, BZ, etc.
+                            if (parsed.Opcode == "SKP")
+                            {
+                                // SKP is BSC /1 with no conditions
+                                parsed.Operand = "/1";
+                            }
+                            else if (!string.IsNullOrEmpty(instrDef.PseudoOpCondition))
+                            {
+                                // Add condition to operand (e.g., BP /0100 -> BSC /0100,+)
+                                parsed.Operand = parsed.Operand + "," + instrDef.PseudoOpCondition;
+                            }
+                            // Map to BSC instruction
+                            parsed.Opcode = "BSC";
+                            if (!InstructionCatalog.TryGetInstruction(parsed.Opcode, out instrDef))
+                            {
+                                AddError(lineNumber, line, $"Pseudo-op mapping failed: {parsed.Opcode}", ErrorType.Other);
+                                continue;
+                            }
                         }
                     }
 

@@ -41,6 +41,12 @@ namespace S1130.SystemObjects.Assembler
         public string PseudoOpMapping { get; set; }
 
         /// <summary>
+        /// For branch pseudo-ops, the condition codes to apply
+        /// (e.g., BP -> "+", BN -> "-", BZ -> "Z", BNP -> "-Z", BO -> "O", B -> "")
+        /// </summary>
+        public string PseudoOpCondition { get; set; }
+
+        /// <summary>
         /// For shift instructions, the shift type to encode in bits 6-7 of the displacement byte.
         /// Values: 0=SLA/SRA, 1=SLCA, 2=SLT/SRT, 3=SLC/RTE
         /// </summary>
