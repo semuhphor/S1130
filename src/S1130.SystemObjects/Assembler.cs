@@ -176,13 +176,25 @@ namespace S1130.SystemObjects
                 {
                     var operand = parts.Operand.Trim().ToUpper();
                     bool evenAlign = false;
-                    string countStr = operand;
-                    
+                    string countStr = "0";  // Default count is 0
+
                     // Check for E modifier
-                    if (operand.StartsWith("E "))
+                    if (operand == "E")
                     {
+                        // Just "E" - align to even boundary, reserve 0 words
+                        evenAlign = true;
+                        countStr = "0";
+                    }
+                    else if (operand.StartsWith("E "))
+                    {
+                        // "E <count>" - align to even and reserve <count> words
                         evenAlign = true;
                         countStr = operand.Substring(2).Trim();
+                    }
+                    else
+                    {
+                        // No E modifier, entire operand is the count
+                        countStr = operand;
                     }
                     
                     // Align to even boundary if requested
@@ -230,13 +242,25 @@ namespace S1130.SystemObjects
                 {
                     var operand = parts.Operand.Trim().ToUpper();
                     bool evenAlign = false;
-                    string countStr = operand;
-                    
+                    string countStr = "0";  // Default count is 0
+
                     // Check for E modifier
-                    if (operand.StartsWith("E "))
+                    if (operand == "E")
                     {
+                        // Just "E" - align to even boundary, reserve 0 words
+                        evenAlign = true;
+                        countStr = "0";
+                    }
+                    else if (operand.StartsWith("E "))
+                    {
+                        // "E <count>" - align to even and reserve <count> words
                         evenAlign = true;
                         countStr = operand.Substring(2).Trim();
+                    }
+                    else
+                    {
+                        // No E modifier, entire operand is the count
+                        countStr = operand;
                     }
                     
                     // Align to even boundary if requested
@@ -817,13 +841,25 @@ namespace S1130.SystemObjects
 
             var operandUpper = operand.Trim().ToUpper();
             bool evenAlign = false;
-            string countStr = operandUpper;
-            
+            string countStr = "0";  // Default count is 0
+
             // Check for E modifier (even boundary alignment)
-            if (operandUpper.StartsWith("E "))
+            if (operandUpper == "E")
             {
+                // Just "E" - align to even boundary, reserve 0 words
+                evenAlign = true;
+                countStr = "0";
+            }
+            else if (operandUpper.StartsWith("E "))
+            {
+                // "E <count>" - align to even and reserve <count> words
                 evenAlign = true;
                 countStr = operandUpper.Substring(2).Trim();
+            }
+            else
+            {
+                // No E modifier, entire operand is the count
+                countStr = operandUpper;
             }
             
             // Align to even boundary if requested
@@ -890,13 +926,25 @@ namespace S1130.SystemObjects
 
             var operandUpper = operand.Trim().ToUpper();
             bool evenAlign = false;
-            string countStr = operandUpper;
-            
+            string countStr = "0";  // Default count is 0
+
             // Check for E modifier (even boundary alignment)
-            if (operandUpper.StartsWith("E "))
+            if (operandUpper == "E")
             {
+                // Just "E" - align to even boundary, reserve 0 words
+                evenAlign = true;
+                countStr = "0";
+            }
+            else if (operandUpper.StartsWith("E "))
+            {
+                // "E <count>" - align to even and reserve <count> words
                 evenAlign = true;
                 countStr = operandUpper.Substring(2).Trim();
+            }
+            else
+            {
+                // No E modifier, entire operand is the count
+                countStr = operandUpper;
             }
             
             // Align to even boundary if requested
@@ -1153,16 +1201,39 @@ namespace S1130.SystemObjects
                 return;
             }
 
-            // Parse shift count (should be a decimal number)
+            // Parse shift count (should be a decimal number, optionally preceded by format tag)
             if (string.IsNullOrWhiteSpace(operand))
             {
                 _context.AddError(_currentLine, $"Missing shift count in {mnemonic} instruction");
                 return;
             }
 
-            if (!byte.TryParse(operand.Trim(), out byte shiftCount))
+            // Handle format tag notation (e.g., "SLT . 1" or "SLT 1")
+            // Split operand into tokens
+            var tokens = operand.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string shiftCountStr;
+
+            if (tokens.Length == 2)
             {
-                _context.AddError(_currentLine, $"Invalid shift count in {mnemonic}: {operand}");
+                // Format: "formatTag count" (e.g., ". 1")
+                // For shift instructions, the format tag is typically "." (short format, current location)
+                // We accept any format tag but shifts are always short format
+                shiftCountStr = tokens[1];
+            }
+            else if (tokens.Length == 1)
+            {
+                // Format: "count" (e.g., "1") - legacy format without format tag
+                shiftCountStr = tokens[0];
+            }
+            else
+            {
+                _context.AddError(_currentLine, $"Invalid shift operand format in {mnemonic}: {operand}");
+                return;
+            }
+
+            if (!byte.TryParse(shiftCountStr, out byte shiftCount))
+            {
+                _context.AddError(_currentLine, $"Invalid shift count in {mnemonic}: {shiftCountStr}");
                 return;
             }
 
@@ -1178,7 +1249,7 @@ namespace S1130.SystemObjects
             // Shift count is in low 6 bits of displacement
             ushort instruction = (ushort)((opcode << 11) | (shiftType << 6) | (shiftCount & 0x3F));
             _cpu[_context.LocationCounter] = instruction;
-            
+
             _context.LocationCounter++;
         }
 

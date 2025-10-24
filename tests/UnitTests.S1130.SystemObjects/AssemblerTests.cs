@@ -813,6 +813,69 @@ VAL2  DC   2";
         }
 
         [Fact]
+        public void BssEvenAlignmentWithoutCountTest()
+        {
+            // Test BSS E without explicit count (should default to 0)
+            // This tests the fix for: "BSS E" being treated as "undefined symbol E"
+            var cpu = new Cpu();
+
+            var source = @"      ORG /100
+VAL1  DC   1
+      BSS  E
+VAL2  DC   2";
+
+            var result = cpu.Assemble(source);
+
+            Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
+            Assert.Empty(result.Errors);
+
+            // VAL1 at 0x100
+            // BSS E (no count) should align to even (0x102) but reserve 0 words
+            // VAL2 should be immediately at 0x102
+            Assert.Equal((ushort)1, cpu[0x100]);
+            Assert.Equal((ushort)2, cpu[0x102]);
+        }
+
+        [Fact]
+        public void ShiftInstructionWithFormatTagTest()
+        {
+            // Test shift instructions with new format tag notation
+            // This tests the fix for: shift instructions not supporting format tags like "SLT . 1"
+            var cpu = new Cpu();
+
+            var source = @"      ORG /100
+START LDD  L ONE     // Load double-word (0,1) into ACC and EXT
+LOOP  SLT  . 1       // Shift left together 1 bit - using format tag notation
+      BSC  . C LOOP  // Branch if Carry is OFF (continue looping)
+      WAIT
+      BSS  E
+ONE   DC   0         // High word (ACC) = 0
+      DC   1         // Low word (EXT) = 1";
+
+            var result = cpu.Assemble(source);
+
+            Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
+            Assert.Empty(result.Errors);
+
+            // Execute the program - should shift until carry is set (bit shifts out)
+            cpu.Iar = 0x100; // START location
+            cpu.Wait = false;
+
+            int instructionCount = 0;
+            int maxInstructions = 100;
+
+            while (!cpu.Wait && instructionCount < maxInstructions)
+            {
+                cpu.ExecuteInstruction();
+                instructionCount++;
+            }
+
+            Assert.True(cpu.Wait, "Program did not complete");
+            // After shifting left 32 times, the 1 bit should have shifted all the way through
+            // and the carry should have been set, causing the program to halt
+        }
+
+        [Fact]
         public void BssSymbolResolutionTest()
         {
             // BSS - Block Started by Symbol

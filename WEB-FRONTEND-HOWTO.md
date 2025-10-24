@@ -121,8 +121,13 @@ dotnet test
 ## Troubleshooting
 
 ### Backend won't start
+- Use forward slashes on macOS/Linux: `dotnet run --project src/S1130.WebApi/S1130.WebApi.csproj`
+- Or explicitly bind to HTTP 5000:
+  - macOS/Linux: `ASPNETCORE_URLS=http://localhost:5000 dotnet run --project src/S1130.WebApi/S1130.WebApi.csproj`
+  - Windows (PowerShell): `$env:ASPNETCORE_URLS = "http://localhost:5000"; dotnet run --project src\S1130.WebApi\S1130.WebApi.csproj`
 - Check that port 5000 is available
 - Ensure .NET 8 SDK is installed: `dotnet --version`
+- If you need HTTPS locally, trust dev certs: `dotnet dev-certs https --trust` and then remove the ASPNETCORE_URLS override.
 
 ### Frontend can't connect to API
 - Verify backend is running at http://localhost:5000
