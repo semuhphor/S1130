@@ -11,7 +11,7 @@ namespace S1130.WebApi.Services;
 public class EmulatorService
 {
     private ICpu _cpu;
-    private Assembler _assembler;
+    private S1130.SystemObjects.Assembler.Assembler _assembler;
     private readonly object _lock = new();
     private CancellationTokenSource? _executionCts;
     private Task? _executionTask;
@@ -20,7 +20,7 @@ public class EmulatorService
     public EmulatorService()
     {
         _cpu = new Cpu();
-        _assembler = new Assembler(_cpu);
+        _assembler = new S1130.SystemObjects.Assembler.Assembler();
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public class EmulatorService
         {
             StopExecution();
             _cpu = new Cpu();
-            _assembler = new Assembler(_cpu);
+            _assembler = new S1130.SystemObjects.Assembler.Assembler();
         }
     }
 
@@ -73,33 +73,31 @@ public class EmulatorService
         {
             StopExecution();
             
-            var result = _assembler.Assemble(sourceCode);
+            // Split source code into lines
+            var sourceLines = sourceCode.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var result = _assembler.Assemble(sourceLines);
             
             var response = new AssembleResponse
             {
                 Success = result.Success,
                 Errors = result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}").ToList(),
-                ListingLines = result.ListingLines.Select(l => new ListingLineDto
-                {
-                    LineNumber = l.LineNumber,
-                    Address = l.Address.ToString("X4"),
-                    OpCode = l.OpCode?.ToString("X4"),
-                    SourceCode = l.SourceCode
-                }).ToList()
+                // TODO: Generate proper listing lines when assembler supports it
+                ListingLines = new List<ListingLineDto>()
             };
 
             if (result.Success)
             {
-                // Get the first address with actual code (has an opcode)
-                ushort? firstAddress = result.ListingLines.FirstOrDefault(l => l.OpCode.HasValue)?.Address;
+                // Load generated code into memory at start address
+                var loadAddress = startAddress ?? (ushort)result.StartAddress;
+                for (int i = 0; i < result.GeneratedWords.Length; i++)
+                {
+                    _cpu[loadAddress + i] = result.GeneratedWords[i];
+                }
                 
                 // Set IAR to the starting address
-                var loadAddress = startAddress ?? firstAddress ?? 0;
                 _cpu.Iar = loadAddress;
                 response.LoadedAddress = loadAddress;
-                
-                // Count words loaded (lines with opcodes)
-                response.WordsLoaded = result.ListingLines.Count(l => l.OpCode.HasValue);
+                response.WordsLoaded = result.GeneratedWords.Length;
             }
 
             return response;

@@ -429,8 +429,9 @@ namespace S1130.SystemObjects
 
 		public AssemblyResult Assemble(string sourceCode)                     // Implement ICpu.Assemble
 		{
-            var assembler = new Assembler(this);
-            return assembler.Assemble(sourceCode);
+            var assembler = new S1130.SystemObjects.Assembler.Assembler();
+            var lines = sourceCode.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            return assembler.Assemble(lines);
 		}
 
 		public string Disassemble(ushort address)                           // Implement ICpu.Disassemble
