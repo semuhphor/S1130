@@ -433,6 +433,48 @@ namespace S1130.SystemObjects
             return assembler.Assemble(sourceCode);
 		}
 
+		public string Disassemble(ushort address)                           // Implement ICpu.Disassemble
+		{
+			// Save current CPU state
+			var savedIar = Iar;
+			var savedOpcode = Opcode;
+			var savedFormatLong = FormatLong;
+			var savedTag = Tag;
+			var savedDisplacement = Displacement;
+			var savedIndirectAddress = IndirectAddress;
+			var savedModifiers = Modifiers;
+			var savedCurrentInstruction = CurrentInstruction;
+			
+			try
+			{
+				// Decode instruction at specified address
+				Iar = address;
+				NextInstruction();
+				
+				if (CurrentInstruction == null)
+				{
+					// Unknown opcode - output as DC directive
+					ushort word = this[address];
+					return $"DC   /{word:X4}        * ({word} Dec)";
+				}
+				
+				// Call instruction's disassemble method
+				return CurrentInstruction.Disassemble(this, address);
+			}
+			finally
+			{
+				// Restore CPU state
+				Iar = savedIar;
+				Opcode = savedOpcode;
+				FormatLong = savedFormatLong;
+				Tag = savedTag;
+				Displacement = savedDisplacement;
+				IndirectAddress = savedIndirectAddress;
+				Modifiers = savedModifiers;
+				CurrentInstruction = savedCurrentInstruction;
+			}
+		}
+
 		private void BuildDefaultDevices()                                  // add default devices to system
 		{
 			Devices = new IDevice[32];                                          // init the device array

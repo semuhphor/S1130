@@ -1,0 +1,28 @@
+TODO: there is an email discussion about emulator changes and conventions, add it here
+
+iJust so you know, I'm talking to Claude about the assembler that it wrote. It is terrible. If  you decide to write one, maybe put it on a different method, like ICPU/CPU .AssembleToLocation(string code, ushort startingLocation) and (on the other side) CPU.DisassembleFrom(ushort loc)
+
+This way we won't step on each other if we make changes.
+
+Re
+
+Bob Flanders
+10:42 AM (23 minutes ago)
+to me
+
+Hi Mike,
+
+Ever  have one of those nights where you can't stop thinking about something. I had that last night about the assembler.
+
+One of the biggest problems of the assembler is that different instructions have different formats. Like BSC. in short form it's a skip with a possible condition. BSC just skips the next instruction (1 word) while BSC + skips the next instruction if ACC is positive. So I had Claude figout out all the possible formats in the assembler and adjust them to use a new format:
+
+LABEL: OPCODE |FT|OPERAND  
+
+sometimes the operands can be /100, a Label, a label +/- a value, an indicator like C for carry or O for overflow. 
+All comments are //
+
+The patterns are then applied to each possible opcode.
+
+"He" is still working on some things, but you can see what has already changed in github.
+
+

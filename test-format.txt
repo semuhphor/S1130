@@ -1,0 +1,6 @@
+Test program to debug format specifier:
+
+      ORG /100
+START LD   L VALUE
+      WAIT
+VALUE DC   42

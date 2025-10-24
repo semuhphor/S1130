@@ -42,5 +42,60 @@
 				cpu.Iar++;													// skip next instruction
 			}
 		}
+		
+		/// <summary>
+		/// Disassembles MDX instruction.
+		/// Format: MDX [L] [Xn] /address [I]
+		/// Example: "MDX L 2 /0100 I", "MDX 1 /0050", "MDX L /0200"
+		/// </summary>
+		public override string Disassemble(ICpu cpu, ushort address)
+		{
+			var parts = new System.Collections.Generic.List<string>();
+			parts.Add("MDX  "); // Padded to 5 chars
+			
+			// Build format/tag string
+			var formatTag = new System.Text.StringBuilder();
+			
+			if (cpu.IndirectAddress)
+			{
+				// Indirect addressing
+				formatTag.Append("I");
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+			}
+			else if (cpu.FormatLong)
+			{
+				// Long format
+				formatTag.Append("L");
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+			}
+			else
+			{
+				// Short format
+				if (cpu.Tag > 0)
+					formatTag.Append(cpu.Tag);
+				else
+					formatTag.Append(".");
+			}
+			
+			parts.Add(formatTag.ToString());
+			
+			// Calculate target address
+			ushort targetAddress;
+			if (cpu.FormatLong)
+			{
+				targetAddress = cpu.Displacement;
+			}
+			else
+			{
+				int relativeAddress = (address + 1) + (sbyte)cpu.Displacement;
+				targetAddress = (ushort)(relativeAddress & 0xFFFF);
+			}
+			
+			parts.Add($"/{targetAddress:X4}");
+			
+			return string.Join(" ", parts);
+		}
 	}
 }

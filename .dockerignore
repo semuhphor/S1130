@@ -1,0 +1,16 @@
+**/bin
+**/obj
+**/node_modules
+**/build
+**/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/TestResults
+**/*.md
+web-frontend
+tests
+docs
+ForReferenceOnly
+.github
+*.ps1

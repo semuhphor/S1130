@@ -57,25 +57,32 @@ namespace S1130.SystemObjects
 
             var line = Source;
 
-            // Handle comment lines (asterisk at start when trimmed)
-            var trimmed = line.TrimStart();
-            if (trimmed.StartsWith("*"))
+            // Handle comment lines (asterisk in column 1 only)
+            if (line.Length > 0 && line[0] == '*')
             {
                 IsComment = true;
                 Comment = line;
                 return;
             }
+            
+            // Handle inline comments (// anywhere in line)
+            int commentPos = line.IndexOf("//");
+            if (commentPos >= 0)
+            {
+                Comment = line.Substring(commentPos);
+                line = line.Substring(0, commentPos);
+            }
 
-            // IBM 1130 format:
+            // IBM 1130 format with new syntax:
             // - Label starts in column 1 (no leading whitespace)
             // - Operation follows label or starts after whitespace
-            // - Operand follows operation
-            // - Comment can start with * or just be text after extra whitespace
-            // - Special: * in operand means "current address" (not a comment!)
+            // - Operand follows operation (everything after operation until end of line)
+            // - Comments: * in column 1 for full line, // for inline (already stripped above)
+            // - * in operand means "current address" 
             
             bool hasLabel = line.Length > 0 && !char.IsWhiteSpace(line[0]);
             
-            // Split the line into tokens, but preserve position info
+            // Split the line into tokens
             var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             
             if (parts.Length == 0)
@@ -95,63 +102,10 @@ namespace S1130.SystemObjects
                 Operation = parts[partIndex++];
             }
 
-            // Get operand - this is tricky because:
-            // 1. Operand can be complex: "L VAL", "E 10", "*-*", "*+5", etc.
-            // 2. * in operand is NOT a comment marker
-            // 3. Only a word starting with * AFTER the operand is a comment
-            // 
-            // Strategy: Take tokens until we hit a likely comment
-            // A likely comment is: a token that's ONLY "*" followed by more text
-            // But "*-*" or "*+5" are operands, not comments
-            
+            // Get operand - everything remaining is the operand
             if (partIndex < parts.Length)
             {
-                var operand = new System.Text.StringBuilder();
-                int operandStartIndex = partIndex;
-                
-                // Take all remaining parts as operand initially
-                // We'll separate comment if we find a clear * comment marker
-                while (partIndex < parts.Length)
-                {
-                    var part = parts[partIndex];
-                    
-                    // If this part is JUST "*" followed by more parts, those parts are comments
-                    // But if it's "*-something" or "*+something", it's an operand
-                    if (part == "*" && partIndex + 1 < parts.Length)
-                    {
-                        // Next part will tell us if this is a comment or operand
-                        var nextPart = parts[partIndex + 1];
-                        if (!nextPart.StartsWith("-") && !nextPart.StartsWith("+"))
-                        {
-                            // This looks like start of comment: "* comment text"
-                            break;
-                        }
-                    }
-                    else if (part.StartsWith("*") && part.Length > 1 && operand.Length > 0)
-                    {
-                        // Part starts with * and we already have an operand
-                        // Check if it looks like an expression continuation or a comment
-                        char secondChar = part[1];
-                        if (secondChar != '-' && secondChar != '+' && secondChar != '*')
-                        {
-                            // Doesn't look like an expression, probably a comment like "* this is a comment"
-                            break;
-                        }
-                    }
-                    
-                    if (operand.Length > 0)
-                        operand.Append(' ');
-                    operand.Append(part);
-                    partIndex++;
-                }
-                
-                Operand = operand.ToString().Trim();
-
-                // Rest is comment if any
-                if (partIndex < parts.Length)
-                {
-                    Comment = string.Join(" ", parts, partIndex, parts.Length - partIndex);
-                }
+                Operand = string.Join(" ", parts, partIndex, parts.Length - partIndex).Trim();
             }
         }
     }

@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Backend ASP.NET Core API
+  backend:
+    build:
+      context: .
+      dockerfile: src/S1130.WebApi/Dockerfile
+    container_name: s1130-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+    networks:
+      - s1130-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend React app
+  frontend:
+    build:
+      context: ./web-frontend
+      dockerfile: Dockerfile
+    container_name: s1130-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - s1130-network
+
+networks:
+  s1130-network:
+    driver: bridge

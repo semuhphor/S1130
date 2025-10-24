@@ -1,0 +1,72 @@
+.emulator-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.page-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 36px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.page-header p {
+  margin: 10px 0 0 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.emulator-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .emulator-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editor-panel {
+  background-color: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.console-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.listing-panel {
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.footer {
+  text-align: center;
+  color: white;
+  margin-top: 30px;
+  padding: 20px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.footer a {
+  color: white;
+  text-decoration: underline;
+}

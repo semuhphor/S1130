@@ -11,5 +11,13 @@ namespace S1130.SystemObjects.Instructions
 		{
 			cpu.Wait = true;
 		}
+		
+		/// <summary>
+		/// Disassembles WAIT instruction (no operands).
+		/// </summary>
+		public override string Disassemble(ICpu cpu, ushort address)
+		{
+			return "WAIT";
+		}
 	}
 }

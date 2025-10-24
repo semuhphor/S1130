@@ -308,11 +308,15 @@ STACK BES  100         Stack grows downward from 0x1063
 All instructions follow the pattern:
 
 ```
-[label] OPERATION [L] operand [,Xn] [I]
+[label] OPERATION [format] operand [,Xn] [I]
 ```
 
-**Modifiers:**
-- `L`: Long format (16-bit address)
+**Format Specifiers:**
+- `.`: Short format (explicit, IAR-relative ±127 words)
+- `L`: Long format (absolute 16-bit address)
+- (none): Auto-detect based on operand
+
+**Other Modifiers:**
 - `,X1`, `,X2`, `,X3`: Index register
 - `I`: Indirect addressing
 
@@ -321,21 +325,23 @@ All instructions follow the pattern:
 #### LD - Load Accumulator
 
 ```
-LD   operand         Load accumulator from memory
-LD   L operand       Long format
+LD   . operand       Short format (explicit)
+LD   L operand       Long format (explicit)
 LD   operand,X1      With index register
 LD   L operand I     Long format, indirect
 ```
 
 **Examples:**
 ```
-      LD   5           Load from IAR+5 (short format)
-      LD   -3          Load from IAR-3 (short format)
-      LD   L /0400     Load from address 0x0400
-      LD   L VALUE     Load from VALUE address
-      LD   TABLE,X1    Load from TABLE+XR1
-      LD   L PTR I     Load from address pointed to by PTR
+      LD   . 5         Load from IAR+5 (short format, explicit)
+      LD   . -3        Load from IAR-3 (short format, explicit)
+      LD   L /0400     Load from address 0x0400 (long format)
+      LD   L VALUE     Load from VALUE address (long format)
+      LD   . TABLE,X1  Load from TABLE+XR1 (short format)
+      LD   L PTR I     Load from address pointed to by PTR (long, indirect)
 ```
+
+**Note:** The dot (`.`) format specifier makes the short format explicit, matching the fixed-column card format used by the original IBM 1130 assembler where column position indicated format.
 
 #### STO - Store Accumulator
 
@@ -512,21 +518,39 @@ Complex shift operation with counting.
 #### BSC - Branch or Skip on Condition
 
 ```
-      BSC  condition target
+      BSC  [L] [condition][,Xn] target [I]
 ```
 
-**Condition Codes (bit flags):**
-- `0x10`: Carry set
-- `0x08`: Overflow set
-- `0x04`: Accumulator zero
-- `0x02`: Accumulator positive
-- `0x01`: Even (bit 15 = 0)
+**Format:**
+- `L` - Long format (optional, default is short)
+- `condition` - Condition codes (optional, unconditional if omitted)
+- `,Xn` - Index register 1, 2, or 3 (optional)
+- `target` - Branch/skip target address or label
+- `I` - Indirect addressing (optional, at end)
+
+**Condition Codes (inverse conditions - branches/skips when condition is FALSE):**
+- `O` - Overflow OFF (branches if overflow is NOT set)
+- `C` - Carry OFF (branches if carry is NOT set)
+- `E` - Even (branches if ACC bit 15 = 0)
+- `+` or `&` or `P` - Positive (branches if ACC > 0)
+- `-` or `M` - Negative (branches if ACC < 0)
+- `Z` - Zero (branches if ACC = 0)
+
+Multiple conditions can be combined: `ZPM` means "branch if zero, positive, or negative" (always branches).
+
+**Behavior:**
+- **Short format**: Skip next instruction if condition is TRUE
+- **Long format**: Branch to target if condition is TRUE
 
 **Examples:**
 ```
-      BSC  /10 LOOP    Branch if carry set
-      BSC  /04 DONE    Branch if accumulator zero
-      BSC  /14 ERROR   Branch if carry OR zero
+      BSC  O LOOP      Skip if overflow OFF
+      BSC  L O LOOP    Branch if overflow OFF
+      BSC  ZPM ALWAYS  Always skip (any value matches)
+      BSC  +,2 NEXT    Skip if ACC positive, indexed by XR2
+      BSC  L C DONE I  Branch if carry OFF, indirect
+      BSC  TARGET      Unconditional skip
+      BSC  L TARGET    Unconditional branch
 ```
 
 #### BSI - Branch and Store IAR

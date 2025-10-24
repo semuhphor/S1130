@@ -1,0 +1,32 @@
+.cpu-console {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cpu-console h3 {
+  margin: 0;
+  color: #333;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.console-error {
+  padding: 15px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  font-weight: bold;
+}
+
+.console-loading {
+  padding: 15px;
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  border-radius: 4px;
+  color: #0c5460;
+  font-weight: bold;
+  text-align: center;
+}
