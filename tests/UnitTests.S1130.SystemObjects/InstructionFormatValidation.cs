@@ -175,7 +175,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    L /0100",
+                AssemblerFormat = "         LD |L|/0100",
                 ExpectedHex = Long(OpCodes.Load, 0, 0x0100),
                 Description = "Load - Long format, no index"
             });
@@ -183,7 +183,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    L1 /0100",
+                AssemblerFormat = "         LD |L1|/0100",
                 ExpectedHex = Long(OpCodes.Load, 1, 0x0100),
                 Description = "Load - Long format, index 1"
             });
@@ -191,7 +191,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    L2 /0100",
+                AssemblerFormat = "         LD |L2|/0100",
                 ExpectedHex = Long(OpCodes.Load, 2, 0x0100),
                 Description = "Load - Long format, index 2"
             });
@@ -199,7 +199,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    L3 /0100",
+                AssemblerFormat = "         LD |L3|/0100",
                 ExpectedHex = Long(OpCodes.Load, 3, 0x0100),
                 Description = "Load - Long format, index 3"
             });
@@ -207,7 +207,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    I /0100",
+                AssemblerFormat = "         LD |I|/0100",
                 ExpectedHex = Long(OpCodes.Load, 4, 0x0100),
                 Description = "Load - Indirect, no index"
             });
@@ -215,7 +215,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    I1 /0100",
+                AssemblerFormat = "         LD |I1|/0100",
                 ExpectedHex = Long(OpCodes.Load, 5, 0x0100),
                 Description = "Load - Indirect, index 1"
             });
@@ -223,7 +223,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    I2 /0100",
+                AssemblerFormat = "         LD |I2|/0100",
                 ExpectedHex = Long(OpCodes.Load, 6, 0x0100),
                 Description = "Load - Indirect, index 2"
             });
@@ -231,7 +231,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    I3 /0100",
+                AssemblerFormat = "         LD |I3|/0100",
                 ExpectedHex = Long(OpCodes.Load, 7, 0x0100),
                 Description = "Load - Indirect, index 3"
             });
@@ -248,7 +248,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDD",
-                AssemblerFormat = "         LDD   L /0100",
+                AssemblerFormat = "         LDD |L|/0100",
                 ExpectedHex = Long(OpCodes.LoadDouble, 0, 0x0100),
                 Description = "Load Double - Long format"
             });
@@ -256,7 +256,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDD",
-                AssemblerFormat = "         LDD   I /0100",
+                AssemblerFormat = "         LDD |I|/0100",
                 ExpectedHex = Long(OpCodes.LoadDouble, 4, 0x0100),
                 Description = "Load Double - Indirect"
             });
@@ -273,7 +273,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STO",
-                AssemblerFormat = "         STO   L /0100",
+                AssemblerFormat = "         STO |L|/0100",
                 ExpectedHex = Long(OpCodes.Store, 0, 0x0100),
                 Description = "Store - Long format"
             });
@@ -281,7 +281,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STO",
-                AssemblerFormat = "         STO   I /0100",
+                AssemblerFormat = "         STO |I|/0100",
                 ExpectedHex = Long(OpCodes.Store, 4, 0x0100),
                 Description = "Store - Indirect"
             });
@@ -298,7 +298,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STD",
-                AssemblerFormat = "         STD   L /0100",
+                AssemblerFormat = "         STD |L|/0100",
                 ExpectedHex = Long(OpCodes.StoreDouble, 0, 0x0100),
                 Description = "Store Double - Long format"
             });
@@ -315,7 +315,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "A",
-                AssemblerFormat = "         A     L /0100",
+                AssemblerFormat = "         A |L|/0100",
                 ExpectedHex = Long(OpCodes.Add, 0, 0x0100),
                 Description = "Add - Long format"
             });
@@ -323,7 +323,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "A",
-                AssemblerFormat = "         A     I /0100",
+                AssemblerFormat = "         A |I|/0100",
                 ExpectedHex = Long(OpCodes.Add, 4, 0x0100),
                 Description = "Add - Indirect"
             });
@@ -340,7 +340,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "AD",
-                AssemblerFormat = "         AD    L /0100",
+                AssemblerFormat = "         AD |L|/0100",
                 ExpectedHex = Long(OpCodes.AddDouble, 0, 0x0100),
                 Description = "Add Double - Long format"
             });
@@ -357,7 +357,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "S",
-                AssemblerFormat = "         S     L /0100",
+                AssemblerFormat = "         S |L|/0100",
                 ExpectedHex = Long(OpCodes.Subtract, 0, 0x0100),
                 Description = "Subtract - Long format"
             });
@@ -365,7 +365,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "S",
-                AssemblerFormat = "         S     I /0100",
+                AssemblerFormat = "         S |I|/0100",
                 ExpectedHex = Long(OpCodes.Subtract, 4, 0x0100),
                 Description = "Subtract - Indirect"
             });
@@ -382,7 +382,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "SD",
-                AssemblerFormat = "         SD    L /0100",
+                AssemblerFormat = "         SD |L|/0100",
                 ExpectedHex = Long(OpCodes.SubtractDouble, 0, 0x0100),
                 Description = "Subtract Double - Long format"
             });
@@ -399,7 +399,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "M",
-                AssemblerFormat = "         M     L /0100",
+                AssemblerFormat = "         M |L|/0100",
                 ExpectedHex = Long(OpCodes.Multiply, 0, 0x0100),
                 Description = "Multiply - Long format"
             });
@@ -407,7 +407,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "M",
-                AssemblerFormat = "         M     I /0100",
+                AssemblerFormat = "         M |I|/0100",
                 ExpectedHex = Long(OpCodes.Multiply, 4, 0x0100),
                 Description = "Multiply - Indirect"
             });
@@ -424,7 +424,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "D",
-                AssemblerFormat = "         D     L /0100",
+                AssemblerFormat = "         D |L|/0100",
                 ExpectedHex = Long(OpCodes.Divide, 0, 0x0100),
                 Description = "Divide - Long format"
             });
@@ -432,7 +432,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "D",
-                AssemblerFormat = "         D     I /0100",
+                AssemblerFormat = "         D |I|/0100",
                 ExpectedHex = Long(OpCodes.Divide, 4, 0x0100),
                 Description = "Divide - Indirect"
             });
@@ -449,7 +449,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "AND",
-                AssemblerFormat = "         AND   L /0100",
+                AssemblerFormat = "         AND |L|/0100",
                 ExpectedHex = Long(OpCodes.And, 0, 0x0100),
                 Description = "AND - Long format"
             });
@@ -457,7 +457,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "AND",
-                AssemblerFormat = "         AND   I /0100",
+                AssemblerFormat = "         AND |I|/0100",
                 ExpectedHex = Long(OpCodes.And, 4, 0x0100),
                 Description = "AND - Indirect"
             });
@@ -474,7 +474,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "OR",
-                AssemblerFormat = "         OR    L /0100",
+                AssemblerFormat = "         OR |L|/0100",
                 ExpectedHex = Long(OpCodes.Or, 0, 0x0100),
                 Description = "OR - Long format"
             });
@@ -482,7 +482,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "OR",
-                AssemblerFormat = "         OR    I /0100",
+                AssemblerFormat = "         OR |I|/0100",
                 ExpectedHex = Long(OpCodes.Or, 4, 0x0100),
                 Description = "OR - Indirect"
             });
@@ -499,7 +499,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "EOR",
-                AssemblerFormat = "         EOR   L /0100",
+                AssemblerFormat = "         EOR |L|/0100",
                 ExpectedHex = Long(OpCodes.ExclusiveOr, 0, 0x0100),
                 Description = "Exclusive OR - Long format"
             });
@@ -507,7 +507,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "EOR",
-                AssemblerFormat = "         EOR   I /0100",
+                AssemblerFormat = "         EOR |I|/0100",
                 ExpectedHex = Long(OpCodes.ExclusiveOr, 4, 0x0100),
                 Description = "Exclusive OR - Indirect"
             });
@@ -540,7 +540,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   L1 /0100",
+                AssemblerFormat = "         LDX |L1|/0100",
                 ExpectedHex = Long(OpCodes.LoadIndex, 1, 0x0100),
                 Description = "Load Index - Index 1, long"
             });
@@ -548,7 +548,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   L2 /0100",
+                AssemblerFormat = "         LDX |L2|/0100",
                 ExpectedHex = Long(OpCodes.LoadIndex, 2, 0x0100),
                 Description = "Load Index - Index 2, long"
             });
@@ -556,7 +556,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   L3 /0100",
+                AssemblerFormat = "         LDX |L3|/0100",
                 ExpectedHex = Long(OpCodes.LoadIndex, 3, 0x0100),
                 Description = "Load Index - Index 3, long"
             });
@@ -564,7 +564,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   I1 /0100",
+                AssemblerFormat = "         LDX |I1|/0100",
                 ExpectedHex = Long(OpCodes.LoadIndex, 5, 0x0100),
                 Description = "Load Index - Index 1, indirect"
             });
@@ -572,7 +572,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   I2 /0100",
+                AssemblerFormat = "         LDX |I2|/0100",
                 ExpectedHex = Long(OpCodes.LoadIndex, 6, 0x0100),
                 Description = "Load Index - Index 2, indirect"
             });
@@ -580,7 +580,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   I3 /0100",
+                AssemblerFormat = "         LDX |I3|/0100",
                 ExpectedHex = Long(OpCodes.LoadIndex, 7, 0x0100),
                 Description = "Load Index - Index 3, indirect"
             });
@@ -597,7 +597,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STX",
-                AssemblerFormat = "         STX   L1 /0100",
+                AssemblerFormat = "         STX |L1|/0100",
                 ExpectedHex = Long(OpCodes.StoreIndex, 1, 0x0100),
                 Description = "Store Index - Index 1, long"
             });
@@ -605,7 +605,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STX",
-                AssemblerFormat = "         STX   I1 /0100",
+                AssemblerFormat = "         STX |I1|/0100",
                 ExpectedHex = Long(OpCodes.StoreIndex, 5, 0x0100),
                 Description = "Store Index - Index 1, indirect"
             });
@@ -622,7 +622,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "MDX",
-                AssemblerFormat = "         MDX   L1 /0100",
+                AssemblerFormat = "         MDX |L1|/0100",
                 ExpectedHex = Long(OpCodes.ModifyIndex, 1, 0x0100),
                 Description = "Modify Index - Index 1, long"
             });
@@ -630,7 +630,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "MDX",
-                AssemblerFormat = "         MDX   I1 /0100",
+                AssemblerFormat = "         MDX |I1|/0100",
                 ExpectedHex = Long(OpCodes.ModifyIndex, 5, 0x0100),
                 Description = "Modify Index - Index 1, indirect"
             });
@@ -647,7 +647,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    L /0100",
+                AssemblerFormat = "         LD |L|/0100",
                 ExpectedHex = Long(OpCodes.LoadStatus, 0, 0x0100),
                 Description = "Load Status - Long format"
             });
@@ -664,7 +664,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STS",
-                AssemblerFormat = "         STS   L /0100",
+                AssemblerFormat = "         STS |L|/0100",
                 ExpectedHex = Long(OpCodes.StoreStatus, 0, 0x0100),
                 Description = "Store Status - Long format"
             });
@@ -789,7 +789,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "BSC",
-                AssemblerFormat = "         BSC   L /0100,E",
+                AssemblerFormat = "         BSC |L|/0100,E",
                 ExpectedHex = new[] { (ushort)(((uint)OpCodes.BranchSkip << 11) | 0x0041), (ushort)0x0100 },
                 Description = "Branch Skip - Branch to address if even"
             });
@@ -797,7 +797,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "BSC",
-                AssemblerFormat = "         BSC   L /0100,C",
+                AssemblerFormat = "         BSC |L|/0100,C",
                 ExpectedHex = new[] { (ushort)(((uint)OpCodes.BranchSkip << 11) | 0x0801), (ushort)0x0100 },
                 Description = "Branch Skip - Branch to address if carry OFF"
             });
@@ -805,7 +805,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "BOSC",
-                AssemblerFormat = "         BOSC  L /0100,E",
+                AssemblerFormat = "         BOSC |L|/0100,E",
                 ExpectedHex = new[] { (ushort)(((uint)OpCodes.BranchSkip << 11) | 0x0021), (ushort)0x0100 },
                 Description = "Branch or Skip - Branch to address if even"
             });
@@ -814,7 +814,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "BSI",
-                AssemblerFormat = "         BSI   L /0100",
+                AssemblerFormat = "         BSI |L|/0100",
                 ExpectedHex = Long(OpCodes.BranchStore, 0, 0x0100),
                 Description = "Branch and Store IAR - Long format"
             });
@@ -822,7 +822,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "BSI",
-                AssemblerFormat = "         BSI   I /0100",
+                AssemblerFormat = "         BSI |I|/0100",
                 ExpectedHex = Long(OpCodes.BranchStore, 4, 0x0100),
                 Description = "Branch and Store IAR - Indirect"
             });
@@ -830,7 +830,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "BSI",
-                AssemblerFormat = "         BSI   L1 /0100",
+                AssemblerFormat = "         BSI |L1|/0100",
                 ExpectedHex = Long(OpCodes.BranchStore, 1, 0x0100),
                 Description = "Branch and Store IAR - Long with index 1"
             });
@@ -856,7 +856,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "XIO",
-                AssemblerFormat = "         XIO   L /0001",
+                AssemblerFormat = "         XIO |L|/0001",
                 ExpectedHex = Long(OpCodes.ExecuteInputOutput, 0, 0x0001),
                 Description = "Execute I/O - Long format"
             });
@@ -864,7 +864,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "XIO",
-                AssemblerFormat = "         XIO   I /0001",
+                AssemblerFormat = "         XIO |I|/0001",
                 ExpectedHex = Long(OpCodes.ExecuteInputOutput, 4, 0x0001),
                 Description = "Execute I/O - Indirect"
             });
