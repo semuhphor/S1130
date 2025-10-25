@@ -10,7 +10,7 @@ namespace UnitTests.S1130.SystemObjects
         public void DebugMDXAssembly()
         {
             var cpu = new Cpu();
-            var source = "      ORG  /0100\n      MDX  L /0200";
+            var source = "      ORG  /0100\n      MDX |L1|/0200";
             var result = cpu.Assemble(source);
             
             Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => e.Message))}");

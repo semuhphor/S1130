@@ -67,7 +67,7 @@ namespace UnitTests.S1130.SystemObjects
 			
 			var source = @"      ORG /100
 LOOP: A |L|ONE
-      LDX |L|LOOP
+      BSI |L|LOOP
 ONE:  DC 1";
 
 			var result = _cpu.Assemble(source);

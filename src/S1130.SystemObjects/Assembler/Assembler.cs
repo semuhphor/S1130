@@ -15,6 +15,7 @@ namespace S1130.SystemObjects.Assembler
         private List<ushort> _generatedCode;
         private int _currentAddress;
         private int _startAddress;
+        private bool _startAddressSet; // Track if ORG has set the start address
         private List<AssemblyError> _errors;
         private List<AssemblyWarning> _warnings;
 
@@ -31,6 +32,7 @@ namespace S1130.SystemObjects.Assembler
             _generatedCode = new List<ushort>();
             _currentAddress = startAddress;
             _startAddress = startAddress;
+            _startAddressSet = false; // Reset flag
             _errors = new List<AssemblyError>();
             _warnings = new List<AssemblyWarning>();
 
@@ -98,6 +100,12 @@ namespace S1130.SystemObjects.Assembler
                             if (evaluator.Evaluate(parsed.Operand, out int address, out string error))
                             {
                                 _currentAddress = address;
+                                // First ORG sets the start address
+                                if (!_startAddressSet)
+                                {
+                                    _startAddress = address;
+                                    _startAddressSet = true;
+                                }
                             }
                             else
                             {
@@ -416,6 +424,12 @@ namespace S1130.SystemObjects.Assembler
             if (parts.Length > 1)
             {
                 result.Operand = string.Join("", parts.Skip(1)).Trim();
+                
+                // Reject old syntax with standalone dots (should use pipe syntax or nothing)
+                if (result.Operand.Contains(" . ") || result.Operand.StartsWith(". ") || result.Operand.EndsWith(" ."))
+                {
+                    result.Operand = null; // Will cause pattern matching to fail with appropriate error
+                }
             }
 
             return result;

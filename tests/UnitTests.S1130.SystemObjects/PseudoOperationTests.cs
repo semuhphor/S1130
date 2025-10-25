@@ -60,17 +60,32 @@ VAL: DC   5";
             var result = cpu.Assemble(source);
             Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
             
+            // Debug: Check what got assembled and loaded
+            var word1 = cpu[0x100];
+            var word2 = cpu[0x101];
+            var valAddr = result.Symbols.ContainsKey("VAL") ? result.Symbols["VAL"] : -1;
+            var valValue = valAddr >= 0 ? cpu[valAddr] : 0;
+            var genWordsInfo = result.GeneratedWords != null ? $"GenWords[0]=0x{result.GeneratedWords[0]:X4}, StartAddr=0x{result.StartAddress:X4}, Count={result.GeneratedWords.Length}" : "null";
+            var debugInfo = $"LD instruction: 0x{word1:X4} 0x{word2:X4}, VAL@0x{valAddr:X4}={valValue}, {genWordsInfo}";
+            
             // Execute: Load 5 (positive), then BP should branch
             cpu.Iar = 0x100;
             cpu.NextInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL - loads 5
-            Assert.Equal((ushort)5, cpu.Acc);
+            Assert.True(cpu.Acc == 5, $"Failed to load VAL. Expected 5, got {cpu.Acc}. {debugInfo}");
+            
+            // Check BP instruction before executing
+            var bpWord1 = cpu[0x102];
+            var bpWord2 = cpu[0x103];
+            var bpInfo = $"BP instruction: 0x{bpWord1:X4} 0x{bpWord2:X4}";
             
             cpu.NextInstruction();
+            var iarBefore = cpu.Iar;
             cpu.ExecuteInstruction(); // BP |L|TARGET
             
             // Should branch to TARGET
-            Assert.Equal((ushort)0x105, cpu.Iar);
+            var branchInfo = $"Branch failed. IAR before=0x{iarBefore:X4}, after=0x{cpu.Iar:X4}. {bpInfo}. Acc={cpu.Acc}, Carry={cpu.Carry}, Overflow={cpu.Overflow}";
+            Assert.True(cpu.Iar == 0x105, branchInfo);
         }
 
         [Fact]

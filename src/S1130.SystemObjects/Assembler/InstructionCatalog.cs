@@ -83,7 +83,7 @@ namespace S1130.SystemObjects.Assembler
             Add("LDD", new InstructionDefinition
             {
                 Mnemonic = "LDD",
-                Opcode = 0x0C,
+                Opcode = 0x19, // LoadDouble
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -125,7 +125,7 @@ namespace S1130.SystemObjects.Assembler
             Add("STD", new InstructionDefinition
             {
                 Mnemonic = "STD",
-                Opcode = 0x0D,
+                Opcode = 0x1B, // StoreDouble
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -233,7 +233,7 @@ namespace S1130.SystemObjects.Assembler
             Add("AD", new InstructionDefinition
             {
                 Mnemonic = "AD",
-                Opcode = 0x08,
+                Opcode = 0x11, // AddDouble
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -254,7 +254,7 @@ namespace S1130.SystemObjects.Assembler
             Add("SD", new InstructionDefinition
             {
                 Mnemonic = "SD",
-                Opcode = 0x09,
+                Opcode = 0x13, // SubtractDouble
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -367,7 +367,7 @@ namespace S1130.SystemObjects.Assembler
             Add("AND", new InstructionDefinition
             {
                 Mnemonic = "AND",
-                Opcode = 0x1E,
+                Opcode = 0x1C, // And
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -388,7 +388,7 @@ namespace S1130.SystemObjects.Assembler
             Add("OR", new InstructionDefinition
             {
                 Mnemonic = "OR",
-                Opcode = 0x1F,
+                Opcode = 0x1D, // Or
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -409,7 +409,7 @@ namespace S1130.SystemObjects.Assembler
             Add("EOR", new InstructionDefinition
             {
                 Mnemonic = "EOR",
-                Opcode = 0x1B,
+                Opcode = 0x1E, // ExclusiveOr
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -535,7 +535,7 @@ namespace S1130.SystemObjects.Assembler
             Add("BSC", new InstructionDefinition
             {
                 Mnemonic = "BSC",
-                Opcode = 0x04,
+                Opcode = 0x09, // Branch Skip on Condition
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortConditionOnly,
@@ -556,7 +556,7 @@ namespace S1130.SystemObjects.Assembler
             Add("BOSC", new InstructionDefinition
             {
                 Mnemonic = "BOSC",
-                Opcode = 0x04, // Same as BSC, but with interrupt reset bit set
+                Opcode = 0x09, // Branch and reset interrupt (same as BSC but with reset bit)
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortConditionOnly,
@@ -577,7 +577,7 @@ namespace S1130.SystemObjects.Assembler
             Add("BSI", new InstructionDefinition
             {
                 Mnemonic = "BSI",
-                Opcode = 0x05,
+                Opcode = 0x08, // BranchStore
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -710,7 +710,7 @@ namespace S1130.SystemObjects.Assembler
             Add("MDX", new InstructionDefinition
             {
                 Mnemonic = "MDX",
-                Opcode = 0x07,
+                Opcode = 0x0A, // ModifyIndex
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -732,7 +732,7 @@ namespace S1130.SystemObjects.Assembler
             Add("LDX", new InstructionDefinition
             {
                 Mnemonic = "LDX",
-                Opcode = 0x06,
+                Opcode = 0x0C, // LoadIndex
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortIndex1,
@@ -747,7 +747,7 @@ namespace S1130.SystemObjects.Assembler
             Add("STX", new InstructionDefinition
             {
                 Mnemonic = "STX",
-                Opcode = 0x02,
+                Opcode = 0x0D, // StoreIndex
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortIndex1,
@@ -764,7 +764,7 @@ namespace S1130.SystemObjects.Assembler
             Add("LDS", new InstructionDefinition
             {
                 Mnemonic = "LDS",
-                Opcode = 0x15,
+                Opcode = 0x04,
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -785,7 +785,7 @@ namespace S1130.SystemObjects.Assembler
             Add("STS", new InstructionDefinition
             {
                 Mnemonic = "STS",
-                Opcode = 0x16,
+                Opcode = 0x05,
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,

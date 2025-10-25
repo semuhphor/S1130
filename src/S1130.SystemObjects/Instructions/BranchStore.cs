@@ -1,4 +1,6 @@
-﻿namespace S1130.SystemObjects.Instructions
+﻿using System.Linq;
+
+namespace S1130.SystemObjects.Instructions
 {
 	public class BranchStore : BranchInstructionBase, IInstruction
 	{
@@ -22,9 +24,6 @@
 		/// </summary>
 		public override string Disassemble(ICpu cpu, ushort address)
 		{
-			var parts = new System.Collections.Generic.List<string>();
-			parts.Add("BSI  "); // Padded to 5 chars
-			
 			// Build format/tag string
 			var formatTag = new System.Text.StringBuilder();
 			
@@ -51,8 +50,6 @@
 					formatTag.Append(".");
 			}
 			
-			parts.Add(formatTag.ToString());
-			
 			// Calculate target address
 			ushort targetAddress;
 			if (cpu.FormatLong)
@@ -65,9 +62,9 @@
 				targetAddress = (ushort)(relativeAddress & 0xFFFF);
 			}
 			
-			parts.Add($"/{targetAddress:X4}");
-			
-			return string.Join(" ", parts);
+			// Format with pipes for new syntax
+			var modifier = formatTag.Length > 0 ? $"|{formatTag}|" : "";
+			return $"BSI {modifier}/{targetAddress:X4}";
 		}
 	}
 }

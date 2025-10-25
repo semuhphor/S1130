@@ -290,8 +290,15 @@ namespace S1130.SystemObjects
 		/// </summary>
 		public void NextInstruction()
 		{
+			if (Iar >= MemorySize)
+				throw new InvalidOperationException($"IAR out of bounds: 0x{Iar:X4} >= 0x{MemorySize:X4}");
+				
 			var firstWord = Memory[Iar++];                                      // retrieve the first work
 			Opcode = (ushort)((firstWord & 0xF800) >> 11);                      // .. get the opcode shifted to low-order bits
+			
+			if (Opcode >= Instructions.Length)
+				throw new InvalidOperationException($"Invalid opcode 0x{Opcode:X2} at address 0x{(Iar-1):X4}. First word: 0x{firstWord:X4}");
+			
 			CurrentInstruction = Instructions[Opcode];                          // save the current instruction
 			if (CurrentInstruction != null)                                     // q. instruciton found?
 			{                                                                   // a. yes .. decode
@@ -431,7 +438,18 @@ namespace S1130.SystemObjects
 		{
             var assembler = new S1130.SystemObjects.Assembler.Assembler();
             var lines = sourceCode.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            return assembler.Assemble(lines);
+            var result = assembler.Assemble(lines);
+            
+            // Load assembled code into CPU memory
+            if (result.Success && result.GeneratedWords != null)
+            {
+                for (int i = 0; i < result.GeneratedWords.Length; i++)
+                {
+                    Memory[result.StartAddress + i] = result.GeneratedWords[i];
+                }
+            }
+            
+            return result;
 		}
 
 		public string Disassemble(ushort address)                           // Implement ICpu.Disassemble
