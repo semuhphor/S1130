@@ -271,16 +271,13 @@ VAL2: DC   1";
             
             var source = @"      ORG /100
       B |L|T1
-T1    BP |L|T2
-T2    BNP |L|T3
-T3    BN |L|T4
-T4    BNN |L|T5
-T5    BZ |L|T6
-T6    BNZ |L|T7
-T7    BC |L|T8
-T8    BO |L|T9
-T9    BOD |L|T10
-T10   SKP  ZPM
+T1:   BP |L|T2
+T2:   BNP |L|T3
+T3:   BN |L|T4
+T4:   BZ |L|T5
+T5:   BNZ |L|T6
+T6:   BO |L|T7
+T7:   SKP
       WAIT";
 
             var result = cpu.Assemble(source);
@@ -290,3 +287,5 @@ T10   SKP  ZPM
         }
     }
 }
+
+

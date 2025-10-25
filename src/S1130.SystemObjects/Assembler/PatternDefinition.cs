@@ -99,6 +99,13 @@ namespace S1130.SystemObjects.Assembler
             
             for (int i = 0; i < parsed.Operands.Length; i++)
             {
+                // Skip condition strings (they're not numeric)
+                if (i == 1 && Operand2Type == ValueType.Conditions)
+                {
+                    // Store condition string temporarily - will be parsed in GenerateWords
+                    continue;
+                }
+                
                 if (!evaluator.Evaluate(parsed.Operands[i], out values[i], out string evalError))
                 {
                     errors.Add(evalError);
@@ -115,7 +122,7 @@ namespace S1130.SystemObjects.Assembler
                 }
             }
             
-            if (Operand2Type.HasValue && parsed.Operands.Length > 1)
+            if (Operand2Type.HasValue && parsed.Operands.Length > 1 && Operand2Type != ValueType.Conditions)
             {
                 if (!ValidateValueRange(values[1], Operand2Type.Value, out string rangeError))
                 {
@@ -127,8 +134,9 @@ namespace S1130.SystemObjects.Assembler
             if (errors.Count > 0)
                 return null;
             
-            // Generate instruction words based on pattern
-            return GenerateWords(opcode, parsed.Modifier, values, shiftType);
+            // Generate instruction words based on pattern, pass condition string if present
+            string conditionString = (Operand2Type == ValueType.Conditions && parsed.Operands.Length > 1) ? parsed.Operands[1] : null;
+            return GenerateWords(opcode, parsed.Modifier, values, conditionString, shiftType);
         }
         
         private bool ValidateValueRange(int value, ValueType type, out string error)
@@ -217,7 +225,7 @@ namespace S1130.SystemObjects.Assembler
             return result;
         }
         
-        private ushort[] GenerateWords(byte opcode, string modifier, int[] values, byte? shiftType = null)
+        private ushort[] GenerateWords(byte opcode, string modifier, int[] values, string conditionString = null, byte? shiftType = null)
         {
             // Build instruction word(s) based on pattern
             // Bit layout: OpCode(5) | Format(1) | Tag(2) | [Indirect(1) or Modifier bits] | Displacement/Modifiers(7-8)
@@ -279,10 +287,11 @@ namespace S1130.SystemObjects.Assembler
                     // Two-operand (MDX): second value goes in bits 8-15 of word 1
                     word1 |= (ushort)(values[1] & 0xFF);
                 }
-                else if (Operand2Type == ValueType.Conditions)
+                else if (!string.IsNullOrEmpty(conditionString))
                 {
-                    // BSC/BOSC condition codes - TODO: need to handle condition string parsing
-                    // For now this is a placeholder
+                    // BSC/BOSC condition codes - parse condition string into modifier bits
+                    byte conditionBits = ParseConditionCodes(conditionString);
+                    word1 |= conditionBits;
                 }
                 
                 // Word 2 contains the address
@@ -309,6 +318,37 @@ namespace S1130.SystemObjects.Assembler
                 
                 return new ushort[] { word1 };
             }
+        }
+        
+        /// <summary>
+        /// Parse BSC/BOSC condition codes string into modifier bits.
+        /// Valid characters: + - Z E C O
+        /// Bit mapping: O=0x01, C=0x02, E=0x04, +=0x08, -=0x10, Z=0x20
+        /// </summary>
+        private byte ParseConditionCodes(string conditions)
+        {
+            byte modifiers = 0;
+            
+            if (string.IsNullOrEmpty(conditions))
+                return modifiers;
+            
+            foreach (char c in conditions)
+            {
+                switch (c)
+                {
+                    case '+': modifiers |= 0x08; break; // Plus (accumulator positive)
+                    case '-': modifiers |= 0x10; break; // Minus (accumulator negative)
+                    case 'Z': modifiers |= 0x20; break; // Zero (accumulator zero)
+                    case 'E': modifiers |= 0x04; break; // Even (accumulator even)
+                    case 'C': modifiers |= 0x02; break; // Carry (carry off)
+                    case 'O': modifiers |= 0x01; break; // Overflow (overflow off)
+                    default:
+                        // Ignore invalid characters (error checking should happen earlier)
+                        break;
+                }
+            }
+            
+            return modifiers;
         }
         
         private class ParsedOperand

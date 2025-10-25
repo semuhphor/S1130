@@ -140,10 +140,10 @@ namespace UnitTests.S1130.SystemObjects
             var cpu = new Cpu();
             
             var source = @"      ORG  /0100
-      LDD  L /0200
-      STD  L /0300
-      AD   L /0400
-      SD   L /0500";
+      LDD  |L|/0200
+      STD  |L|/0300
+      AD   |L|/0400
+      SD   |L|/0500";
             
             var result = cpu.Assemble(source);
             Assert.True(result.Success);
@@ -313,7 +313,7 @@ namespace UnitTests.S1130.SystemObjects
         }
         
         [Theory]
-        [InlineData("MDX |L|/0200")]
+        [InlineData("MDX |L1|/0200")]
         public void RoundTrip_ModifyIndex(string instruction)
         {
             var cpu = new Cpu();
