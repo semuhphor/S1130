@@ -144,7 +144,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    . /0100",
+                AssemblerFormat = "         LD /0100",
                 ExpectedHex = new[] { Short(OpCodes.Load, 0, 0x0100) },
                 Description = "Load - Short format, no index"
             });
@@ -152,7 +152,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    1 /0100",
+                AssemblerFormat = "         LD |1|/0100",
                 ExpectedHex = new[] { Short(OpCodes.Load, 1, 0x0100) },
                 Description = "Load - Short format, index 1"
             });
@@ -160,7 +160,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    2 /0100",
+                AssemblerFormat = "         LD |2|/0100",
                 ExpectedHex = new[] { Short(OpCodes.Load, 2, 0x0100) },
                 Description = "Load - Short format, index 2"
             });
@@ -168,7 +168,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    3 /0100",
+                AssemblerFormat = "         LD |3|/0100",
                 ExpectedHex = new[] { Short(OpCodes.Load, 3, 0x0100) },
                 Description = "Load - Short format, index 3"
             });
@@ -241,7 +241,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDD",
-                AssemblerFormat = "         LDD   . /0100",
+                AssemblerFormat = "         LDD /0100",
                 ExpectedHex = new[] { Short(OpCodes.LoadDouble, 0, 0x0100) },
                 Description = "Load Double - Short format"
             });
@@ -266,7 +266,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STO",
-                AssemblerFormat = "         STO   . /0100",
+                AssemblerFormat = "         STO /0100",
                 ExpectedHex = new[] { Short(OpCodes.Store, 0, 0x0100) },
                 Description = "Store - Short format"
             });
@@ -291,7 +291,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STD",
-                AssemblerFormat = "         STD   . /0100",
+                AssemblerFormat = "         STD /0100",
                 ExpectedHex = new[] { Short(OpCodes.StoreDouble, 0, 0x0100) },
                 Description = "Store Double - Short format"
             });
@@ -308,7 +308,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "A",
-                AssemblerFormat = "         A     . /0100",
+                AssemblerFormat = "         A /0100",
                 ExpectedHex = new[] { Short(OpCodes.Add, 0, 0x0100) },
                 Description = "Add - Short format"
             });
@@ -333,7 +333,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "AD",
-                AssemblerFormat = "         AD    . /0100",
+                AssemblerFormat = "         AD /0100",
                 ExpectedHex = new[] { Short(OpCodes.AddDouble, 0, 0x0100) },
                 Description = "Add Double - Short format"
             });
@@ -350,7 +350,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "S",
-                AssemblerFormat = "         S     . /0100",
+                AssemblerFormat = "         S /0100",
                 ExpectedHex = new[] { Short(OpCodes.Subtract, 0, 0x0100) },
                 Description = "Subtract - Short format"
             });
@@ -375,7 +375,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "SD",
-                AssemblerFormat = "         SD    . /0100",
+                AssemblerFormat = "         SD /0100",
                 ExpectedHex = new[] { Short(OpCodes.SubtractDouble, 0, 0x0100) },
                 Description = "Subtract Double - Short format"
             });
@@ -392,7 +392,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "M",
-                AssemblerFormat = "         M     . /0100",
+                AssemblerFormat = "         M /0100",
                 ExpectedHex = new[] { Short(OpCodes.Multiply, 0, 0x0100) },
                 Description = "Multiply - Short format"
             });
@@ -417,7 +417,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "D",
-                AssemblerFormat = "         D     . /0100",
+                AssemblerFormat = "         D /0100",
                 ExpectedHex = new[] { Short(OpCodes.Divide, 0, 0x0100) },
                 Description = "Divide - Short format"
             });
@@ -442,7 +442,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "AND",
-                AssemblerFormat = "         AND   . /0100",
+                AssemblerFormat = "         AND /0100",
                 ExpectedHex = new[] { Short(OpCodes.And, 0, 0x0100) },
                 Description = "AND - Short format"
             });
@@ -467,7 +467,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "OR",
-                AssemblerFormat = "         OR    . /0100",
+                AssemblerFormat = "         OR /0100",
                 ExpectedHex = new[] { Short(OpCodes.Or, 0, 0x0100) },
                 Description = "OR - Short format"
             });
@@ -492,7 +492,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "EOR",
-                AssemblerFormat = "         EOR   . /0100",
+                AssemblerFormat = "         EOR /0100",
                 ExpectedHex = new[] { Short(OpCodes.ExclusiveOr, 0, 0x0100) },
                 Description = "Exclusive OR - Short format"
             });
@@ -517,7 +517,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   1 /0100",
+                AssemblerFormat = "         LDX |1|/0100",
                 ExpectedHex = new[] { Short(OpCodes.LoadIndex, 1, 0x0100) },
                 Description = "Load Index - Index 1, short"
             });
@@ -525,7 +525,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   2 /0100",
+                AssemblerFormat = "         LDX |2|/0100",
                 ExpectedHex = new[] { Short(OpCodes.LoadIndex, 2, 0x0100) },
                 Description = "Load Index - Index 2, short"
             });
@@ -533,7 +533,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LDX",
-                AssemblerFormat = "         LDX   3 /0100",
+                AssemblerFormat = "         LDX |3|/0100",
                 ExpectedHex = new[] { Short(OpCodes.LoadIndex, 3, 0x0100) },
                 Description = "Load Index - Index 3, short"
             });
@@ -590,7 +590,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STX",
-                AssemblerFormat = "         STX   1 /0100",
+                AssemblerFormat = "         STX |1|/0100",
                 ExpectedHex = new[] { Short(OpCodes.StoreIndex, 1, 0x0100) },
                 Description = "Store Index - Index 1, short"
             });
@@ -615,7 +615,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "MDX",
-                AssemblerFormat = "         MDX   1 /0100",
+                AssemblerFormat = "         MDX |1|/0100",
                 ExpectedHex = new[] { Short(OpCodes.ModifyIndex, 1, 0x0100) },
                 Description = "Modify Index - Index 1, short"
             });
@@ -640,7 +640,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "LD",
-                AssemblerFormat = "         LD    . /0100",
+                AssemblerFormat = "         LD /0100",
                 ExpectedHex = new[] { Short(OpCodes.LoadStatus, 0, 0x0100) },
                 Description = "Load Status - Short format"
             });
@@ -657,7 +657,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "STS",
-                AssemblerFormat = "         STS   . /0100",
+                AssemblerFormat = "         STS /0100",
                 ExpectedHex = new[] { Short(OpCodes.StoreStatus, 0, 0x0100) },
                 Description = "Store Status - Short format"
             });
@@ -840,7 +840,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "WAIT",
-                AssemblerFormat = "         WAIT  . /0000",
+                AssemblerFormat = "         WAIT /0000",
                 ExpectedHex = new[] { Short(OpCodes.Wait, 0, 0x0000) },
                 Description = "Wait for interrupt"
             });
@@ -849,7 +849,7 @@ namespace UnitTests.S1130.SystemObjects
             tests.Add(new InstructionTest
             {
                 Mnemonic = "XIO",
-                AssemblerFormat = "         XIO   . /0001",
+                AssemblerFormat = "         XIO /0001",
                 ExpectedHex = new[] { Short(OpCodes.ExecuteInputOutput, 0, 0x0001) },
                 Description = "Execute I/O - Short format"
             });
