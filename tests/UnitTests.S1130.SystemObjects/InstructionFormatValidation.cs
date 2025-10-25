@@ -136,8 +136,9 @@ namespace UnitTests.S1130.SystemObjects
                 (ushort)(((uint)op << 11) | (tag << 8) | (disp & 0xFF));
 
             // Helper for calculating long format hex (returns 2 words)
+            // IBM 1130 uses bit 5 (0x0400) for long format, NOT bit 15!
             ushort[] Long(OpCodes op, uint tag, ushort addr) => 
-                new[] { (ushort)(((uint)op << 11) | (tag << 8) | 1), addr };
+                new[] { (ushort)(((uint)op << 11) | (tag << 8) | 0x0400), addr };
 
             // LOAD (LD) - OpCode 0x18
             tests.Add(new InstructionTest

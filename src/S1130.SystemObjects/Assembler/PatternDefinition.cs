@@ -259,11 +259,11 @@ namespace S1130.SystemObjects.Assembler
                 }
             }
             
-            // Set format bit (bit 5)
+            // Set format bit (IBM bit 5 = 0x0400)
             if (formatLong)
                 word1 |= 0x0400; // Constants.FormatLong
             
-            // Set tag bits (bits 6-7)
+            // Set tag bits (IBM bits 6-7)
             word1 |= (ushort)((tag & 0x03) << 8); // Constants.TagShift
             
             // Handle different pattern types
