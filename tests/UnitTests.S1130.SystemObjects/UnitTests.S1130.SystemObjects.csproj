@@ -18,4 +18,10 @@
     <ProjectReference Include="..\..\src\S1130.SystemObjects\S1130.SystemObjects.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

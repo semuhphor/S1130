@@ -542,6 +542,10 @@ namespace S1130.SystemObjects.Assembler
                     InstructionPattern.ShortIndex1ConditionOnly,
                     InstructionPattern.ShortIndex2ConditionOnly,
                     InstructionPattern.ShortIndex3ConditionOnly,
+                    // Unconditional branch patterns (for B pseudo-op)
+                    InstructionPattern.ShortNoIndex,
+                    InstructionPattern.LongNoIndex,
+                    InstructionPattern.IndirectNoIndex,
                     InstructionPattern.LongWithConditions,
                     InstructionPattern.LongIndex1WithConditions,
                     InstructionPattern.LongIndex2WithConditions,
