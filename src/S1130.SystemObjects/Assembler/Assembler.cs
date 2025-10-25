@@ -133,15 +133,37 @@ namespace S1130.SystemObjects.Assembler
                         else if (parsed.Opcode == "BSS")
                         {
                             // BSS reserves space
-                            // Format can be: BSS n  or  BSS E n (E for equate, same as EQU + BSS)
-                            string sizeExpr = parsed.Operand;
+                            // Supported formats:
+                            //   BSS 100       - reserve 100 words
+                            //   BSS |E|       - align to even, reserve 0
+                            //   BSS |E|0      - align to even, reserve 0
+                            //   BSS |E|2048   - align to even, reserve 2048
                             
-                            if (parsed.Operand != null && parsed.Operand.Trim().StartsWith("E ", StringComparison.OrdinalIgnoreCase))
+                            string sizeExpr = parsed.Operand;
+                            bool alignToEven = false;
+                            
+                            if (parsed.Operand != null)
                             {
-                                // BSS E n format - treat as EQU for the label, then reserve n words
-                                sizeExpr = parsed.Operand.Substring(2).Trim();
+                                // Check for |E| pipe syntax (even alignment)
+                                if (parsed.Operand.StartsWith("|E|", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    alignToEven = true;
+                                    // Extract size after |E|, default to 0 if none
+                                    sizeExpr = parsed.Operand.Substring(3).Trim();
+                                    if (string.IsNullOrEmpty(sizeExpr))
+                                    {
+                                        sizeExpr = "0";
+                                    }
+                                }
                             }
                             
+                            // Align to even address if requested
+                            if (alignToEven && (_currentAddress % 2) != 0)
+                            {
+                                _currentAddress++;
+                            }
+                            
+                            // Evaluate size expression and reserve space
                             var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
                             if (evaluator.Evaluate(sizeExpr, out int size, out string error))
                             {
@@ -223,14 +245,38 @@ namespace S1130.SystemObjects.Assembler
                     // Handle BSS (advance address without generating code)
                     if (parsed.Opcode == "BSS")
                     {
-                        string sizeExpr = parsed.Operand;
+                        // Supported formats:
+                        //   BSS 100       - reserve 100 words
+                        //   BSS |E|       - align to even, reserve 0
+                        //   BSS |E|0      - align to even, reserve 0
+                        //   BSS |E|2048   - align to even, reserve 2048
                         
-                        if (parsed.Operand != null && parsed.Operand.Trim().StartsWith("E ", StringComparison.OrdinalIgnoreCase))
+                        string sizeExpr = parsed.Operand;
+                        bool alignToEven = false;
+                        
+                        if (parsed.Operand != null)
                         {
-                            // BSS E n format
-                            sizeExpr = parsed.Operand.Substring(2).Trim();
+                            // Check for |E| pipe syntax (even alignment)
+                            if (parsed.Operand.StartsWith("|E|", StringComparison.OrdinalIgnoreCase))
+                            {
+                                alignToEven = true;
+                                // Extract size after |E|, default to 0 if none
+                                sizeExpr = parsed.Operand.Substring(3).Trim();
+                                if (string.IsNullOrEmpty(sizeExpr))
+                                {
+                                    sizeExpr = "0";
+                                }
+                            }
                         }
                         
+                        // Align to even address if requested
+                        if (alignToEven && (_currentAddress % 2) != 0)
+                        {
+                            _generatedCode.Add(0); // Pad with zero to align
+                            _currentAddress++;
+                        }
+                        
+                        // Evaluate size expression and reserve space
                         var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
                         if (evaluator.Evaluate(sizeExpr, out int size, out string error))
                         {

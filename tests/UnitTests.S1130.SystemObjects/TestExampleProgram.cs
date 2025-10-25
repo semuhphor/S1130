@@ -29,7 +29,7 @@ LOOP:  SLT  1            // Shift left together 1 bit
 //
 // Data section
 //
-// Define constant 1 as a double-word
+       BSS  |E|          // Align to even address
 ONE:   DC   0            // High word (ACC) = 0
        DC   1            // Low word (EXT) = 1
 ";
@@ -39,6 +39,27 @@ ONE:   DC   0            // High word (ACC) = 0
             Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
             Assert.Empty(result.Errors);
             Assert.True(result.GeneratedWords.Length > 0);
+        }
+
+        [Fact]
+        public void BssFormatsWork()
+        {
+            var cpu = new Cpu();
+            
+            // Test various BSS formats
+            var source = @"
+       ORG  /100
+       BSS  100          // Reserve 100 words
+       BSS  |E|          // Align to even
+       BSS  |E|0         // Align to even, reserve 0
+       BSS  |E|50        // Align to even, reserve 50
+       DC   1
+";
+
+            var result = cpu.Assemble(source);
+            
+            Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
+            Assert.Empty(result.Errors);
         }
     }
 }

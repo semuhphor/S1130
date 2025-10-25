@@ -25,6 +25,7 @@ LOOP:  SLT  1            // Shift left together 1 bit
 //
 // Data section
 //
+       BSS  |E|          // Align to even address
 ONE:   DC   0            // High word (ACC) = 0
        DC   1            // Low word (EXT) = 1
 `;
