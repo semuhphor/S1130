@@ -18,17 +18,17 @@ const EXAMPLE_PROGRAM = `* IBM 1130 Shift Left Test Program
 *
 * Main program loop
 *
-START  LDD  L ONE     // Load double-word (0,1) into ACC and EXT
-LOOP   SLT  . 1       // Shift left together 1 bit
-       BSC  L LOOP,C  // Carry OFF -- keep shiftting
-       BSC  L START   // Carry ON - reload 0,1 into acc/ext.
+START  LDD  |L|ONE       * Load double-word (0,1) into ACC and EXT
+LOOP   SLT  1            * Shift left together 1 bit
+       BSC  |L|LOOP,C    * Carry OFF -- keep shifting
+       BSC  |L|START     * Carry ON - reload 0,1 into acc/ext
 *
 * Data section
 *
 * Define constant 1 as a double-word
-       BSS  E        // Alignt to even address
-ONE    DC   0        // High word (ACC) = 0
-       DC   1        // Low word (EXT) = 1
+       BSS  E            * Align to even address
+ONE    DC   0            * High word (ACC) = 0
+       DC   1            * Low word (EXT) = 1
 `;
 
 const AssemblerEditor: React.FC<AssemblerEditorProps> = ({ onAssemblyComplete }) => {
