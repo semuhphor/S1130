@@ -24,8 +24,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			
 			InsCpu[0x1000] = 0x400;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x102, InsCpu.Iar);
 			Assert.Equal(0x410, InsCpu[0x1000]);
+			Assert.Equal(0x102, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -48,8 +48,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			
 			InsCpu.Xr[2] = 0xffff;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x103, InsCpu.Iar);
 			Assert.Equal(0x1021, InsCpu.Xr[2]);
+			Assert.Equal(0x103, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -61,8 +61,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Xr[1] = 0x1400;
 			InsCpu[0x1022] = 0xffff;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x102, InsCpu.Iar);
 			Assert.Equal(0x13ff, InsCpu.Xr[1]);
+			Assert.Equal(0x102, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -74,8 +74,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Xr[2] = 0xffff;
 			InsCpu[0x1022] = 0x0020;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x103, InsCpu.Iar);
 			Assert.Equal(0x1f, InsCpu.Xr[2]);
+			Assert.Equal(0x103, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -86,8 +86,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			
 			InsCpu[0x1000] = 0x400;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x102, InsCpu.Iar);
 			Assert.Equal(0x3f4, InsCpu[0x1000]);
+			Assert.Equal(0x102, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -97,8 +97,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.ModifyIndex, 0, 0xF4, 0x1000, InsCpu);
 			InsCpu[0x1000] = 2;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x103, InsCpu.Iar);
 			Assert.Equal(0xfff6, InsCpu[0x1000]);
+			Assert.Equal(0x103, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -108,8 +108,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.ModifyIndex, 0, 0x4, 0x1000, InsCpu);
 			InsCpu[0x1000] = 0xffff;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x103, InsCpu.Iar);
 			Assert.Equal(0x0003, InsCpu[0x1000]);
+			Assert.Equal(0x103, InsCpu.Iar);
 		}
 
 		[Fact]

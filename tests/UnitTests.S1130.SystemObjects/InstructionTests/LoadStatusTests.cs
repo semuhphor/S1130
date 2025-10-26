@@ -18,6 +18,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
+            Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -31,6 +32,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.True(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
+            Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -44,6 +46,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.False(InsCpu.Carry);
 			Assert.True(InsCpu.Overflow);
+            Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -57,6 +60,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ExecuteInstruction();
 			Assert.True(InsCpu.Carry);
 			Assert.True(InsCpu.Overflow);
+            Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		[Fact]

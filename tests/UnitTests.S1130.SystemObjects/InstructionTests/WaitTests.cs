@@ -15,6 +15,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.False(InsCpu.Wait);
 			InsCpu.ExecuteInstruction();
 			Assert.True(InsCpu.Wait);
+			Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		protected override void BuildAnInstruction()

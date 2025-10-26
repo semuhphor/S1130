@@ -15,6 +15,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[InsCpu.Iar + 0x10] = 0x1234;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x1234, InsCpu.Acc);
+			Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -27,6 +28,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[InsCpu.Iar + 0x04] = 0x1234;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x1234, InsCpu.Acc);
+			Assert.Equal(0x7fe1, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -38,6 +40,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 	        InsCpu[InsCpu.Iar + GetOffsetFor(0xe0)] = 0x82e0;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x82e0, InsCpu.Acc);
+            Assert.Equal(0x101, InsCpu.Iar);
         }
 
         [Fact]
@@ -50,6 +53,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu[InsCpu.Xr[2] + 0x10] = 0x1222;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x1222, InsCpu.Acc);
+            Assert.Equal(0x101, InsCpu.Iar);
         }
 
         [Fact]
@@ -61,6 +65,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
             InsCpu[0x400] = 0x1234;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x1234, InsCpu.Acc);
+            Assert.Equal(0x102, InsCpu.Iar);
         }
 
         [Fact]
@@ -73,6 +78,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
             InsCpu[0x450] = 0x1234;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x1234, InsCpu.Acc);
+            Assert.Equal(0x102, InsCpu.Iar);
         }
 
         [Fact]
@@ -86,6 +92,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
             InsCpu[0x600] = 0x1234;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x1234, InsCpu.Acc);
+            Assert.Equal(0x102, InsCpu.Iar);
         }
 
 		protected override void BuildAnInstruction()

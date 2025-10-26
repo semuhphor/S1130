@@ -17,6 +17,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.ConsoleSwitches = 0x4321;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x4321, InsCpu[0x500]);
+			Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		protected override void BuildAnInstruction()

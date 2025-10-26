@@ -17,6 +17,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.Equal(0x03, InsCpu[0x110] & 0x03);
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
+            Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -31,6 +32,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.Equal(0x01, InsCpu[0x7f10] & 0x03);
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
+            Assert.Equal(0x7f01, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -44,6 +46,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.Equal(0x02, InsCpu[0x0400] & 0x03);
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
+            Assert.Equal(0x102, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -58,6 +61,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.Equal(0x03, InsCpu[0x360] & 0x03);
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
+            Assert.Equal(0x102, InsCpu.Iar);
 		}
 
 		[Fact]
@@ -74,6 +78,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.Equal(0x02, InsCpu[0x0600] & 0x03);
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
+            Assert.Equal(0x102, InsCpu.Iar);
 		}
 
 		protected override void BuildAnInstruction()
