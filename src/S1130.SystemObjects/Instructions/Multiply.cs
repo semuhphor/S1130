@@ -8,6 +8,7 @@ namespace S1130.SystemObjects.Instructions
 		public void Execute(ICpu cpu)
 		{
 			cpu.AccExt = SignExtend(cpu.Acc) * SignExtend(cpu[GetEffectiveAddress(cpu)]);
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

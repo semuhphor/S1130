@@ -10,14 +10,13 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_STD_Short_NoTag()
         {
 			BeforeEachTest();
-            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x09);
-            InsCpu.NextInstruction();
+            InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x10, InsCpu);
+            
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
             InsCpu.ExecuteInstruction();
-            int effectiveAddress = InsCpu.Iar + 0x09;
-            Assert.Equal(0x2345, InsCpu[effectiveAddress++]);
-            Assert.Equal(0x1234, InsCpu[effectiveAddress]);
+            Assert.Equal(0x2345, InsCpu[0x110]);
+            Assert.Equal(0x1234, InsCpu[0x111]);
         }
 
         [Fact]
@@ -25,7 +24,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
             InstructionBuilder.BuildLongAtIar(OpCodes.StoreDouble, 0, 0x400, InsCpu);
-            InsCpu.NextInstruction();
+            
             InsCpu.Acc = 0xbfbf;
             InsCpu.Ext = 0xfbfb;
             InsCpu.ExecuteInstruction();
@@ -38,7 +37,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
             InstructionBuilder.BuildLongAtIar(OpCodes.StoreDouble, 3, 0x350, InsCpu);
-            InsCpu.NextInstruction();
+            
             InsCpu.Xr[3] = 0x100;
             InsCpu.Acc = 0x1234;
             InsCpu.Ext = 0x4234;
@@ -52,7 +51,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
             InstructionBuilder.BuildLongIndirectAtIar(OpCodes.StoreDouble, 1, 0x400, InsCpu);
-            InsCpu.NextInstruction();
+            
             InsCpu.Xr[1] = 0x100;
             InsCpu[0x500] = 0x600;
             InsCpu.Acc = 0x1234;
@@ -66,19 +65,18 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_STD_Short_NoTag_OddAddress()
         {
 			BeforeEachTest();
-            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x10);
-            InsCpu.NextInstruction();
+            InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x11, InsCpu);
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
+            InsCpu[0x112] = 0x645; // will not be overwritten
             InsCpu.ExecuteInstruction();
-            var effectiveAddress = InsCpu.Iar + 0x10;
-            Assert.Equal(0x2345, InsCpu[effectiveAddress++]);
-            Assert.Equal(0, InsCpu[effectiveAddress]);
+            Assert.Equal(0x2345, InsCpu[0x111]);
+            Assert.Equal(0x645, InsCpu[0x112]);
         }
 
 	    protected override void BuildAnInstruction()
 	    {
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreDouble, 0, 0x10);
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x10, InsCpu);
 		}
 
 	    protected override string OpName

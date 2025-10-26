@@ -10,8 +10,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_NoCarry()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 0, 0x83);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 0, 0x83, InsCpu);
 			ExecAndTest(initialAcc: 0x0001, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x0008, expectedExt: 0x0120, expectedCarry: false);
 		}
 
@@ -19,8 +18,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_Carry()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
 			InsCpu.Xr[1] = 0x84;
 			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x2340, expectedExt: 0x0240, expectedCarry: true);
 		}
@@ -29,8 +27,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_ClearAcc_NoCarry()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 3, 0x00, InsCpu);
 			InsCpu.Xr[3] = 0x90;
 			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x0024, expectedExt: 0x0000, expectedCarry: false);
 		}
@@ -39,8 +36,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_IgnoresDisplacmentWithTag()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x02);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 3, 0x02, InsCpu);
 			InsCpu.Xr[3] = 0x0081;
 			ExecAndTest(initialAcc: 0x0000, initialExt: 0x0001, initialCarry: true, expectedAcc: 0x0000, expectedExt: 0x0002, expectedCarry: false);
 		}
@@ -49,8 +45,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_Full63BitShift_NoCarry()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 0, 0xbf);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 0, 0xbf, InsCpu);
 			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x0000, expectedExt: 0x0000, expectedCarry: false);
 		}
 
@@ -58,15 +53,14 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_NoShift()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x80);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x80, InsCpu);
 			InsCpu.Xr[1] = 0;
 			ExecAndTest(initialAcc: 0x1234, initialExt: 0x0024, initialCarry: true, expectedAcc: 0x1234, expectedExt: 0x0024, expectedCarry: true);
 		}
 
 		protected override void BuildAnInstruction()
 		{
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x80);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x80, InsCpu);
 		}
 
 		protected override string OpName

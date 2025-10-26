@@ -10,6 +10,7 @@
             var effectiveAddress = GetEffectiveAddress(cpu);
             cpu.Acc = cpu[effectiveAddress];
             cpu.Ext = cpu[effectiveAddress | 1];
+            SetIarToNextInstruction(cpu);
         }
     }
 }

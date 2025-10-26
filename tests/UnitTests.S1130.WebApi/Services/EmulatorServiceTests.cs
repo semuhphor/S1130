@@ -53,12 +53,12 @@ public class EmulatorServiceTests
         // Arrange
         var service = new EmulatorService();
         string validCode = @"       ORG  /100
-START  LD   L 1 DATA
-       A    L 1 DATA
-       STO  L 1 RESULT
+START: LD   |L1|DATA
+       A    |L1|DATA
+       STO  |L1|RESULT
        WAIT
-DATA   DC   5
-RESULT BSS  1";
+DATA:  DC   5
+RESULT: BSS  1";
         
         // Act
         var result = service.Assemble(validCode);
@@ -90,9 +90,9 @@ RESULT BSS  1";
         // Arrange
         var service = new EmulatorService();
         string code = @"       ORG  /100
-       LD   L DATA
+       LD   |L|DATA
        WAIT
-DATA   DC   10";
+DATA:  DC   10";
         var assembleResult = service.Assemble(code);
         Assert.True(assembleResult.Success, $"Assembly failed: {string.Join(", ", assembleResult.Errors)}");
         
@@ -130,9 +130,9 @@ DATA   DC   10";
         var service = new EmulatorService();
         // Simple infinite loop - BSC with ZPM conditions (zero, plus, or minus - always true)
         string code = @"       ORG  /100
-LOOP   LD   L DATA
-       BSC  L ZPM LOOP
-DATA   DC   1";
+LOOP:  LD   |L|DATA
+       BSC  |L|LOOP,ZPM
+DATA:  DC   1";
         var assembleResult = service.Assemble(code);
         Assert.True(assembleResult.Success, $"Assembly failed: {string.Join(", ", assembleResult.Errors)}");
         
@@ -152,9 +152,9 @@ DATA   DC   1";
         // Arrange
         var service = new EmulatorService();
         string code = @"       ORG  /100
-LOOP   LD   L DATA
-       BSC  L ZPM LOOP
-DATA   DC   1";
+LOOP:  LD   |L|DATA
+       BSC  |L|LOOP,ZPM
+DATA:  DC   1";
         var assembleResult = service.Assemble(code);
         Assert.True(assembleResult.Success, $"Assembly failed: {string.Join(", ", assembleResult.Errors)}");
         service.StartExecution(1000);
@@ -173,9 +173,9 @@ DATA   DC   1";
         // Arrange
         var service = new EmulatorService();
         string code = @"       ORG  /100
-       LD   L DATA
+       LD   |L|DATA
        WAIT
-DATA   DC   5";
+DATA:  DC   5";
         var assembleResult = service.Assemble(code);
         Assert.True(assembleResult.Success, $"Assembly failed: {string.Join(", ", assembleResult.Errors)}");
         

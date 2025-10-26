@@ -117,7 +117,6 @@ public class EmulatorService
                 // Clear wait state to allow execution
                 _cpu.Wait = false;
                 
-                _cpu.NextInstruction();  // Fetch and decode the instruction
                 _cpu.ExecuteInstruction();  // Execute it
             }
             return GetState();
@@ -162,7 +161,6 @@ public class EmulatorService
                             }
                             else
                             {
-                                _cpu.NextInstruction();  // Fetch and decode
                                 _cpu.ExecuteInstruction();  // Execute
                                 
                                 // Check if we hit WAIT after execution

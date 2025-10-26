@@ -10,11 +10,10 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_STX_Short_Xr1()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreIndex, 1, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreIndex, 1, 0x10, InsCpu);
 			InsCpu.Xr[1] = 0x2001;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x2001, InsCpu[InsCpu.Iar + 0x10]);
+			Assert.Equal(0x2001, InsCpu[0x110]);
 		}
 
 		[Fact]
@@ -22,11 +21,10 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InsCpu.Iar = 0x7f00;
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreIndex, 2, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreIndex, 2, 0x10, InsCpu);
 			InsCpu.Xr[2] = 0x2345;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x2345, InsCpu[InsCpu.Iar + 0x10]);
+			Assert.Equal(0x2345, InsCpu[0x7f10]);
 		}
 
 		[Fact]
@@ -34,7 +32,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.StoreIndex, 0, 0x400, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(InsCpu[0x400], InsCpu[0x400]);
 		}
@@ -44,7 +42,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.StoreIndex, 3, 0x350, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[3] = 0x1003;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x1003, InsCpu[0x350]);
@@ -55,7 +53,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.StoreIndex, 1, 0x400, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[1] = 0x1001;
 			InsCpu[0x400] = 0x600;
 			InsCpu.ExecuteInstruction();

@@ -12,10 +12,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InsCpu.Carry = true;
 			InsCpu.Overflow = true;
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreStatus, 0, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreStatus, 0, 0x10, InsCpu);
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x03, InsCpu[InsCpu.Iar + 0x10] & 0x03);
+			Assert.Equal(0x03, InsCpu[0x110] & 0x03);
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
 		}
@@ -27,10 +26,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Carry = false;
 			InsCpu.Overflow = true;
 			InsCpu.Iar = 0x7f00;
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.StoreStatus, 0, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreStatus, 0, 0x10, InsCpu);
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x01, InsCpu[InsCpu.Iar + 0x10] & 0x03);
+			Assert.Equal(0x01, InsCpu[0x7f10] & 0x03);
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
 		}
@@ -42,7 +40,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Carry = true;
 			InsCpu.Overflow = false;
 			InstructionBuilder.BuildLongAtIar(OpCodes.StoreStatus, 0, 0x400, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x02, InsCpu[0x0400] & 0x03);
 			Assert.False(InsCpu.Carry);
@@ -56,7 +53,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Carry = true;
 			InsCpu.Overflow = true;
 			InstructionBuilder.BuildLongAtIar(OpCodes.StoreStatus, 3, 0x350, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu.Xr[3] = 0x10;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x03, InsCpu[0x360] & 0x03);
@@ -71,7 +67,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Carry = true;
 			InsCpu.Overflow = false;
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.StoreStatus, 1, 0x400, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu.Xr[1] = 0x100;
 			InsCpu[0x500] = 0x600;
 			InsCpu.Acc = 0x1234;

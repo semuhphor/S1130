@@ -10,8 +10,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLCA_NoCarry()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 0, 0x43);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 0, 0x43, InsCpu);
+			
 			ExecAndTest(initialAcc: 0x2000, initialCarry: false, initialOverflow: false, expectedAcc: 0x0000, expectedCarry: true, expectedOverflow: false);
 		}
 
@@ -19,8 +19,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLCA_XR1_Counts()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
+			
 			InsCpu.Xr[1] = 0x45;
 			ExecAndTest(initialAcc: 0x1400, initialCarry: false, expectedAcc: 0xA000, expectedCarry: true);
 			Assert.Equal(2, InsCpu.Xr[1]);
@@ -30,8 +30,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLCA_XR1_Counts_63Bits()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
+			
 			InsCpu.Xr[1] = 0x7f;
 			ExecAndTest(initialAcc: 0x4000, initialCarry: false, expectedAcc: 0x8000, expectedCarry: true);
 			Assert.Equal(62, InsCpu.Xr[1]);
@@ -41,8 +41,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLCA_XR1_Counts_63BitsFindsNothing()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 1, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
+			
 			InsCpu.Xr[1] = 0x7f;
 			ExecAndTest(initialAcc: 0x0000, initialCarry: false, expectedAcc: 0x0000, expectedCarry: false);
 			Assert.Equal(0, InsCpu.Xr[1]);
@@ -52,8 +52,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLCA_XR3_CountGoesZero_BitShiftsToHigh()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 3, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 3, 0x00, InsCpu);
+			
 			InsCpu.Xr[3] = 0x45;
 			ExecAndTest(initialAcc: 0x0400, initialCarry: true, expectedAcc: 0x8000, expectedCarry: false);
 			Assert.Equal(0, InsCpu.Xr[3]);
@@ -63,8 +63,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLCA_XR2_CountNotEnoughToMoveToHighBit()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 2, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 2, 0x00, InsCpu);
+			
 			InsCpu.Xr[2] = 0x45;
 			ExecAndTest(initialAcc: 0x0100, initialCarry: true, expectedAcc: 0x2000, expectedCarry: false);
 			Assert.Equal(0, InsCpu.Xr[2]);
@@ -72,7 +72,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 
 		protected override void BuildAnInstruction()
 		{
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftLeft, 2, 0x00);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 2, 0x00, InsCpu);
 		}
 
 		protected override string OpName

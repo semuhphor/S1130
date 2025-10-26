@@ -30,7 +30,7 @@ namespace S1130.SystemObjects.Instructions
 			var divider = cpu[GetEffectiveAddress(cpu)];
 			if (divider != 0)
 			{
-				var quotient = (int) cpu.AccExt / (int) SignExtend(divider);
+				var quotient = (int)cpu.AccExt / (int)SignExtend(divider);
 				if (quotient > short.MaxValue)
 				{
 					// Quotient overflow: Set overflow flag, preserve Acc/Ext (undefined in hardware)
@@ -38,14 +38,15 @@ namespace S1130.SystemObjects.Instructions
 				}
 				else
 				{
-					cpu.Ext = (ushort) (cpu.AccExt % (short) divider);
-					cpu.Acc = (ushort) (quotient & 0xffff);
+					cpu.Ext = (ushort)(cpu.AccExt % (short)divider);
+					cpu.Acc = (ushort)(quotient & 0xffff);
 				}
 			}
 			else
 			{
 				cpu.Overflow = true;
 			}
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

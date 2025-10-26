@@ -9,12 +9,14 @@ namespace S1130.SystemObjects.Instructions
 
 		public void Execute(ICpu cpu)
 		{
-			if (cpu.FormatLong && TestCondition(cpu))				// q. Long format & condition met?
-			{															// a. yes
-				return;													// .. take no action
+			if (cpu.FormatLong && TestCondition(cpu))               // q. Long format & condition met?
+			{
+				SetIarToNextInstruction(cpu);                           // a. yes (remember .. invers action.)
+				return;                                                 // .. take no action
 			}
 			var subroutineAddress = (ushort)GetEffectiveAddress(cpu);	// resolve routine address
-			cpu[subroutineAddress++] = cpu.Iar;						// save return address and get entry address
+			SetIarToNextInstruction(cpu);								// iar = return address.
+			cpu[subroutineAddress++] = cpu.Iar;							// save return address and get entry address
 			cpu.Iar = subroutineAddress;								// .. and branch to routine
 		}
 		

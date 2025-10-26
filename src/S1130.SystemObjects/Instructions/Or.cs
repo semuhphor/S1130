@@ -6,8 +6,9 @@ namespace S1130.SystemObjects.Instructions
 		public string OpName { get { return "OR";  } }
 
 		public void Execute(ICpu cpu)
-		{	
+		{
 			cpu.Acc |= cpu[GetEffectiveAddress(cpu)];
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

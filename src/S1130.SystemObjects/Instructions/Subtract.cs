@@ -16,6 +16,7 @@
 			{
 				cpu.Overflow = Is16BitSignBitOn((oldAcc ^ valueToSubtract) & (oldAcc ^ cpu.Acc));
 			}
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

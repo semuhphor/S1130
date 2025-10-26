@@ -36,7 +36,6 @@ TARGET: DC 2";
             
             // Execute the branch
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
             cpu.ExecuteInstruction();
             
             // Should branch to TARGET (0x103)
@@ -70,7 +69,6 @@ VAL: DC   5";
             
             // Execute: Load 5 (positive), then BP should branch
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL - loads 5
             Assert.True(cpu.Acc == 5, $"Failed to load VAL. Expected 5, got {cpu.Acc}. {debugInfo}");
             
@@ -79,7 +77,6 @@ VAL: DC   5";
             var bpWord2 = cpu[0x103];
             var bpInfo = $"BP instruction: 0x{bpWord1:X4} 0x{bpWord2:X4}";
             
-            cpu.NextInstruction();
             var iarBefore = cpu.Iar;
             cpu.ExecuteInstruction(); // BP |L|TARGET
             
@@ -106,12 +103,8 @@ VAL: DC   0";
             
             // Execute: Load 0 (not positive), then BNP should branch
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL - loads 0
-            
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // BNP |L|TARGET
-            
             // Should branch to TARGET
             Assert.Equal((ushort)0x105, cpu.Iar);
         }
@@ -134,10 +127,8 @@ VAL: DC   0";
             
             // Execute: Load 0, then BZ should branch
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL
             
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // BZ |L|TARGET
             
             // Should branch to TARGET
@@ -162,10 +153,8 @@ VAL: DC   5";
             
             // Execute: Load 5 (not zero), then BNZ should branch
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL
             
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // BNZ |L|TARGET
             
             // Should branch to TARGET
@@ -190,10 +179,8 @@ VAL: DC   /FFFF";
             
             // Execute: Load -1, then BN should branch
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL
             
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // BN |L|TARGET
             
             // Should branch to TARGET
@@ -218,10 +205,9 @@ VAL: DC   0";
             
             // Execute: Load 0, then SKP Z should skip next instruction
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
+            cpu.DecodeCurrentInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL - loads 0
             
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // SKP Z
             
             // Should skip to 0x104 (skip the: DC 1 at 0x103)
@@ -248,15 +234,12 @@ VAL2: DC   1";
             
             // Execute: Load max positive, add 1 to cause overflow
             cpu.Iar = 0x100;
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // LD |L|VAL1
             
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // A |L|VAL2 - should set overflow
             
             Assert.True(cpu.Overflow, "Overflow should be set");
             
-            cpu.NextInstruction();
             cpu.ExecuteInstruction(); // BO |L|TARGET
             
             // Should branch to TARGET

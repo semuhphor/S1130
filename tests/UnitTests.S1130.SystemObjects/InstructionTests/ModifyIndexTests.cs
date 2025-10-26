@@ -10,8 +10,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_BranchAhead()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 0, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 0, 0x10, InsCpu);
+			
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x111, InsCpu.Iar);
 		}
@@ -21,7 +21,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.ModifyIndex, 0, 0x10, 0x1000, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu[0x1000] = 0x400;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x102, InsCpu.Iar);
@@ -33,7 +33,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.ModifyIndex, 1, 0x1022, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[1] = 0x1400;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x102, InsCpu.Iar);
@@ -45,7 +45,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.ModifyIndex, 2, 0x1022, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[2] = 0xffff;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x103, InsCpu.Iar);
@@ -57,7 +57,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.ModifyIndex, 1, 0x1022, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[1] = 0x1400;
 			InsCpu[0x1022] = 0xffff;
 			InsCpu.ExecuteInstruction();
@@ -70,7 +70,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.ModifyIndex, 2, 0x1022, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[2] = 0xffff;
 			InsCpu[0x1022] = 0x0020;
 			InsCpu.ExecuteInstruction();
@@ -83,7 +83,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.ModifyIndex, 0, 0xF4, 0x1000, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu[0x1000] = 0x400;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x102, InsCpu.Iar);
@@ -95,7 +95,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.ModifyIndex, 0, 0xF4, 0x1000, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu[0x1000] = 2;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x103, InsCpu.Iar);
@@ -107,7 +106,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.ModifyIndex, 0, 0x4, 0x1000, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu[0x1000] = 0xffff;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x103, InsCpu.Iar);
@@ -118,8 +116,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_BranchBack()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 0, 0xfb);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 0, 0xfb, InsCpu);
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x0fc, InsCpu.Iar);
 		}
@@ -128,8 +125,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_NoBranch_NOP()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 0, 0);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 0, 0, InsCpu);
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x101, InsCpu.Iar);
 		}
@@ -138,8 +134,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_XR1_Decrement_NoSkip()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 1, 0xff);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 1, 0xff, InsCpu);
 			InsCpu.Xr[1] = 2;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x101, InsCpu.Iar);
@@ -150,8 +145,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_XR1_Decrement_Skip()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 1, 0xff);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 1, 0xff, InsCpu);
 			InsCpu.Xr[1] = 1;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x102, InsCpu.Iar);
@@ -162,8 +156,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_XR1_DecrementFromZero_Skip()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 1, 0xff);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 1, 0xff, InsCpu);
 			InsCpu.Xr[1] = 0;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x102, InsCpu.Iar);
@@ -174,8 +167,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_XR1_DecrementFromNegative_NoSkip()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 1, 0xff);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 1, 0xff, InsCpu);
 			InsCpu.Xr[1] = 0xffff;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x101, InsCpu.Iar);
@@ -186,8 +178,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_XR2_IncrementFromNegative_Skip()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 2, 0x01);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 2, 0x01, InsCpu);
 			InsCpu.Xr[2] = 0xffff;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x102, InsCpu.Iar);
@@ -198,17 +189,16 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_MDX_Short_XR2_IncrementFromZero_NoSignChange_NoSkip()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 2, 0x01);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 2, 0x02, InsCpu);
 			InsCpu.Xr[2] = 0x0000;
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(1, InsCpu.Xr[2]);
+			Assert.Equal(2, InsCpu.Xr[2]);
 			Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		protected override void BuildAnInstruction()
 		{
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ModifyIndex, 2, 0x01);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ModifyIndex, 2, 0x01, InsCpu);
 		}
 
 		protected override string OpName

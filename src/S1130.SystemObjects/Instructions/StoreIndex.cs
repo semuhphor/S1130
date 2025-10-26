@@ -8,6 +8,7 @@ namespace S1130.SystemObjects.Instructions
 		public void Execute(ICpu cpu)
 		{
 			cpu[GetEffectiveAddressNoXr(cpu)] = cpu.Xr[cpu.Tag];
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

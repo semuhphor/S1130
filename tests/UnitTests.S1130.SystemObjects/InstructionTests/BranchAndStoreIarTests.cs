@@ -10,19 +10,17 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_BSI_Short_GoToRoutine()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.BranchStore, 0, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.BranchStore, 0, 0x10, InsCpu);
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x112, InsCpu.Iar);
-			Assert.Equal(0x101, InsCpu[0x111]);
+			Assert.Equal(0x111, InsCpu.Iar);
+			Assert.Equal(0x101, InsCpu[0x110]);
 		}
 
 		[Fact]
 		public void Execute_BSI_Short_XR2_GoToRoutine()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.BranchStore, 2, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.BranchStore, 2, 0x10, InsCpu);
 			InsCpu.Xr[2] = 0x400;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x411, InsCpu.Iar);
@@ -34,7 +32,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.BranchStore, 0, BranchInstructionBase.Plus | BranchInstructionBase.Zero | BranchInstructionBase.Minus, 0x110, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x102, InsCpu.Iar);
 		}
@@ -43,8 +41,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_BSI_Long_Overflow_BranchBranch_EnsureOverflowReset()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildLongBranchAtIar(OpCodes.BranchStore, 0, BranchInstructionBase.Overflow, 0x110, InsCpu);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildLongBranchAtIar(OpCodes.BranchStore, 0, BranchInstructionBase.OverflowOff, 0x110, InsCpu);
+			
 			InsCpu.Overflow = true;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x111, InsCpu.Iar);
@@ -57,7 +55,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongBranchAtIar(OpCodes.BranchStore, 0, 0, 0x110, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x111, InsCpu.Iar);
 			Assert.Equal(0x102, InsCpu[0x110]);

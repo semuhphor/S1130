@@ -13,8 +13,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InsCpu.Carry = true;
 			InsCpu.Overflow = true;
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.LoadStatus, 0, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.LoadStatus, 0, 0x00, InsCpu);
+			
 			InsCpu.ExecuteInstruction();
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
@@ -26,8 +26,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InsCpu.Carry = false;
 			InsCpu.Overflow = true;
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.LoadStatus, 0, 0x02);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.LoadStatus, 0, 0x02, InsCpu);
+			
 			InsCpu.ExecuteInstruction();
 			Assert.True(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
@@ -39,8 +39,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InsCpu.Carry = true;
 			InsCpu.Overflow = false;
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.LoadStatus, 0, 0x01);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.LoadStatus, 0, 0x01, InsCpu);
+			
 			InsCpu.ExecuteInstruction();
 			Assert.False(InsCpu.Carry);
 			Assert.True(InsCpu.Overflow);
@@ -52,8 +52,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InsCpu.Carry = false;
 			InsCpu.Overflow = false;
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.LoadStatus, 0, 0x03);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.LoadStatus, 0, 0x03, InsCpu);
+			
 			InsCpu.ExecuteInstruction();
 			Assert.True(InsCpu.Carry);
 			Assert.True(InsCpu.Overflow);
@@ -67,7 +67,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Overflow = false;
 			var iar = InsCpu.Iar;
 			InstructionBuilder.BuildLongAtIar(OpCodes.LoadStatus, 0, 0x03, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(iar+1, InsCpu.Iar);
 		}

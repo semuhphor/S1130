@@ -11,6 +11,7 @@ namespace S1130.SystemObjects.Instructions
 			cpu[GetEffectiveAddress(cpu)] |= (ushort) ((cpu.Carry ? 0x02 : 0x00) | (cpu.Overflow ? 0x01 : 0x00));
 			cpu.Carry = false;
 			cpu.Overflow = false;
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

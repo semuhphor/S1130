@@ -18,6 +18,7 @@
 			{
 				cpu.Overflow = Is32BitSignBitOn((uint)((~valueToAdd ^ accExt) & (valueToAdd ^ cpu.AccExt)));
 			}
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

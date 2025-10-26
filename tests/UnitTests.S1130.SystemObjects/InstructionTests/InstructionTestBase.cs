@@ -30,22 +30,24 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		protected void CheckNameAndOpcode()
 		{
 			BuildAnInstruction();
-			InsCpu.NextInstruction();
 		    Assert.Equal(OpCode, InsCpu.CurrentInstruction.OpCode);
 			Assert.Equal(OpName, InsCpu.CurrentInstruction.OpName);
 	    }
 
 	    protected virtual void ExecAndTest(ushort expectedAcc, ushort expectedExt, bool expectedCarry, bool expectedOverflow, ushort initialAcc, ushort initialExt, bool initialCarry, bool initialOverflow)
-	    {
+		{
+			var initialIar = InsCpu.Iar;
+			var instructionLength = InsCpu.CurrentInstructionLength;
 		    InsCpu.Acc = initialAcc;
 		    InsCpu.Ext = initialExt;
 		    InsCpu.Carry = initialCarry;
-		    InsCpu.Overflow = initialOverflow;
-		    InsCpu.ExecuteInstruction();
+			InsCpu.Overflow = initialOverflow;
+			InsCpu.ExecuteInstruction();
 		    Assert.Equal(expectedAcc, InsCpu.Acc);
 		    Assert.Equal(expectedExt, InsCpu.Ext);
 		    Assert.Equal(expectedCarry, InsCpu.Carry);
-		    Assert.Equal(expectedOverflow, InsCpu.Overflow);
+			Assert.Equal(expectedOverflow, InsCpu.Overflow);
+			Assert.Equal(initialIar + instructionLength, InsCpu.Iar);
 	    }
 
 	    protected virtual void ExecAndTest(ushort expectedAcc, ushort expectedExt, bool expectedCarry, ushort initialAcc, ushort initialExt, bool initialCarry)

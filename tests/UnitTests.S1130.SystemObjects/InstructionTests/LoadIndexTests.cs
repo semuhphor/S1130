@@ -10,8 +10,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_LDX_Short_PositiveDisplacement()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.LoadIndex, 1, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.LoadIndex, 1, 0x10, InsCpu);
+			
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x10, InsCpu.Xr[1]);
 		}
@@ -20,8 +20,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_LDX_Short_NegativeDisplacement()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.LoadIndex, 3, 0x80);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.LoadIndex, 3, 0x80, InsCpu);
+			
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0xff80, InsCpu.Xr[3]);
 		}
@@ -31,7 +31,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.LoadIndex, 0, 0x404, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x404, InsCpu.Iar);
 			Assert.Equal(0x404, InsCpu.Xr[0]);
@@ -42,7 +41,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.LoadIndex, 3, 0x350, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x350, InsCpu.Xr[3]);
 		}
@@ -52,7 +50,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.LoadIndex, 2, 0x400, InsCpu);
-			InsCpu.NextInstruction();
 			InsCpu[0x400] = 0x1234;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x1234, InsCpu.Xr[2]);

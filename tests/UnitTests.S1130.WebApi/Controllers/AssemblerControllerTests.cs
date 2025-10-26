@@ -25,9 +25,9 @@ namespace UnitTests.S1130.WebApi.Controllers
             var request = new AssembleRequest
             {
                 SourceCode = @"       ORG  /100
-       LD   L DATA
+       LD   |L|DATA
        WAIT
-DATA   DC   42"
+DATA:  DC   42"
             };
 
             // Act

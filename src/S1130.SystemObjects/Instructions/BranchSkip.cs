@@ -16,13 +16,17 @@
 				{														// a.yes
 					cpu.Iar = (ushort) GetEffectiveAddress(cpu);		// branch to address
 				}
-
+				else
+				{
+					SetIarToNextInstruction(cpu);						// go to next instruction
+				}
 			}
-			else														// otherwise..
-			{															// .. short format
+			else                                                        // otherwise..
+			{                                                           // .. short format
+				cpu.Iar++;												// always go to the next word
 				if (condition)											// q. condition met?
 				{														// a. yes ..
-					cpu.Iar++;											// .. then skip
+					cpu.Iar++;											// .. then skip another
 				}
 			}
 			if (resetInterrupt && condition)							// reset requested and condtion met?
@@ -54,8 +58,8 @@
 			if ((modifiers & Minus) != 0) conditions.Append("-");
 			if ((modifiers & Zero) != 0) conditions.Append("Z");
 			if ((modifiers & Even) != 0) conditions.Append("E");
-			if ((modifiers & Carry) != 0) conditions.Append("C");
-			if ((modifiers & Overflow) != 0) conditions.Append("O");
+			if ((modifiers & CarryOff) != 0) conditions.Append("C");
+			if ((modifiers & OverflowOff) != 0) conditions.Append("O");
 			
 			string condStr = conditions.ToString();
 			

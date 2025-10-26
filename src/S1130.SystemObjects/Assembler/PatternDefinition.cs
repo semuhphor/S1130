@@ -282,16 +282,16 @@ namespace S1130.SystemObjects.Assembler
                     word1 |= 0x0080; // Constants.Indirect
                 
                 // Add modifier bits if needed (e.g., for MDX, BSC condition codes)
-                if (values.Length > 1)
-                {
-                    // Two-operand (MDX): second value goes in bits 8-15 of word 1
-                    word1 |= (ushort)(values[1] & 0xFF);
-                }
-                else if (!string.IsNullOrEmpty(conditionString))
+                if (!string.IsNullOrEmpty(conditionString))
                 {
                     // BSC/BOSC condition codes - parse condition string into modifier bits
                     byte conditionBits = ParseConditionCodes(conditionString);
                     word1 |= conditionBits;
+                }
+                else if (values.Length > 1)
+                {
+                    // Two-operand (MDX): second value goes in bits 8-15 of word 1
+                    word1 |= (ushort)(values[1] & 0xFF);
                 }
                 
                 // Word 2 contains the address

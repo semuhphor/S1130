@@ -20,7 +20,8 @@ namespace UnitTests.S1130.SystemObjects
 		public void CountUpTheAccumulator()
 		{
 			BeforeEachTest();
-			var location = _cpu.Iar;
+			var iar = _cpu.Iar;
+			var location = iar;
 			_cpu[0x81] = 20;
 			_cpu[0x82] = 1;
 			InstructionBuilder.BuildShortAtAddress(OpCodes.ShiftLeft, 0, 16, _cpu, location++);				// 0x0100: clear ACC
@@ -29,8 +30,9 @@ namespace UnitTests.S1130.SystemObjects
 			InstructionBuilder.BuildLongAtAddress(OpCodes.Add, 0, 0x82, _cpu, location);					// 0x0103: add one to ACC
 			location += 2; // ... increment for long instruction
 			InstructionBuilder.BuildShortAtAddress(OpCodes.ModifyIndex, 1, 0xfe, _cpu, location++);			// 0x0105: Decrement XR1 by 2
-			InstructionBuilder.BuildShortAtAddress(OpCodes.ModifyIndex, 0, 0xfc, _cpu, location++);			// 0x0106: Branch to 0x0103.
-			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, _cpu, location);						// 0x0107: Wait. End of program
+			InstructionBuilder.BuildShortAtAddress(OpCodes.ModifyIndex, 0, 0xfc, _cpu, location++);         // 0x0106: Branch to 0x0103.
+			InstructionBuilder.BuildShortAtAddress(OpCodes.Wait, 0, 0, _cpu, location);                     // 0x0107: Wait. End of program
+			_cpu.Iar = iar;
 			Assert.Equal(32, RunUntilWait());
 			Assert.Equal(10, _cpu.Acc);
 		}
@@ -52,7 +54,6 @@ namespace UnitTests.S1130.SystemObjects
 			// while (_cpu.InstructionCount < endingCount)
 			while(watch.ElapsedMilliseconds < 1000)
 			{
-				_cpu.NextInstruction();
 				_cpu.ExecuteInstruction();
 				numberOfInstructions++;
 			}
@@ -81,7 +82,6 @@ ONE:  DC 1";
 			
 			while(watch.ElapsedMilliseconds < 1000)
 			{
-				_cpu.NextInstruction();
 				_cpu.ExecuteInstruction();
 				numberOfInstructions++;
 			}
@@ -94,8 +94,6 @@ ONE:  DC 1";
 			var numberOfInstructions = 0;
 			while (!_cpu.Wait)
 			{
-				_cpu.NextInstruction();
-				// Console.Out.WriteLine("{0:x4}: {1}, Acc: {2:x4} XR1: {3:x4}", _cpu.Iar, _cpu.CurrentInstruction.OpCode, _cpu.Acc, _cpu.Xr[1]);
 				_cpu.ExecuteInstruction();
 				numberOfInstructions++;
 			}

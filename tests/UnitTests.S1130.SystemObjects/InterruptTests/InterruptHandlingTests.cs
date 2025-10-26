@@ -140,8 +140,9 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 			Assert.Null(InsCpu.CurrentInterruptLevel);																// .. no interrupt active
 			Assert.True(InsCpu.InterruptQueues[4].IsEmpty);															// .. no device on interrupt 4
 			Assert.True(InsCpu.CurrentInterrupt.IsEmpty);															// .. and none currently active
-			ExecuteOneInstruction(InsCpu);																			// return from interrupt
+			ExecuteOneInstruction(InsCpu);                                                                          // return from interrupt
 			Assert.Equal(0x102, InsCpu.Iar);																		// .. should have executed wait
+			ExecuteOneInstruction(InsCpu);																			// return from interrupt
 			Assert.True(InsCpu.Wait);																				// .. and in wait state
 		}
 

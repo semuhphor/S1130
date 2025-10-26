@@ -2,6 +2,7 @@ using Xunit;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Instructions;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace UnitTests.S1130.SystemObjects
 {
@@ -415,17 +416,15 @@ namespace UnitTests.S1130.SystemObjects
             var originalWords = new ushort[20];
             for (int i = 0; i < 20; i++)
                 originalWords[i] = cpu[0x100 + i];
-            
+
             // Disassemble all instructions
-            var disassembled = new System.Collections.Generic.List<string>();
-            ushort addr = 0x100;
+            var disassembled = new List<string>();
+            cpu.Iar = 0x100;
             for (int i = 0; i < 6; i++)  // 6 instructions (changed from 7)
             {
-                disassembled.Add(cpu.Disassemble(addr));
-                // Determine instruction length
-                cpu.Iar = addr;
-                cpu.NextInstruction();
-                addr = cpu.Iar;
+                disassembled.Add(cpu.Disassemble());
+                cpu.DecodeCurrentInstruction();
+                cpu.Iar += cpu.CurrentInstructionLength;
             }
             
             // Reassemble

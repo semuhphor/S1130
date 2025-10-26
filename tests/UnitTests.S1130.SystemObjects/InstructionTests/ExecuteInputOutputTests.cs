@@ -12,9 +12,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_XIO_GetConsoleSwitches()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOutput, 0, 0x11);
-			InsCpu.NextInstruction();
-			InstructionBuilder.BuildIoccAt(new ConsoleEntrySwitches(InsCpu), DevFunction.Read,0,0x500, InsCpu, 0x112);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ExecuteInputOutput, 0, 0x12, InsCpu);
+			InstructionBuilder.BuildIoccAt(new ConsoleEntrySwitches(InsCpu), DevFunction.Read, 0, 0x500, InsCpu, 0x112);
 			InsCpu.ConsoleSwitches = 0x4321;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x4321, InsCpu[0x500]);
@@ -22,7 +21,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 
 		protected override void BuildAnInstruction()
 		{
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ExecuteInputOutput, 0, 0x11);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ExecuteInputOutput, 0, 0x11, InsCpu);
 		}
 
 		protected override string OpName

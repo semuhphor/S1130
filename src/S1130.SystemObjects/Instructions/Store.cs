@@ -23,6 +23,7 @@ namespace S1130.SystemObjects.Instructions
         public void Execute(ICpu cpu)
         {
             cpu[GetEffectiveAddress(cpu)] = cpu.Acc;
+            SetIarToNextInstruction(cpu);
         }
     }
 }

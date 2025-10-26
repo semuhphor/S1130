@@ -11,6 +11,7 @@ namespace S1130.SystemObjects.Instructions
 		{
 			cpu.Carry = (cpu.Displacement & 0x02) != 0;
 			cpu.Overflow = (cpu.Displacement & 0x01) != 0;
+			SetIarToNextInstruction(cpu);
 		}
 		
 		/// <summary>

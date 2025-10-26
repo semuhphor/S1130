@@ -10,11 +10,10 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_ST_Short_NoTag()
         {
 			BeforeEachTest();
-            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Store, 0, 0x10);
-            InsCpu.NextInstruction();
+            InstructionBuilder.BuildShortAtIar(OpCodes.Store, 0, 0x10, InsCpu);
             InsCpu.Acc = 0x2345;
             InsCpu.ExecuteInstruction();
-            Assert.Equal(0x2345, InsCpu[InsCpu.Iar + 0x10]);
+            Assert.Equal(0x2345, InsCpu[0x110]);
         }
 
         [Fact]
@@ -22,11 +21,10 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
 	        InsCpu.Iar = 0x7f00;
-            InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Store, 0, 0x10);
-            InsCpu.NextInstruction();
+            InstructionBuilder.BuildShortAtIar(OpCodes.Store, 0, 0x10, InsCpu);
             InsCpu.Acc = 0x2345;
             InsCpu.ExecuteInstruction();
-            Assert.Equal(0x2345, InsCpu[InsCpu.Iar + 0x10]);
+            Assert.Equal(0x2345, InsCpu[0x7f10]);
         }
 
         [Fact]
@@ -34,7 +32,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
             InstructionBuilder.BuildLongAtIar(OpCodes.Store, 0, 0x400, InsCpu);
-            InsCpu.NextInstruction();
             InsCpu.Acc = 0xbfbf;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0xbfbf, InsCpu[0x400]);
@@ -45,7 +42,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
             InstructionBuilder.BuildLongAtIar(OpCodes.Store, 3, 0x350, InsCpu);
-            InsCpu.NextInstruction();
             InsCpu.Xr[3] = 0x100;
             InsCpu.Acc = 0x1234;
             InsCpu.ExecuteInstruction();
@@ -57,7 +53,6 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
             InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Store, 1, 0x400, InsCpu);
-            InsCpu.NextInstruction();
             InsCpu.Xr[1] = 0x100;
             InsCpu[0x500] = 0x600;
             InsCpu.Acc = 0x1234;

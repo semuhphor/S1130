@@ -46,7 +46,6 @@ namespace UnitTests.S1130.SystemObjects.InterruptTests
 
 		protected void ExecuteOneInstruction(Cpu cpu)
 		{
-			cpu.NextInstruction();
 			cpu.ExecuteInstruction();
 		}
 

@@ -22,9 +22,9 @@ namespace UnitTests.S1130.WebApi.Controllers
             var request = new AssembleRequest
             {
                 SourceCode = @"       ORG  /100
-       LD   L DATA
+       LD   |L|DATA
        WAIT
-DATA   DC   42"
+DATA:  DC   42"
             };
             var response = await _client.PostAsJsonAsync("/api/assembler/assemble", request);
             return await response.Content.ReadFromJsonAsync<AssembleResponse>() 
@@ -99,9 +99,9 @@ DATA   DC   42"
             var loopProgram = new AssembleRequest
             {
                 SourceCode = @"       ORG  /100
-LOOP   LD   L DATA
-       BSC  L ZPM LOOP
-DATA   DC   1"
+LOOP:  LD   |L|DATA
+       BSC  |L|LOOP,ZPM
+DATA:  DC   1"
             };
             var assembleResponse = await _client.PostAsJsonAsync("/api/assembler/assemble", loopProgram);
             var assembleResult = await assembleResponse.Content.ReadFromJsonAsync<AssembleResponse>();

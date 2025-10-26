@@ -10,7 +10,7 @@
 			int oldValue;													// old value
 			int newValue;													// .. and new value
 
-			if (cpu.FormatLong)											// q. long format?
+			if (cpu.FormatLong)												// q. long format?
 			{																// a. yes..
 				var effectiveAddress = cpu.Displacement;					// .. Get effective Address
 				if (cpu.Tag != 0)											// q. is target XR?
@@ -37,6 +37,7 @@
 			}
 			var longOrHasTag = cpu.FormatLong || (cpu.Tag != 0);
 			var newValueChange = ((newValue == 0) || ((newValue & 0x8000) != (oldValue & 0x8000)));
+			SetIarToNextInstruction(cpu);
 			if (longOrHasTag && newValueChange)								// q. long or tag & new value changed?
 			{																// a. yes..
 				cpu.Iar++;													// skip next instruction

@@ -9,6 +9,7 @@ namespace S1130.SystemObjects.Instructions
             var effectiveAddress = GetEffectiveAddress(cpu);
             cpu[effectiveAddress | 1] = cpu.Ext;
             cpu[effectiveAddress] = cpu.Acc;
+            SetIarToNextInstruction(cpu);
         }
     }
 }

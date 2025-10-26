@@ -620,7 +620,7 @@ namespace S1130.SystemObjects.Assembler
                 Mnemonic = "BP",
                 Opcode = 0x09, // BSC opcode
                 IsPseudoOp = true,
-                PseudoOpCondition = "+", // Branch if positive
+                PseudoOpCondition = "-Z", // Branch if positive (inverted: test for NOT positive)
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -634,7 +634,7 @@ namespace S1130.SystemObjects.Assembler
                 Mnemonic = "BN",
                 Opcode = 0x09, // BSC opcode
                 IsPseudoOp = true,
-                PseudoOpCondition = "-", // Branch if negative
+                PseudoOpCondition = "+Z", // Branch if negative (inverted: test for NOT negative)
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -648,7 +648,7 @@ namespace S1130.SystemObjects.Assembler
                 Mnemonic = "BZ",
                 Opcode = 0x09, // BSC opcode
                 IsPseudoOp = true,
-                PseudoOpCondition = "Z", // Branch if zero
+                PseudoOpCondition = "+-", // Branch if zero (inverted: test for NOT zero)
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -662,7 +662,7 @@ namespace S1130.SystemObjects.Assembler
                 Mnemonic = "BNZ",
                 Opcode = 0x09, // BSC opcode
                 IsPseudoOp = true,
-                PseudoOpCondition = "+C-O", // Branch if not zero (all conditions except Z and E)
+                PseudoOpCondition = "Z", // Branch if not zero (inverted: test for zero)
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,
@@ -676,7 +676,7 @@ namespace S1130.SystemObjects.Assembler
                 Mnemonic = "BNP",
                 Opcode = 0x09, // BSC opcode
                 IsPseudoOp = true,
-                PseudoOpCondition = "-Z", // Branch if not positive (negative or zero)
+                PseudoOpCondition = "+", // Branch if not positive (inverted: test for positive)
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,

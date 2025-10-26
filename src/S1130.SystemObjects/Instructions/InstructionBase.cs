@@ -66,11 +66,16 @@
             return (!cpu.FormatLong || cpu.Tag != 0) ? cpu.Xr[cpu.Tag] : 0;
         }
 
-	    public int GetShiftDistance(ICpu cpu)
-	    {
-		    return ((cpu.Tag == 0) ? cpu.Displacement : cpu.Xr[cpu.Tag]) & 0x3f;
-	    }
-	    
+		public int GetShiftDistance(ICpu cpu)
+		{
+			return ((cpu.Tag == 0) ? cpu.Displacement : cpu.Xr[cpu.Tag]) & 0x3f;
+		}
+
+		public void SetIarToNextInstruction(ICpu cpu)
+		{
+			cpu.Iar += cpu.CurrentInstructionLength;
+		}
+		
 	    /// <summary>
 	    /// <summary>
 	    /// Disassembles a standard format instruction (Load, Store, Arithmetic, etc.).
