@@ -24,8 +24,8 @@ namespace UnitTests.S1130.SystemObjects
 //
 START: LDD  |L|ONE       // Load double-word (0,1) into ACC and EXT
 LOOP:  SLT  1            // Shift left together 1 bit
-       BSC  |L|LOOP,C    // Carry OFF -- keep shifting
-       BSC  |L|START     // Carry ON - reload 0,1 into acc/ext
+       BSC  |L|START,C   // Carry ON -- Set acc:ext = 1
+       BSC  |L|LOOP      // else.. keep shifting.
 //
 // Data section
 //

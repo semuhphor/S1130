@@ -105,7 +105,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ isRunning, onStatusChange, 
           <input
             type="range"
             min="1"
-            max="1000000"
+            max="100"
             step="1"
             value={speed}
             onChange={(e) => handleSpeedChange(Number(e.target.value))}
