@@ -62,7 +62,7 @@ namespace UnitTests.S1130.SystemObjects
 		}
 
 		[Fact]
-		public void AssembleAndRunSomeCode()
+		public void AssotnembleAndRunSomeCode()
 		{
 			BeforeEachTest();
 			const string EXAMPLE_PROGRAM = @"// IBM 1130 Shift Left Test Program
@@ -91,10 +91,17 @@ ONE:   DC   0            // High word (ACC) = 0
 			Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
 			Assert.Empty(result.Errors);
 			_cpu.Iar = 0x100;
-			while(false)
+			int i = 12; 
+			while(i-- > 0)
 			{
-				_cpu.ExecuteInstruction();
+				_cpu.ExecuteInstruction(); 
 			}
+			Assert.Equal(0x0010, _cpu.Ext);
+			while(0x0100 != _cpu.Iar)
+			{
+				_cpu.ExecuteInstruction(); 
+			}
+			Assert.True(_cpu.Carry);
 		}
 
 
