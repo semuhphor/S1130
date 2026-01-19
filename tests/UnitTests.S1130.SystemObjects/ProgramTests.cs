@@ -62,7 +62,7 @@ namespace UnitTests.S1130.SystemObjects
 		}
 
 		[Fact]
-		public void AssotnembleAndRunSomeCode()
+		public void AssembleAndRunSomeCode()
 		{
 			BeforeEachTest();
 			const string EXAMPLE_PROGRAM = @"// IBM 1130 Shift Left Test Program
