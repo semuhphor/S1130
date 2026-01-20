@@ -4,15 +4,17 @@
 1. [Overview](#overview)
 2. [Quick Start](#quick-start)
 3. [Assembly Language Syntax](#assembly-language-syntax)
-4. [Directives](#directives)
-5. [Instructions](#instructions)
-6. [Addressing Modes](#addressing-modes)
-7. [Expressions and Symbols](#expressions-and-symbols)
-8. [Two-Pass Assembly](#two-pass-assembly)
-9. [Error Handling](#error-handling)
-10. [Usage Examples](#usage-examples)
-11. [Assembler API](#assembler-api)
-12. [Implementation Details](#implementation-details)
+4. [Format Specifiers](#format-specifiers)
+5. [Format Conversion](#format-conversion)
+6. [Directives](#directives)
+7. [Instructions](#instructions)
+8. [Addressing Modes](#addressing-modes)
+9. [Expressions and Symbols](#expressions-and-symbols)
+10. [Two-Pass Assembly](#two-pass-assembly)
+11. [Error Handling](#error-handling)
+12. [Usage Examples](#usage-examples)
+13. [Assembler API](#assembler-api)
+14. [Implementation Details](#implementation-details)
 
 ---
 
@@ -24,6 +26,9 @@ The S1130 Assembler is a complete implementation of the IBM 1130 assembly langua
 
 **Features:**
 - Full IBM 1130 instruction set support
+- Modern S1130 free-form syntax with `|format|` specifiers
+- Legacy IBM 1130 fixed-column format support
+- Bidirectional format conversion with `asmconv` utility
 - Short and long format instructions
 - Direct, indirect, and indexed addressing modes
 - Symbolic labels and forward references
@@ -34,7 +39,8 @@ The S1130 Assembler is a complete implementation of the IBM 1130 assembly langua
 - Formatted assembly listing output
 
 **Design Philosophy:**
-- Faithful to IBM 1130 assembly syntax
+- Modern free-form syntax for readability
+- Compatible with legacy IBM 1130 source code
 - Clear error messages for debugging
 - Efficient two-pass algorithm
 - Integrated with CPU emulator
@@ -51,13 +57,13 @@ using S1130.SystemObjects;
 var cpu = new Cpu();
 
 var source = @"
-      ORG  /100
-START LD   L VALUE
-      A    L VALUE
-      STO  L RESULT
-      WAIT
-VALUE DC   /0042
-RESULT DC  0
+      ORG /100
+START  LD  |L| VALUE
+       A  |L| VALUE
+       STO  |L| RESULT
+       WAIT
+VALUE  DC /0042
+RESULT  DC 0
 ";
 
 var result = cpu.Assemble(source);
@@ -113,35 +119,63 @@ public class AssemblyError
 
 ## Assembly Language Syntax
 
-### Source Line Format
+The S1130 assembler supports two syntax styles:
 
-IBM 1130 assembly uses a columnar format (originally for punched cards):
+### 1. S1130 Free-Form Syntax (Recommended)
+
+Modern, readable format with explicit `|format|` specifiers:
 
 ```
-[LABEL] [OPERATION] [OPERAND] [COMMENT]
+[label]  OPERATION  |format|  operand  [* comment]
 ```
 
 **Field Rules:**
-- **Label**: Optional, starts in column 1-5, must start with letter
-- **Operation**: Required (unless comment line), starts in column 6+
-- **Operand**: Required for most operations, follows operation
-- **Comment**: Optional, separated by whitespace
+- **Label**: Optional, 1-5 characters, must start with letter
+- **Operation**: Required (unless comment line)
+- **Format**: Enclosed in pipes: `|.|`, `|L|`, `|I|`, `|1|`, `|L2|`, etc.
+- **Operand**: Required for most operations
+- **Comment**: Optional, starts with `*` after operand
 
-**Important:** Fields are whitespace-separated, not column-based in this implementation.
-
-### Examples
-
+**Examples:**
 ```
 * This is a comment line (starts with asterisk)
 
-LOOP  LD   L VALUE    Load VALUE into accumulator
-      A    L ONE      Add ONE to accumulator
-      STO  L VALUE    Store back to VALUE
-      MDX  LOOP,-1    Decrement and branch to LOOP
-      WAIT            Halt execution
+LOOP   LD  |L| VALUE    Load VALUE into accumulator
+       A  |L| ONE       Add ONE to accumulator
+       STO  |L| VALUE   Store back to VALUE
+       MDX  LOOP,-1     Decrement and branch to LOOP
+       WAIT             Halt execution
 
-VALUE DC   5          Define constant 5
-ONE   DC   1          Define constant 1
+VALUE  DC 5             Define constant 5
+ONE    DC 1             Define constant 1
+```
+
+### 2. IBM 1130 Fixed-Column Format (Legacy)
+
+Traditional punched card format with strict column positioning:
+
+```
+Columns  Content
+-------  -------
+1-20     Object code area (blank in source)
+21-25    Label (5 characters max)
+26       Mandatory blank
+27-30    Operation code (4 characters)
+31       Mandatory blank
+32       Format code (blank, L, or I)
+33       Tag/Index register (blank, 1, 2, or 3)
+34       Mandatory blank
+35-71    Operand and remarks
+```
+
+**Example:**
+```
+                    START LD   L  VALUE
+                          A    L  ONE
+                          STO  L  VALUE
+                          MDX     LOOP,-1
+                    VALUE DC      5
+                    ONE   DC      1
 ```
 
 ### Case Sensitivity
@@ -149,6 +183,74 @@ ONE   DC   1          Define constant 1
 - **Instructions**: Case-insensitive (LD, ld, Ld all equivalent)
 - **Labels**: Case-insensitive (LOOP, loop, Loop all same)
 - **Hex values**: Case-insensitive (/FF, /ff, /Ff all same)
+
+---
+
+## Format Specifiers
+
+The S1130 assembler uses explicit format specifiers to indicate addressing modes:
+
+### Format Specifier Syntax
+
+```
+|format|
+```
+
+Where `format` can be:
+- **`.`** - Short format (IAR-relative, ±127 words, 1 word instruction)
+- **`L`** - Long format (absolute address, 2 word instruction)
+- **`I`** - Indirect addressing
+- **`1`, `2`, `3`** - Index registers XR1, XR2, XR3
+- **Combinations**: `L1`, `L2`, `L3`, `I1`, `I2`, `I3`
+
+### Examples
+
+```
+      ORG /100
+       LD  |.| NEAR     Short format (1 word)
+       LD  |L| FAR      Long format (2 words)
+       LD  |1| TABLE    Short + index XR1
+       LD  |L2| DATA    Long + index XR2
+       LD  |I| PTR      Indirect addressing
+       LD  |I1| PTBL    Indirect + XR1
+```
+
+See [FORMAT-SPECIFIER-SYNTAX.md](FORMAT-SPECIFIER-SYNTAX.md) for complete documentation.
+
+---
+
+## Format Conversion
+
+### asmconv Utility
+
+Convert between S1130 free-form and IBM 1130 fixed-column formats:
+
+**Installation:**
+```powershell
+dotnet build src/S1130.AssemblerConverter/S1130.AssemblerConverter.csproj
+```
+
+**Usage:**
+```powershell
+# Auto-detect format and convert
+asmconv input.asm output.s1130
+
+# Pipe operation
+type legacy.asm | asmconv > modern.s1130
+
+# Batch convert
+Get-ChildItem *.asm | ForEach-Object {
+    asmconv $_.Name "$($_.BaseName).s1130"
+}
+```
+
+**Features:**
+- 🔍 Auto-detects input format
+- 📥 Supports files, stdin/stdout, pipes
+- 🔄 Bidirectional conversion
+- ✅ Preserves semantics
+
+See [asmconv README](../src/S1130.AssemblerConverter/README.md) for complete documentation.
 
 ---
 
