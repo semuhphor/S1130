@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Instructions;
 
@@ -10,6 +11,12 @@ namespace UnitTests.S1130.SystemObjects
 	public class ProgramTests
 	{
 		private Cpu _cpu;
+		private readonly ITestOutputHelper _output;
+
+		public ProgramTests(ITestOutputHelper output)
+		{
+			_output = output;
+		}
 
 		protected void BeforeEachTest()
 		{
@@ -42,23 +49,19 @@ namespace UnitTests.S1130.SystemObjects
 		{
 			BeforeEachTest();
 			var location = _cpu.Iar;
-			var startingCount = _cpu.InstructionCount;
-			var endingCount = startingCount + 2000000;
 			_cpu[0x81] = 20;
 			_cpu[0x82] = 1;
 			InstructionBuilder.BuildLongAtAddress(OpCodes.Add, 0, 0x82, _cpu, location);					// 0x0101: add one to ACC
 			location += 2; // ... increment for long instruction
 			InstructionBuilder.BuildLongAtAddress(OpCodes.LoadIndex, 0, 0x100, _cpu, location);				// 0x0101: Branch to 0x100
-			var numberOfInstructions = 0;
 			var watch = Stopwatch.StartNew();
 			// while (_cpu.InstructionCount < endingCount)
 			while(watch.ElapsedMilliseconds < 1000)
 			{
 				_cpu.ExecuteInstruction();
-				numberOfInstructions++;
 			}
 			watch.Stop();
-			Console.Error.WriteLine("1M Instructions in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
+			_output.WriteLine("1M Instructions in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
 		}
 
 		[Fact]
@@ -130,7 +133,7 @@ ONE:  DC 1";
 				numberOfInstructions++;
 			}
 			watch.Stop();
-			Console.Error.WriteLine("1M Instructions (Assembler) in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
+			_output.WriteLine("1M Instructions (Assembler) in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
 		}
 
 		private int RunUntilWait()
