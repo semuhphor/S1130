@@ -72,6 +72,12 @@ namespace S1130.SystemObjects
         {
             if (IsComment)
             {
+                // Convert * comments to // format
+                var comment = CommentText.TrimStart();
+                if (comment.StartsWith("*"))
+                {
+                    return "//" + comment.Substring(1);
+                }
                 return CommentText;
             }
 

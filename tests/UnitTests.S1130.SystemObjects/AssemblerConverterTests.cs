@@ -208,7 +208,7 @@ namespace UnitTests.S1130.SystemObjects
             var ibm = "                    * This is a comment";
             var s1130 = AssemblerConverter.ToS1130Format(ibm).TrimEnd();
             
-            Assert.Equal("* This is a comment", s1130);
+            Assert.Equal("// This is a comment", s1130);
         }
 
         [Fact]
