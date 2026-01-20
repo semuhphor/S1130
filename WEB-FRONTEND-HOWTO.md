@@ -122,7 +122,7 @@ dotnet test
 
 ### Backend won't start
 - Check that port 5000 is available
-- Ensure .NET 8 SDK is installed: `dotnet --version`
+- Ensure .NET 10 SDK is installed: `dotnet --version`
 
 ### Frontend can't connect to API
 - Verify backend is running at http://localhost:5000
