@@ -6,15 +6,19 @@ The S1130 assembler uses **modern free-form syntax** with explicit `|format|` sp
 
 ### ⚠️ Important: Two Different Formats
 
+**The S1130 assembler REQUIRES pipes (`|format|`) for format specifiers.**
+
 1. **S1130 Format** (what the assembler accepts):
    ```
    LABEL  LD  |L| VALUE
    ```
+   ✅ This works - pipes are required for long format, indirect, and index registers
 
 2. **IBM 1130 Format** (legacy, for reference only):
    ```
                        LABEL LD   L  VALUE
    ```
+   ❌ This does NOT work in S1130 - it's the old fixed-column format
 
 Use the `asmconv` utility to convert between formats.
 
@@ -30,7 +34,7 @@ Use the `asmconv` utility to convert between formats.
 
 | Specifier | Format | Index | Description |
 |-----------|--------|-------|-------------|
-| `|.|` | Short | None | IAR-relative, ±127 words, 1 word instruction |
+| (none) | Short | None | IAR-relative, ±127 words, 1 word instruction (default) |
 | `|L|` | Long | None | Absolute address, 2 word instruction |
 | `|I|` | Indirect | None | Indirect addressing |
 | `|1|` | Short | XR1 | Short + index register 1 |
@@ -43,13 +47,15 @@ Use the `asmconv` utility to convert between formats.
 | `|I2|` | Indirect | XR2 | Indirect + XR2 |
 | `|I3|` | Indirect | XR3 | Indirect + XR3 |
 
+**Note:** Short format is the default when no format specifier is provided. The assembler will automatically use short format for addresses within ±127 words of the instruction.
+
 ## Common Instructions
 
 ### Load/Store
 
 ```
-LD   |L| VALUE       Load accumulator from VALUE
-LD   |.| NEAR        Load from NEAR (short format)
+LD   |L| VALUE       Load accumulator from VALUE (long format)
+LD   NEAR            Load from NEAR (short format - no specifier)
 LD   |1| TABLE       Load from TABLE+XR1
 LD   |L2| DATA       Load from DATA+XR2
 LD   |I| PTR         Load from address in PTR
@@ -103,7 +109,7 @@ BSC  |L| target,condition
 
 **Format:**
 ```
-BSC  |.|  target            Unconditional skip next instruction
+BSC  condition               Skip next instruction if condition met
 BSC  |L|  target            Unconditional branch
 BSC  |I|  target            Indirect branch (return from subroutine)
 BSC  |L|  target,C          Branch if carry OFF
@@ -158,7 +164,7 @@ MDX  |format| target,modifier
 ```
        LDX  |1| /0010       Load XR1 = 16
 LOOP   ...                  Loop body
-       MDX  |.| LOOP,-1     Decrement XR1, loop if not zero
+       MDX  LOOP,-1         Decrement XR1, loop if not zero (short format)
 ```
 
 ### I/O - XIO
@@ -191,7 +197,7 @@ START  LDX  |1| /0005      Initialize counter
        LD   |L| /0000      Clear accumulator
 
 LOOP   A    |1| TABLE      Add TABLE[XR1]
-       MDX  |.| LOOP,-1    Decrement, loop if not zero
+       MDX  LOOP,-1        Decrement, loop if not zero (short format)
        
        STO  |L| RESULT     Store sum
        WAIT                Halt

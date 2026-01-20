@@ -31,7 +31,7 @@ The assembler supports format specifiers that correspond to the IBM 1130 card fo
 **Format Specifier Chart:**
 | Specifier | Format | Index Reg | Description |
 |-----------|--------|-----------|-------------|
-| `|.|` | Short | None | Explicit short format, no index register |
+| (none) | Short | None | Short format (default), no index register |
 | `|L|` | Long | None | Long format, no index register |
 | `|1|` | Short | XR1 | Short format with index register 1 |
 | `|2|` | Short | XR2 | Short format with index register 2 |
@@ -44,21 +44,21 @@ The assembler supports format specifiers that correspond to the IBM 1130 card fo
 | `|I2|` | Indirect | XR2 | Indirect with index register 2 |
 | `|I3|` | Indirect | XR3 | Indirect with index register 3 |
 
-### Short Format (`|.|`)
+### Short Format (No Specifier)
 
-Explicitly indicates short format (IAR-relative addressing, ±127 words).
+Short format is the **default** when no format specifier is provided. It uses IAR-relative addressing (±127 words).
 
 **Syntax:**
 ```
-OPERATION |.| address
+OPERATION address
 ```
 
 **Example:**
 ```
       ORG /100
-START  LD  |.| VALUE    Load from IAR-relative address
-       A  |.| VALUE     Add from IAR-relative address  
-       STO  |.| RESULT  Store to IAR-relative address
+START  LD  VALUE        Load from IAR-relative address (short format)
+       A  VALUE         Add from IAR-relative address  
+       STO RESULT       Store to IAR-relative address
        WAIT
 VALUE  DC 42
 RESULT  DC 0
@@ -68,6 +68,7 @@ RESULT  DC 0
 - Each instruction is 1 word
 - Displacement calculated as: `address - (IAR + 1)`
 - Range: -128 to +127 from current instruction
+- Automatically selected when address is within range
 
 ### Long Format (`|L|`)
 
@@ -230,11 +231,11 @@ You can mix format specifiers within the same program:
 
 ```
       ORG /100
-START  LD  |.| NEAR     Short format for nearby data (1 word)
+START  LD  NEAR          Short format for nearby data (1 word)
        A  |L| /0500     Long format for far address (2 words)
-       M  |.| COUNT     Short format for nearby variable (1 word)
+       M  COUNT          Short format for nearby variable (1 word)
        STO  |L| RESULT  Long format for absolute address (2 words)
-       BSI  |.| SUBR    Short format branch (1 word)
+       BSI  SUBR         Short format branch (1 word)
        WAIT
 
 * Data within ±127 words - use short format
@@ -252,7 +253,7 @@ VALUE   DC 42
 
 ## Performance Considerations
 
-**Short Format (`|.|`):**
+**Short Format (No Specifier):**
 - ✅ 1 word per instruction (saves memory)
 - ✅ Faster to fetch (single memory read)
 - ❌ Limited range (±127 words)

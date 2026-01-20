@@ -145,7 +145,7 @@ Modern, readable format with explicit `|format|` specifiers:
 **Field Rules:**
 - **Label**: Optional, 1-5 characters, must start with letter
 - **Operation**: Required (unless comment line)
-- **Format**: Enclosed in pipes: `|.|`, `|L|`, `|I|`, `|1|`, `|L2|`, etc.
+- **Format**: Enclosed in pipes: `|L|`, `|I|`, `|1|`, `|L2|`, etc. (short format has no specifier)
 - **Operand**: Required for most operations
 - **Comment**: Optional, starts with `*` after operand
 
@@ -220,7 +220,7 @@ Where `format` can be:
 
 ```
       ORG /100
-       LD  |.| NEAR     Short format (1 word)
+       LD  NEAR         Short format (1 word, default)
        LD  |L| FAR      Long format (2 words)
        LD  |1| TABLE    Short + index XR1
        LD  |L2| DATA    Long + index XR2
@@ -427,7 +427,7 @@ All instructions follow the S1130 pattern:
 ```
 
 **Format Specifiers** (see [FORMAT-SPECIFIER-SYNTAX.md](FORMAT-SPECIFIER-SYNTAX.md)):
-- `|.|`: Short format (IAR-relative ±127 words, 1 word)
+- (no specifier): Short format (IAR-relative ±127 words, 1 word, default)
 - `|L|`: Long format (absolute 16-bit address, 2 words)
 - `|I|`: Indirect addressing
 - `|1|`, `|2|`, `|3|`: Index registers XR1, XR2, XR3
@@ -443,7 +443,7 @@ LD   |format| operand    Load accumulator from memory
 
 **Format specifiers:**
 ```
-LD   |.| operand         Short format (IAR-relative, ±127 words)
+LD   operand             Short format (IAR-relative, ±127 words, default)
 LD   |L| operand         Long format (absolute address)
 LD   |1| operand         Short format with index XR1
 LD   |L2| operand        Long format with index XR2
@@ -452,8 +452,8 @@ LD   |I| operand         Indirect addressing
 
 **Examples:**
 ```
-      LD   |.| 5          Load from IAR+5 (short format)
-      LD   |.| -3         Load from IAR-3 (short format)
+      LD   5              Load from IAR+5 (short format)
+      LD   -3             Load from IAR-3 (short format)
       LD   |L| /0400      Load from address 0x0400 (long format)
       LD   |L| VALUE      Load from VALUE address (long format)
       LD   |1| TABLE      Load from TABLE+XR1 (short + index)
@@ -514,7 +514,7 @@ Stores an index register to memory.
 Loads accumulator with CPU status flags.
 
 ```
-      LDS  |.| 0          Load status to accumulator
+      LDS  0              Load status to accumulator
 ```
 
 #### STS - Store Status
@@ -522,7 +522,7 @@ Loads accumulator with CPU status flags.
 Stores accumulator to CPU status flags.
 
 ```
-      STS  |.| 0          Store accumulator to status
+      STS  0              Store accumulator to status
 ```
 
 ### Arithmetic Instructions
@@ -667,14 +667,13 @@ Multiple conditions can be combined: `+-` means "branch if not zero" (positive O
 
 **Examples:**
 ```
-      BSC  |.| LOOP       Unconditional skip next instruction
+      BSC  C              Skip next if carry is OFF
       BSC  |L| LOOP       Unconditional branch to LOOP
       BSC  |I| RTNADDR    Indirect branch (subroutine return)
       BSC  |L| LOOP,C     Branch to LOOP if carry is OFF
       BSC  |L| DONE,+-    Branch to DONE if not zero
       BSC  |L| NEXT,Z     Branch to NEXT if zero
       BSC  |L| ERROR,O    Branch to ERROR if overflow is OFF
-      BSC  |.| SKIP,C     Skip next if carry is OFF
 ```
 
 #### BSI - Branch and Store IAR
@@ -710,7 +709,7 @@ Increments/decrements index register and conditionally branches.
 ```
       LDX  |1| /0010      Load counter = 16
 LOOP  ...                 Loop body
-      MDX  |.| LOOP,-1    Decrement XR1, loop if not zero
+      MDX  LOOP,-1        Decrement XR1, loop if not zero (short format)
 ```
 
 ### I/O Instruction

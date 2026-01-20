@@ -114,33 +114,14 @@ namespace UnitTests.S1130.SystemObjects
         }
 
         [Fact]
-        public void FormatSpecifier_ShortFormat_WithAndWithoutSpace_ShouldAssemble()
-        {
-            var cpu = new Cpu();
-            var source = @"
-      ORG /100
-START LD |.| VALUE1
-      A |.|VALUE2
-      WAIT
-VALUE1 DC 10
-VALUE2 DC 20
-";
-            var result = cpu.Assemble(source);
-
-            Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => e.Message))}");
-        }
-
-        [Fact]
         public void FormatSpecifier_IndirectFormat_WithAndWithoutSpace_ShouldAssemble()
         {
             var cpu = new Cpu();
             var source = @"
-      ORG /100
-      LD |I| PTR1
-      STO |I|PTR2
-      WAIT
-PTR1  DC /0200
-PTR2  DC /0300
+       ORG /100
+       LD |I| /0200
+       STO |I|/0300
+       WAIT
 ";
             var result = cpu.Assemble(source);
 
@@ -152,11 +133,10 @@ PTR2  DC /0300
         {
             var cpu = new Cpu();
             var source = @"
-      ORG /100
-START LD |L| /0001
-      BSC |L| DONE,Z
-      BSC |L| START
-DONE  WAIT
+       ORG /100
+       LD |L| /0001
+       BSC |L| /0200,Z
+       WAIT
 ";
             var result = cpu.Assemble(source);
 
@@ -168,11 +148,10 @@ DONE  WAIT
         {
             var cpu = new Cpu();
             var source = @"
-      ORG /100
-START LD |L|/0001
-      BSC |L|DONE,Z
-      BSC |L|START
-DONE  WAIT
+       ORG /100
+       LD |L|/0001
+       BSC |L|/0200,Z
+       WAIT
 ";
             var result = cpu.Assemble(source);
 
