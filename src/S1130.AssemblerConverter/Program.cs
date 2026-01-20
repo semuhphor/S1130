@@ -75,26 +75,19 @@ class Program
             // Detect format
             var isIBMFormat = DetectIBMFormat(lines.ToArray());
 
-            // Convert and write
-            foreach (var inputLine in lines)
+            // Convert all lines at once
+            string converted;
+            if (isIBMFormat)
             {
-                if (string.IsNullOrWhiteSpace(inputLine))
-                {
-                    output.WriteLine();
-                    continue;
-                }
-
-                string converted;
-                if (isIBMFormat)
-                {
-                    converted = AssemblerConverter.ToS1130Format(inputLine);
-                }
-                else
-                {
-                    converted = AssemblerConverter.ToIBM1130Format(inputLine);
-                }
-                output.WriteLine(converted);
+                converted = AssemblerConverter.ToS1130Format(string.Join("\n", lines));
             }
+            else
+            {
+                converted = AssemblerConverter.ToIBM1130Format(string.Join("\n", lines));
+            }
+            
+            // Write output
+            output.Write(converted);
 
             // Close output if it's a file
             if (output != Console.Out)
