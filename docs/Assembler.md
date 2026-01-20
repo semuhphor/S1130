@@ -1,5 +1,18 @@
 # S1130 IBM 1130 Assembler Documentation
 
+> **⚠️ Important Note on Spacing and Formatting:**  
+> This documentation contains examples in both S1130 format (modern, with `|format|` specifiers) and IBM 1130 format (legacy, fixed-column). When viewing this document as HTML/markdown, spacing may not be preserved accurately due to proportional fonts and markdown rendering.
+>
+> **For IBM 1130 fixed-column format:**
+> - Column positions are critical (see [FORMAT-SPECIFIER-SYNTAX.md](FORMAT-SPECIFIER-SYNTAX.md))
+> - View source files in a monospace font editor to see correct spacing
+> - Use the `asmconv` utility to convert between formats correctly
+>
+> **For S1130 format:**
+> - Flexible spacing is allowed after format specifiers
+> - Both `LD |L| VALUE` and `LD |L|VALUE` are valid
+> - See [SYNTAX-SUMMARY.md](SYNTAX-SUMMARY.md) for a quick reference
+
 ## Table of Contents
 1. [Overview](#overview)
 2. [Quick Start](#quick-start)
@@ -407,54 +420,58 @@ STACK BES  100         Stack grows downward from 0x1063
 
 ### Instruction Format
 
-All instructions follow the pattern:
+All instructions follow the S1130 pattern:
 
 ```
-[label] OPERATION [format] operand [,Xn] [I]
+[label]  OPERATION  |format|  operand
 ```
 
-**Format Specifiers:**
-- `.`: Short format (explicit, IAR-relative ±127 words)
-- `L`: Long format (absolute 16-bit address)
-- (none): Auto-detect based on operand
-
-**Other Modifiers:**
-- `,X1`, `,X2`, `,X3`: Index register
-- `I`: Indirect addressing
+**Format Specifiers** (see [FORMAT-SPECIFIER-SYNTAX.md](FORMAT-SPECIFIER-SYNTAX.md)):
+- `|.|`: Short format (IAR-relative ±127 words, 1 word)
+- `|L|`: Long format (absolute 16-bit address, 2 words)
+- `|I|`: Indirect addressing
+- `|1|`, `|2|`, `|3|`: Index registers XR1, XR2, XR3
+- Combinations: `|L1|`, `|L2|`, `|L3|`, `|I1|`, `|I2|`, `|I3|`
 
 ### Load/Store Instructions
 
 #### LD - Load Accumulator
 
 ```
-LD   . operand       Short format (explicit)
-LD   L operand       Long format (explicit)
-LD   operand,X1      With index register
-LD   L operand I     Long format, indirect
+LD   |format| operand    Load accumulator from memory
+```
+
+**Format specifiers:**
+```
+LD   |.| operand         Short format (IAR-relative, ±127 words)
+LD   |L| operand         Long format (absolute address)
+LD   |1| operand         Short format with index XR1
+LD   |L2| operand        Long format with index XR2
+LD   |I| operand         Indirect addressing
 ```
 
 **Examples:**
 ```
-      LD   . 5         Load from IAR+5 (short format, explicit)
-      LD   . -3        Load from IAR-3 (short format, explicit)
-      LD   L /0400     Load from address 0x0400 (long format)
-      LD   L VALUE     Load from VALUE address (long format)
-      LD   . TABLE,X1  Load from TABLE+XR1 (short format)
-      LD   L PTR I     Load from address pointed to by PTR (long, indirect)
+      LD   |.| 5          Load from IAR+5 (short format)
+      LD   |.| -3         Load from IAR-3 (short format)
+      LD   |L| /0400      Load from address 0x0400 (long format)
+      LD   |L| VALUE      Load from VALUE address (long format)
+      LD   |1| TABLE      Load from TABLE+XR1 (short + index)
+      LD   |L2| DATA      Load from DATA+XR2 (long + index)
+      LD   |I| PTR        Load from address in PTR (indirect)
 ```
-
-**Note:** The dot (`.`) format specifier makes the short format explicit, matching the fixed-column card format used by the original IBM 1130 assembler where column position indicated format.
 
 #### STO - Store Accumulator
 
 ```
-STO  operand         Store accumulator to memory
+STO  |format| operand    Store accumulator to memory
 ```
 
 **Examples:**
 ```
-      STO  L RESULT    Store to RESULT
-      STO  TABLE,X1    Store to TABLE+XR1
+      STO  |L| RESULT     Store to RESULT
+      STO  |1| TABLE      Store to TABLE+XR1
+      STO  |L2| BUFFER    Store to BUFFER+XR2
 ```
 
 #### LDD - Load Double
@@ -462,7 +479,7 @@ STO  operand         Store accumulator to memory
 Loads Acc:Ext from two consecutive memory locations.
 
 ```
-      LDD  L VALUE     Acc = VALUE, Ext = VALUE+1
+      LDD  |L| VALUE      Acc = VALUE, Ext = VALUE+1
 ```
 
 #### STD - Store Double
@@ -470,7 +487,7 @@ Loads Acc:Ext from two consecutive memory locations.
 Stores Acc:Ext to two consecutive memory locations.
 
 ```
-      STD  L RESULT    RESULT = Acc, RESULT+1 = Ext
+      STD  |L| RESULT     RESULT = Acc, RESULT+1 = Ext
 ```
 
 #### LDX - Load Index
@@ -478,8 +495,9 @@ Stores Acc:Ext to two consecutive memory locations.
 Loads an index register from memory.
 
 ```
-      LDX  1 VALUE     Load XR1 from VALUE
-      LDX  2 /0400     Load XR2 from address 0x0400
+      LDX  |1| VALUE      Load XR1 from VALUE (short format)
+      LDX  |L2| /0400     Load XR2 from address 0x0400 (long format)
+      LDX  |3| COUNT      Load XR3 from COUNT
 ```
 
 #### STX - Store Index
@@ -487,7 +505,8 @@ Loads an index register from memory.
 Stores an index register to memory.
 
 ```
-      STX  1 SAVE      Store XR1 to SAVE
+      STX  |1| SAVE       Store XR1 to SAVE
+      STX  |L2| RESULT    Store XR2 to RESULT
 ```
 
 #### LDS - Load Status
@@ -495,7 +514,7 @@ Stores an index register to memory.
 Loads accumulator with CPU status flags.
 
 ```
-      LDS  0           Load status to accumulator
+      LDS  |.| 0          Load status to accumulator
 ```
 
 #### STS - Store Status
@@ -503,7 +522,7 @@ Loads accumulator with CPU status flags.
 Stores accumulator to CPU status flags.
 
 ```
-      STS  0           Store accumulator to status
+      STS  |.| 0          Store accumulator to status
 ```
 
 ### Arithmetic Instructions
@@ -511,7 +530,7 @@ Stores accumulator to CPU status flags.
 #### A - Add
 
 ```
-      A    L VALUE     Acc = Acc + VALUE
+      A    |L| VALUE      Acc = Acc + VALUE
 ```
 
 Sets Carry and Overflow flags.
@@ -519,7 +538,7 @@ Sets Carry and Overflow flags.
 #### S - Subtract
 
 ```
-      S    L VALUE     Acc = Acc - VALUE
+      S    |L| VALUE      Acc = Acc - VALUE
 ```
 
 Sets Carry and Overflow flags.
@@ -527,7 +546,7 @@ Sets Carry and Overflow flags.
 #### M - Multiply
 
 ```
-      M    L VALUE     Acc:Ext = Acc * VALUE (32-bit result)
+      M    |L| VALUE      Acc:Ext = Acc * VALUE (32-bit result)
 ```
 
 Result: High 16 bits in Acc, low 16 bits in Ext.
@@ -535,20 +554,20 @@ Result: High 16 bits in Acc, low 16 bits in Ext.
 #### D - Divide
 
 ```
-      D    L VALUE     Acc = Acc:Ext / VALUE
-                       Ext = Acc:Ext % VALUE (remainder)
+      D    |L| VALUE      Acc = Acc:Ext / VALUE
+                          Ext = Acc:Ext % VALUE (remainder)
 ```
 
 #### AD - Add Double
 
 ```
-      AD   L VALUE     Acc:Ext = Acc:Ext + VALUE:VALUE+1
+      AD   |L| VALUE      Acc:Ext = Acc:Ext + VALUE:VALUE+1
 ```
 
 #### SD - Subtract Double
 
 ```
-      SD   L VALUE     Acc:Ext = Acc:Ext - VALUE:VALUE+1
+      SD   |L| VALUE      Acc:Ext = Acc:Ext - VALUE:VALUE+1
 ```
 
 ### Logical Instructions
@@ -556,7 +575,7 @@ Result: High 16 bits in Acc, low 16 bits in Ext.
 #### AND - Logical AND
 
 ```
-      AND  L VALUE     Acc = Acc AND VALUE
+      AND  |L| VALUE      Acc = Acc AND VALUE
 ```
 
 Clears Carry and Overflow.
@@ -564,13 +583,13 @@ Clears Carry and Overflow.
 #### OR - Logical OR
 
 ```
-      OR   L VALUE     Acc = Acc OR VALUE
+      OR   |L| VALUE      Acc = Acc OR VALUE
 ```
 
 #### EOR - Exclusive OR
 
 ```
-      EOR  L VALUE     Acc = Acc XOR VALUE
+      EOR  |L| VALUE      Acc = Acc XOR VALUE
 ```
 
 ### Shift Instructions
@@ -648,14 +667,14 @@ Multiple conditions can be combined: `+-` means "branch if not zero" (positive O
 
 **Examples:**
 ```
-      BSC  LOOP        Unconditional skip next instruction
-      BSC  L LOOP      Unconditional branch to LOOP
-      BSC  I RTNADDR   Indirect branch (subroutine return)
-      BSC  L LOOP,C    Branch to LOOP if carry is OFF
-      BSC  L DONE,+-   Branch to DONE if not zero
-      BSC  L NEXT,Z    Branch to NEXT if zero
-      BSC  L ERROR,O   Branch to ERROR if overflow is OFF
-      BSC  C           Skip next if carry is OFF
+      BSC  |.| LOOP       Unconditional skip next instruction
+      BSC  |L| LOOP       Unconditional branch to LOOP
+      BSC  |I| RTNADDR    Indirect branch (subroutine return)
+      BSC  |L| LOOP,C     Branch to LOOP if carry is OFF
+      BSC  |L| DONE,+-    Branch to DONE if not zero
+      BSC  |L| NEXT,Z     Branch to NEXT if zero
+      BSC  |L| ERROR,O    Branch to ERROR if overflow is OFF
+      BSC  |.| SKIP,C     Skip next if carry is OFF
 ```
 
 #### BSI - Branch and Store IAR
@@ -663,16 +682,16 @@ Multiple conditions can be combined: `+-` means "branch if not zero" (positive O
 Subroutine call: stores return address and branches.
 
 ```
-      BSI  L SUBR      Call subroutine at SUBR
+      BSI  |L| SUBR       Call subroutine at SUBR
 ```
 
 Stores next IAR at SUBR, branches to SUBR+1.
 
 **Subroutine Pattern:**
 ```
-SUBR   DC 0            Return address saved here
-       ...             Subroutine code
-       BSC  I SUBR     Return via indirect branch
+SUBR   DC 0               Return address saved here
+       ...                Subroutine code
+       BSC  |I| SUBR      Return via indirect branch
 ```
 
 #### MDX - Modify Index and Skip
@@ -680,7 +699,7 @@ SUBR   DC 0            Return address saved here
 Increments/decrements index register and conditionally branches.
 
 ```
-      MDX  target,modifier
+      MDX  |format| target,modifier
 ```
 
 **Modifier:**
@@ -689,9 +708,9 @@ Increments/decrements index register and conditionally branches.
 
 **Loop Example:**
 ```
-      LDX  1 /0010     Load counter = 16
-LOOP  ...              Loop body
-      MDX  LOOP,-1     Decrement XR1, loop if not zero
+      LDX  |1| /0010      Load counter = 16
+LOOP  ...                 Loop body
+      MDX  |.| LOOP,-1    Decrement XR1, loop if not zero
 ```
 
 ### I/O Instruction
@@ -701,23 +720,23 @@ LOOP  ...              Loop body
 Executes an I/O operation via IOCC structure.
 
 ```
-      XIO  L IOCC      Execute I/O command at IOCC
+      XIO  |L| IOCC       Execute I/O command at IOCC
 ```
 
 **IOCC Structure:**
 ```
-IOCC  DC   BUFFER      Word count address (WCA)
-      DC   /0900       Device code + function + modifiers
+IOCC   DC BUFFER         Word count address (WCA)
+       DC /0900          Device code + function + modifiers
 ```
 
 **Example - Read Card:**
 ```
-      XIO  L RIOCC     Initiate card read
+       XIO  |L| RIOCC    Initiate card read
 
-RIOCC DC   CARDBUF     Buffer address
-      DC   /0950       Device 01, InitRead, 80 words
+RIOCC  DC CARDBUF        Buffer address
+       DC /0950          Device 01, InitRead, 80 words
 
-CARDBUF BSS 80         80-word buffer
+CARDBUF BSS 80           80-word buffer
 ```
 
 ### Control Instruction
