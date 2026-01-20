@@ -1,0 +1,136 @@
+.register-display {
+  font-family: 'Courier New', monospace;
+  background-color: #1e1e1e;
+  color: #00ff00;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.register-display h3 {
+  margin: 0 0 15px 0;
+  color: #00ff00;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.register-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+}
+
+.register-label {
+  min-width: 80px;
+  font-weight: bold;
+  color: #ffcc00;
+  font-size: 14px;
+}
+
+.register-value {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-grow: 1;
+}
+
+.hex-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #00ff00;
+  min-width: 80px;
+}
+
+.dec-value {
+  font-size: 14px;
+  color: #888;
+}
+
+.binary-display {
+  display: flex;
+  gap: 2px;
+}
+
+.bit {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.bit.on {
+  background-color: #ff0000;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+}
+
+.bit.off {
+  background-color: #333;
+  color: #666;
+}
+
+.flags-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #444;
+}
+
+.flags-row {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.flag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flag-label {
+  color: #ffcc00;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.flag-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.flag-indicator.active {
+  background-color: #ff0000;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+}
+
+.flag-indicator.inactive {
+  background-color: #333;
+  color: #666;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #444;
+  font-size: 12px;
+  color: #888;
+}

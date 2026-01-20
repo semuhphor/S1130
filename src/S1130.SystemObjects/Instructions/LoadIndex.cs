@@ -9,7 +9,11 @@ namespace S1130.SystemObjects.Instructions
 
 		public void Execute(ICpu cpu)
 		{
-			cpu.Xr[cpu.Tag] = cpu.FormatLong ? (cpu.IndirectAddress ? cpu[cpu.Displacement] :  cpu.Displacement) : Convert.ToUInt16((sbyte) cpu.Displacement & 0xffff);
+			cpu.Xr[cpu.Tag] = cpu.FormatLong ? (cpu.IndirectAddress ? cpu[cpu.Displacement] : cpu.Displacement) : Convert.ToUInt16((sbyte)cpu.Displacement & 0xffff);
+			if (cpu.Tag != 0)
+			{
+				SetIarToNextInstruction(cpu);
+			}
 		}
 	}
 }

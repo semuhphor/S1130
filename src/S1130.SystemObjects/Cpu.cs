@@ -137,7 +137,10 @@ namespace S1130.SystemObjects
 		public ushort AtIar
 		{
 			get { return this[Iar]; }
-			set { this[Iar] = value; }
+			set {
+					this[Iar] = value; 
+					DecodeCurrentInstruction();
+				}
 		}
 
 		// Current instruction decode fields
@@ -284,25 +287,28 @@ namespace S1130.SystemObjects
 		 * Instruction decode and execution
 		 */
 
-		/// <summary>
-		/// Decodes the next instruction at the current IAR location.
-		/// Advances IAR past the instruction and populates instruction decode fields.
-		/// </summary>
-		public void NextInstruction()
+		public void DecodeCurrentInstruction()                                                        // System State constructor
 		{
-			var firstWord = Memory[Iar++];                                      // retrieve the first work
+			if (Iar >= MemorySize)
+				throw new InvalidOperationException($"IAR out of bounds: 0x{Iar:X4} >= 0x{MemorySize:X4}");
+
+			var firstWord = Memory[Iar];                                      // retrieve the first work
 			Opcode = (ushort)((firstWord & 0xF800) >> 11);                      // .. get the opcode shifted to low-order bits
+
+			if (Opcode >= Instructions.Length)
+				throw new InvalidOperationException($"Invalid opcode 0x{Opcode:X2} at address 0x{(Iar - 1):X4}. First word: 0x{firstWord:X4}");
+
 			CurrentInstruction = Instructions[Opcode];                          // save the current instruction
 			if (CurrentInstruction != null)                                     // q. instruciton found?
 			{                                                                   // a. yes .. decode
 				var formatBit = (firstWord & 0x0400) != 0;                      // .. extract the format bit
 				Tag = (ushort)((firstWord & 0x0300) >> 8);                      // .. get the Xr, if any, from tag bits
 				Modifiers = (ushort)(firstWord & 0xff);                     // .. get out modifiers/displacement
-				
+
 				if (formatBit && CurrentInstruction.HasLongFormat)              // q. long format instruction?
 				{                                                               // a. yes ...
 					FormatLong = true;                                          // .. show it is long
-					Displacement = Memory[Iar++];                               // .. get displacement second word
+					Displacement = Memory[Iar + 1];                               // .. get displacement second word
 					IndirectAddress = (firstWord & 0x80) != 0;                  // .. and get indirect address bit
 				}
 				else                                                            // otherwise ..
@@ -315,11 +321,24 @@ namespace S1130.SystemObjects
 		}
 
 		/// <summary>
+		/// Decodes the next instruction at the current IAR location.
+		/// Advances IAR past the instruction and populates instruction decode fields.
+		/// </summary>
+		// public void NextInstruction()
+		// {
+		// 	DecodeNextInstruction();
+		// 	Iar++;
+		// 	if (FormatLong)
+		// 		Iar++;
+		// }
+
+		/// <summary>
 		/// Executes the currently decoded instruction and handles any pending interrupts.
 		/// Sets Wait state if instruction is invalid. Increments instruction counter.
 		/// </summary>
 		public void ExecuteInstruction()
 		{                                                                       // .. instruction decoded from NextInstruction() above
+			DecodeCurrentInstruction();									 		// .. ensure instruction is decoded
 			if (CurrentInstruction != null)                                     // q. is the current instruction valid?
 			{                                                                   // a. yes ..
 				CurrentInstruction.Execute(this);                               // .. execute it
@@ -403,7 +422,17 @@ namespace S1130.SystemObjects
 		public bool IgnoreInstructionCount { get; set; }                    // ... ignore waiting for instruction
 		public bool MasterDebug { get; set; }                               // Set to true to do debug checking.
 
-		public void LetInstuctionsExecute(ulong numberOfInstructions)       // Let some number of instructions execute until wait
+        public ushort CurrentInstructionLength
+		{
+			get
+			{
+				if (CurrentInstruction == null)
+					return 0;
+				return (ushort)(FormatLong ? 2 : 1);
+			}
+		}
+	
+        public void LetInstuctionsExecute(ulong numberOfInstructions)       // Let some number of instructions execute until wait
 		{
 			if (IgnoreInstructionCount)                                         // q. wait for instructions to run?
 			{                                                                   // a. no .. 
@@ -429,8 +458,62 @@ namespace S1130.SystemObjects
 
 		public AssemblyResult Assemble(string sourceCode)                     // Implement ICpu.Assemble
 		{
-            var assembler = new Assembler(this);
-            return assembler.Assemble(sourceCode);
+            var assembler = new S1130.SystemObjects.Assembler.Assembler();
+            var lines = sourceCode.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var result = assembler.Assemble(lines);
+            
+            // Load assembled code into CPU memory
+            if (result.Success && result.GeneratedWords != null)
+            {
+                for (int i = 0; i < result.GeneratedWords.Length; i++)
+                {
+                    Memory[result.StartAddress + i] = result.GeneratedWords[i];
+                }
+            }
+            
+            return result;
+		}
+
+		public string Disassemble(ushort address)                           // Implement ICpu.Disassemble
+		{
+			// Save current CPU state
+			var savedIar = Iar;
+			var savedOpcode = Opcode;
+			var savedFormatLong = FormatLong;
+			var savedTag = Tag;
+			var savedDisplacement = Displacement;
+			var savedIndirectAddress = IndirectAddress;
+			var savedModifiers = Modifiers;
+			var savedCurrentInstruction = CurrentInstruction;
+			
+			try
+			{
+				// Decode instruction at specified address
+				Iar = address;
+				DecodeCurrentInstruction();
+				
+				if (CurrentInstruction == null)
+				{
+					// Unknown opcode - output as DC directive
+					ushort word = this[address];
+					return $"DC   /{word:X4}        * ({word} Dec)";
+				}
+				
+				// Call instruction's disassemble method
+				return CurrentInstruction.Disassemble(this, address);
+			}
+			finally
+			{
+				// Restore CPU state
+				Iar = savedIar;
+				Opcode = savedOpcode;
+				FormatLong = savedFormatLong;
+				Tag = savedTag;
+				Displacement = savedDisplacement;
+				IndirectAddress = savedIndirectAddress;
+				Modifiers = savedModifiers;
+				CurrentInstruction = savedCurrentInstruction;
+			}
 		}
 
 		private void BuildDefaultDevices()                                  // add default devices to system
@@ -448,5 +531,10 @@ namespace S1130.SystemObjects
 		{
 			_debugSettings[location] = null;                                    // clear the debug setting
 		}
-	}
+
+        public string Disassemble()										// Disassemble at current IAR.
+        {
+            return Disassemble(Iar);											// Call the disassemble method
+        }
+    }
 }

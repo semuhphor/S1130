@@ -23,6 +23,7 @@
         public void Execute(ICpu cpu)
         {
             cpu.Acc = cpu[GetEffectiveAddress(cpu)];
+            SetIarToNextInstruction(cpu);
         }
     }
 }

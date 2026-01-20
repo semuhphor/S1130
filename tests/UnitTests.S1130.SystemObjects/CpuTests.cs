@@ -78,9 +78,8 @@ namespace UnitTests.S1130.SystemObjects
 	    {
             _cpu = new Cpu { Iar = 0x100 };
 		    _cpu.AtIar = 0x0000;
-			_cpu.NextInstruction();
 			_cpu.ExecuteInstruction();
-			Assert.Equal(0x101, _cpu.Iar);
+			Assert.Equal(0x100, _cpu.Iar);
 			Assert.True(_cpu.Wait);
 	    }
 
@@ -88,9 +87,8 @@ namespace UnitTests.S1130.SystemObjects
 		public void NextInstruction_ShortLoadInstructionTest()
 		{
             _cpu = new Cpu { Iar = 0x100 };
-			_cpu.Memory[0x100] = InstructionBuilder.BuildShort(OpCodes.Load, 2, 0x72);
-			_cpu.NextInstruction();
-			Assert.Equal(0x101, _cpu.Iar);
+			InstructionBuilder.BuildShortAtIar(OpCodes.Load, 2, 0x72, _cpu);
+			Assert.Equal(0x100, _cpu.Iar);
 			Assert.Equal((int)OpCodes.Load, _cpu.Opcode);
 			Assert.False(_cpu.FormatLong);
 			Assert.Equal(2, _cpu.Tag);
@@ -103,8 +101,7 @@ namespace UnitTests.S1130.SystemObjects
 		{
             _cpu = new Cpu { Iar = 0x100 };
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Load, 3, 0x72, _cpu);
-			_cpu.NextInstruction();
-			Assert.Equal(0x102, _cpu.Iar);
+			Assert.Equal(0x100, _cpu.Iar);
 			Assert.Equal((int)OpCodes.Load, _cpu.Opcode);
 			Assert.True(_cpu.FormatLong);
 			Assert.True(_cpu.IndirectAddress);

@@ -10,16 +10,17 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_WAIT_SetsWaitState()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Wait, 0, 0);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.Wait, 0, 0, InsCpu);
+			
 			Assert.False(InsCpu.Wait);
 			InsCpu.ExecuteInstruction();
 			Assert.True(InsCpu.Wait);
+			Assert.Equal(0x101, InsCpu.Iar);
 		}
 
 		protected override void BuildAnInstruction()
 		{
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Wait, 0, 0);
+			InstructionBuilder.BuildShortAtIar(OpCodes.Wait, 0, 0, InsCpu);
 		}
 
 		protected override string OpName

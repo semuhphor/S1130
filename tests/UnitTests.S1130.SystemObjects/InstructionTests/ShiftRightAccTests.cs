@@ -10,8 +10,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRA()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftRight, 0, 0x03);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 0, 0x03, InsCpu);
 			ExecAndTest(initialAcc: 0x1000, expectedAcc: 0x0200);
 		}
 
@@ -19,8 +18,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRA_XR1()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftRight, 1, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 1, 0x00, InsCpu);
 			InsCpu.Xr[1] = 0x05;
 			ExecAndTest(initialAcc: 0x1020, expectedAcc: 0x0081);
 		}
@@ -29,8 +27,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRA_XR1_15bits()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftRight, 2, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
 			InsCpu.Xr[2] = 0x0f;
 			ExecAndTest(initialAcc: 0x8000, expectedAcc: 0x0001);
 		}
@@ -39,8 +36,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRA_XR1_ClearsAcc()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftRight, 2, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
 			InsCpu.Xr[2] = 0x3f;
 			ExecAndTest(initialAcc: 0x8000, expectedAcc: 0x0000);
 		}
@@ -49,15 +45,14 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRA_XR3_0BitsNOP()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftRight, 2, 0x00);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
 			InsCpu.Xr[2] = 0x00;
 			ExecAndTest(initialAcc: 0x4312, expectedAcc: 0x4312);
 		}
 
 		protected override void BuildAnInstruction()
 		{
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.ShiftRight, 2, 0x00);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
 		}
 
 		protected override string OpName

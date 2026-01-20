@@ -787,7 +787,7 @@ public abstract class InstructionTestBase
         InsCpu.Carry = initialCarry;
         InsCpu.Overflow = initialOverflow;
         
-        InsCpu.NextInstruction();
+        
         InsCpu.ExecuteInstruction();
         
         Assert.Equal(expectedAcc, InsCpu.Acc);

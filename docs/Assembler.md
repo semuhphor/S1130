@@ -1,18 +1,33 @@
 # S1130 IBM 1130 Assembler Documentation
 
+> **⚠️ Important Note on Spacing and Formatting:**  
+> This documentation contains examples in both S1130 format (modern, with `|format|` specifiers) and IBM 1130 format (legacy, fixed-column). When viewing this document as HTML/markdown, spacing may not be preserved accurately due to proportional fonts and markdown rendering.
+>
+> **For IBM 1130 fixed-column format:**
+> - Column positions are critical (see [FORMAT-SPECIFIER-SYNTAX.md](FORMAT-SPECIFIER-SYNTAX.md))
+> - View source files in a monospace font editor to see correct spacing
+> - Use the `asmconv` utility to convert between formats correctly
+>
+> **For S1130 format:**
+> - Flexible spacing is allowed after format specifiers
+> - Both `LD |L| VALUE` and `LD |L|VALUE` are valid
+> - See [SYNTAX-SUMMARY.md](SYNTAX-SUMMARY.md) for a quick reference
+
 ## Table of Contents
 1. [Overview](#overview)
 2. [Quick Start](#quick-start)
 3. [Assembly Language Syntax](#assembly-language-syntax)
-4. [Directives](#directives)
-5. [Instructions](#instructions)
-6. [Addressing Modes](#addressing-modes)
-7. [Expressions and Symbols](#expressions-and-symbols)
-8. [Two-Pass Assembly](#two-pass-assembly)
-9. [Error Handling](#error-handling)
-10. [Usage Examples](#usage-examples)
-11. [Assembler API](#assembler-api)
-12. [Implementation Details](#implementation-details)
+4. [Format Specifiers](#format-specifiers)
+5. [Format Conversion](#format-conversion)
+6. [Directives](#directives)
+7. [Instructions](#instructions)
+8. [Addressing Modes](#addressing-modes)
+9. [Expressions and Symbols](#expressions-and-symbols)
+10. [Two-Pass Assembly](#two-pass-assembly)
+11. [Error Handling](#error-handling)
+12. [Usage Examples](#usage-examples)
+13. [Assembler API](#assembler-api)
+14. [Implementation Details](#implementation-details)
 
 ---
 
@@ -24,6 +39,9 @@ The S1130 Assembler is a complete implementation of the IBM 1130 assembly langua
 
 **Features:**
 - Full IBM 1130 instruction set support
+- Modern S1130 free-form syntax with `|format|` specifiers
+- Legacy IBM 1130 fixed-column format support
+- Bidirectional format conversion with `asmconv` utility
 - Short and long format instructions
 - Direct, indirect, and indexed addressing modes
 - Symbolic labels and forward references
@@ -34,7 +52,8 @@ The S1130 Assembler is a complete implementation of the IBM 1130 assembly langua
 - Formatted assembly listing output
 
 **Design Philosophy:**
-- Faithful to IBM 1130 assembly syntax
+- Modern free-form syntax for readability
+- Compatible with legacy IBM 1130 source code
 - Clear error messages for debugging
 - Efficient two-pass algorithm
 - Integrated with CPU emulator
@@ -51,13 +70,13 @@ using S1130.SystemObjects;
 var cpu = new Cpu();
 
 var source = @"
-      ORG  /100
-START LD   L VALUE
-      A    L VALUE
-      STO  L RESULT
-      WAIT
-VALUE DC   /0042
-RESULT DC  0
+      ORG /100
+START  LD  |L| VALUE
+       A  |L| VALUE
+       STO  |L| RESULT
+       WAIT
+VALUE  DC /0042
+RESULT  DC 0
 ";
 
 var result = cpu.Assemble(source);
@@ -113,35 +132,63 @@ public class AssemblyError
 
 ## Assembly Language Syntax
 
-### Source Line Format
+The S1130 assembler supports two syntax styles:
 
-IBM 1130 assembly uses a columnar format (originally for punched cards):
+### 1. S1130 Free-Form Syntax (Recommended)
+
+Modern, readable format with explicit `|format|` specifiers:
 
 ```
-[LABEL] [OPERATION] [OPERAND] [COMMENT]
+[label]  OPERATION  |format|  operand  [* comment]
 ```
 
 **Field Rules:**
-- **Label**: Optional, starts in column 1-5, must start with letter
-- **Operation**: Required (unless comment line), starts in column 6+
-- **Operand**: Required for most operations, follows operation
-- **Comment**: Optional, separated by whitespace
+- **Label**: Optional, 1-5 characters, must start with letter
+- **Operation**: Required (unless comment line)
+- **Format**: Enclosed in pipes: `|L|`, `|I|`, `|1|`, `|L2|`, etc. (short format has no specifier)
+- **Operand**: Required for most operations
+- **Comment**: Optional, starts with `*` after operand
 
-**Important:** Fields are whitespace-separated, not column-based in this implementation.
-
-### Examples
-
+**Examples:**
 ```
 * This is a comment line (starts with asterisk)
 
-LOOP  LD   L VALUE    Load VALUE into accumulator
-      A    L ONE      Add ONE to accumulator
-      STO  L VALUE    Store back to VALUE
-      MDX  LOOP,-1    Decrement and branch to LOOP
-      WAIT            Halt execution
+LOOP   LD  |L| VALUE    Load VALUE into accumulator
+       A  |L| ONE       Add ONE to accumulator
+       STO  |L| VALUE   Store back to VALUE
+       MDX  LOOP,-1     Decrement and branch to LOOP
+       WAIT             Halt execution
 
-VALUE DC   5          Define constant 5
-ONE   DC   1          Define constant 1
+VALUE  DC 5             Define constant 5
+ONE    DC 1             Define constant 1
+```
+
+### 2. IBM 1130 Fixed-Column Format (Legacy)
+
+Traditional punched card format with strict column positioning:
+
+```
+Columns  Content
+-------  -------
+1-20     Object code area (blank in source)
+21-25    Label (5 characters max)
+26       Mandatory blank
+27-30    Operation code (4 characters)
+31       Mandatory blank
+32       Format code (blank, L, or I)
+33       Tag/Index register (blank, 1, 2, or 3)
+34       Mandatory blank
+35-71    Operand and remarks
+```
+
+**Example:**
+```
+                    START LD   L  VALUE
+                          A    L  ONE
+                          STO  L  VALUE
+                          MDX     LOOP,-1
+                    VALUE DC      5
+                    ONE   DC      1
 ```
 
 ### Case Sensitivity
@@ -149,6 +196,74 @@ ONE   DC   1          Define constant 1
 - **Instructions**: Case-insensitive (LD, ld, Ld all equivalent)
 - **Labels**: Case-insensitive (LOOP, loop, Loop all same)
 - **Hex values**: Case-insensitive (/FF, /ff, /Ff all same)
+
+---
+
+## Format Specifiers
+
+The S1130 assembler uses explicit format specifiers to indicate addressing modes:
+
+### Format Specifier Syntax
+
+```
+|format|
+```
+
+Where `format` can be:
+- **`.`** - Short format (IAR-relative, ±127 words, 1 word instruction)
+- **`L`** - Long format (absolute address, 2 word instruction)
+- **`I`** - Indirect addressing
+- **`1`, `2`, `3`** - Index registers XR1, XR2, XR3
+- **Combinations**: `L1`, `L2`, `L3`, `I1`, `I2`, `I3`
+
+### Examples
+
+```
+      ORG /100
+       LD  NEAR         Short format (1 word, default)
+       LD  |L| FAR      Long format (2 words)
+       LD  |1| TABLE    Short + index XR1
+       LD  |L2| DATA    Long + index XR2
+       LD  |I| PTR      Indirect addressing
+       LD  |I1| PTBL    Indirect + XR1
+```
+
+See [FORMAT-SPECIFIER-SYNTAX.md](FORMAT-SPECIFIER-SYNTAX.md) for complete documentation.
+
+---
+
+## Format Conversion
+
+### asmconv Utility
+
+Convert between S1130 free-form and IBM 1130 fixed-column formats:
+
+**Installation:**
+```powershell
+dotnet build src/S1130.AssemblerConverter/S1130.AssemblerConverter.csproj
+```
+
+**Usage:**
+```powershell
+# Auto-detect format and convert
+asmconv input.asm output.s1130
+
+# Pipe operation
+type legacy.asm | asmconv > modern.s1130
+
+# Batch convert
+Get-ChildItem *.asm | ForEach-Object {
+    asmconv $_.Name "$($_.BaseName).s1130"
+}
+```
+
+**Features:**
+- 🔍 Auto-detects input format
+- 📥 Supports files, stdin/stdout, pipes
+- 🔄 Bidirectional conversion
+- ✅ Preserves semantics
+
+See [asmconv README](../src/S1130.AssemblerConverter/README.md) for complete documentation.
 
 ---
 
@@ -305,48 +420,58 @@ STACK BES  100         Stack grows downward from 0x1063
 
 ### Instruction Format
 
-All instructions follow the pattern:
+All instructions follow the S1130 pattern:
 
 ```
-[label] OPERATION [L] operand [,Xn] [I]
+[label]  OPERATION  |format|  operand
 ```
 
-**Modifiers:**
-- `L`: Long format (16-bit address)
-- `,X1`, `,X2`, `,X3`: Index register
-- `I`: Indirect addressing
+**Format Specifiers** (see [FORMAT-SPECIFIER-SYNTAX.md](FORMAT-SPECIFIER-SYNTAX.md)):
+- (no specifier): Short format (IAR-relative ±127 words, 1 word, default)
+- `|L|`: Long format (absolute 16-bit address, 2 words)
+- `|I|`: Indirect addressing
+- `|1|`, `|2|`, `|3|`: Index registers XR1, XR2, XR3
+- Combinations: `|L1|`, `|L2|`, `|L3|`, `|I1|`, `|I2|`, `|I3|`
 
 ### Load/Store Instructions
 
 #### LD - Load Accumulator
 
 ```
-LD   operand         Load accumulator from memory
-LD   L operand       Long format
-LD   operand,X1      With index register
-LD   L operand I     Long format, indirect
+LD   |format| operand    Load accumulator from memory
+```
+
+**Format specifiers:**
+```
+LD   operand             Short format (IAR-relative, ±127 words, default)
+LD   |L| operand         Long format (absolute address)
+LD   |1| operand         Short format with index XR1
+LD   |L2| operand        Long format with index XR2
+LD   |I| operand         Indirect addressing
 ```
 
 **Examples:**
 ```
-      LD   5           Load from IAR+5 (short format)
-      LD   -3          Load from IAR-3 (short format)
-      LD   L /0400     Load from address 0x0400
-      LD   L VALUE     Load from VALUE address
-      LD   TABLE,X1    Load from TABLE+XR1
-      LD   L PTR I     Load from address pointed to by PTR
+      LD   5              Load from IAR+5 (short format)
+      LD   -3             Load from IAR-3 (short format)
+      LD   |L| /0400      Load from address 0x0400 (long format)
+      LD   |L| VALUE      Load from VALUE address (long format)
+      LD   |1| TABLE      Load from TABLE+XR1 (short + index)
+      LD   |L2| DATA      Load from DATA+XR2 (long + index)
+      LD   |I| PTR        Load from address in PTR (indirect)
 ```
 
 #### STO - Store Accumulator
 
 ```
-STO  operand         Store accumulator to memory
+STO  |format| operand    Store accumulator to memory
 ```
 
 **Examples:**
 ```
-      STO  L RESULT    Store to RESULT
-      STO  TABLE,X1    Store to TABLE+XR1
+      STO  |L| RESULT     Store to RESULT
+      STO  |1| TABLE      Store to TABLE+XR1
+      STO  |L2| BUFFER    Store to BUFFER+XR2
 ```
 
 #### LDD - Load Double
@@ -354,7 +479,7 @@ STO  operand         Store accumulator to memory
 Loads Acc:Ext from two consecutive memory locations.
 
 ```
-      LDD  L VALUE     Acc = VALUE, Ext = VALUE+1
+      LDD  |L| VALUE      Acc = VALUE, Ext = VALUE+1
 ```
 
 #### STD - Store Double
@@ -362,7 +487,7 @@ Loads Acc:Ext from two consecutive memory locations.
 Stores Acc:Ext to two consecutive memory locations.
 
 ```
-      STD  L RESULT    RESULT = Acc, RESULT+1 = Ext
+      STD  |L| RESULT     RESULT = Acc, RESULT+1 = Ext
 ```
 
 #### LDX - Load Index
@@ -370,8 +495,9 @@ Stores Acc:Ext to two consecutive memory locations.
 Loads an index register from memory.
 
 ```
-      LDX  1 VALUE     Load XR1 from VALUE
-      LDX  2 /0400     Load XR2 from address 0x0400
+      LDX  |1| VALUE      Load XR1 from VALUE (short format)
+      LDX  |L2| /0400     Load XR2 from address 0x0400 (long format)
+      LDX  |3| COUNT      Load XR3 from COUNT
 ```
 
 #### STX - Store Index
@@ -379,7 +505,8 @@ Loads an index register from memory.
 Stores an index register to memory.
 
 ```
-      STX  1 SAVE      Store XR1 to SAVE
+      STX  |1| SAVE       Store XR1 to SAVE
+      STX  |L2| RESULT    Store XR2 to RESULT
 ```
 
 #### LDS - Load Status
@@ -387,7 +514,7 @@ Stores an index register to memory.
 Loads accumulator with CPU status flags.
 
 ```
-      LDS  0           Load status to accumulator
+      LDS  0              Load status to accumulator
 ```
 
 #### STS - Store Status
@@ -395,7 +522,7 @@ Loads accumulator with CPU status flags.
 Stores accumulator to CPU status flags.
 
 ```
-      STS  0           Store accumulator to status
+      STS  0              Store accumulator to status
 ```
 
 ### Arithmetic Instructions
@@ -403,7 +530,7 @@ Stores accumulator to CPU status flags.
 #### A - Add
 
 ```
-      A    L VALUE     Acc = Acc + VALUE
+      A    |L| VALUE      Acc = Acc + VALUE
 ```
 
 Sets Carry and Overflow flags.
@@ -411,7 +538,7 @@ Sets Carry and Overflow flags.
 #### S - Subtract
 
 ```
-      S    L VALUE     Acc = Acc - VALUE
+      S    |L| VALUE      Acc = Acc - VALUE
 ```
 
 Sets Carry and Overflow flags.
@@ -419,7 +546,7 @@ Sets Carry and Overflow flags.
 #### M - Multiply
 
 ```
-      M    L VALUE     Acc:Ext = Acc * VALUE (32-bit result)
+      M    |L| VALUE      Acc:Ext = Acc * VALUE (32-bit result)
 ```
 
 Result: High 16 bits in Acc, low 16 bits in Ext.
@@ -427,20 +554,20 @@ Result: High 16 bits in Acc, low 16 bits in Ext.
 #### D - Divide
 
 ```
-      D    L VALUE     Acc = Acc:Ext / VALUE
-                       Ext = Acc:Ext % VALUE (remainder)
+      D    |L| VALUE      Acc = Acc:Ext / VALUE
+                          Ext = Acc:Ext % VALUE (remainder)
 ```
 
 #### AD - Add Double
 
 ```
-      AD   L VALUE     Acc:Ext = Acc:Ext + VALUE:VALUE+1
+      AD   |L| VALUE      Acc:Ext = Acc:Ext + VALUE:VALUE+1
 ```
 
 #### SD - Subtract Double
 
 ```
-      SD   L VALUE     Acc:Ext = Acc:Ext - VALUE:VALUE+1
+      SD   |L| VALUE      Acc:Ext = Acc:Ext - VALUE:VALUE+1
 ```
 
 ### Logical Instructions
@@ -448,7 +575,7 @@ Result: High 16 bits in Acc, low 16 bits in Ext.
 #### AND - Logical AND
 
 ```
-      AND  L VALUE     Acc = Acc AND VALUE
+      AND  |L| VALUE      Acc = Acc AND VALUE
 ```
 
 Clears Carry and Overflow.
@@ -456,13 +583,13 @@ Clears Carry and Overflow.
 #### OR - Logical OR
 
 ```
-      OR   L VALUE     Acc = Acc OR VALUE
+      OR   |L| VALUE      Acc = Acc OR VALUE
 ```
 
 #### EOR - Exclusive OR
 
 ```
-      EOR  L VALUE     Acc = Acc XOR VALUE
+      EOR  |L| VALUE      Acc = Acc XOR VALUE
 ```
 
 ### Shift Instructions
@@ -512,21 +639,41 @@ Complex shift operation with counting.
 #### BSC - Branch or Skip on Condition
 
 ```
-      BSC  condition target
+      BSC  [L|I]  target[,condition]
 ```
 
-**Condition Codes (bit flags):**
-- `0x10`: Carry set
-- `0x08`: Overflow set
-- `0x04`: Accumulator zero
-- `0x02`: Accumulator positive
-- `0x01`: Even (bit 15 = 0)
+**Format:**
+- `L` - Long format (2 words, absolute branch to target)
+- `I` - Indirect format (branch to address stored at target)
+- `target` - Branch/skip target address or label
+- `,condition` - Optional condition code(s) after comma
+
+**Condition Codes (test for condition OFF/FALSE - skip/branch when condition is NOT set):**
+- `C` - Carry OFF (skip/branch if carry is CLEAR)
+- `O` - Overflow OFF (skip/branch if overflow is CLEAR)
+- `E` - Even (skip/branch if ACC bit 15 = 0)
+- `+` or `P` - Positive (skip/branch if ACC ≥ 0, not negative)
+- `-` or `M` - Negative (skip/branch if ACC < 0)
+- `Z` - Zero (skip/branch if ACC = 0)
+- `+-` - Not zero (skip/branch if ACC ≠ 0)
+
+Multiple conditions can be combined: `+-` means "branch if not zero" (positive OR negative).
+
+**Behavior:**
+- **Short format** (no L or I): Skip next instruction if condition is met
+- **Long format** (L): Branch to absolute target address if condition is met
+- **Indirect** (I): Branch to address stored at target if condition is met
+- **No condition**: Unconditional skip/branch
 
 **Examples:**
 ```
-      BSC  /10 LOOP    Branch if carry set
-      BSC  /04 DONE    Branch if accumulator zero
-      BSC  /14 ERROR   Branch if carry OR zero
+      BSC  C              Skip next if carry is OFF
+      BSC  |L| LOOP       Unconditional branch to LOOP
+      BSC  |I| RTNADDR    Indirect branch (subroutine return)
+      BSC  |L| LOOP,C     Branch to LOOP if carry is OFF
+      BSC  |L| DONE,+-    Branch to DONE if not zero
+      BSC  |L| NEXT,Z     Branch to NEXT if zero
+      BSC  |L| ERROR,O    Branch to ERROR if overflow is OFF
 ```
 
 #### BSI - Branch and Store IAR
@@ -534,16 +681,16 @@ Complex shift operation with counting.
 Subroutine call: stores return address and branches.
 
 ```
-      BSI  L SUBR      Call subroutine at SUBR
+      BSI  |L| SUBR       Call subroutine at SUBR
 ```
 
 Stores next IAR at SUBR, branches to SUBR+1.
 
 **Subroutine Pattern:**
 ```
-SUBR  DC   0           Return address saved here
-      ...              Subroutine code
-      BSC  L SUBR I    Return via indirect branch
+SUBR   DC 0               Return address saved here
+       ...                Subroutine code
+       BSC  |I| SUBR      Return via indirect branch
 ```
 
 #### MDX - Modify Index and Skip
@@ -551,7 +698,7 @@ SUBR  DC   0           Return address saved here
 Increments/decrements index register and conditionally branches.
 
 ```
-      MDX  target,modifier
+      MDX  |format| target,modifier
 ```
 
 **Modifier:**
@@ -560,9 +707,9 @@ Increments/decrements index register and conditionally branches.
 
 **Loop Example:**
 ```
-      LDX  1 /0010     Load counter = 16
-LOOP  ...              Loop body
-      MDX  LOOP,-1     Decrement XR1, loop if not zero
+      LDX  |1| /0010      Load counter = 16
+LOOP  ...                 Loop body
+      MDX  LOOP,-1        Decrement XR1, loop if not zero (short format)
 ```
 
 ### I/O Instruction
@@ -572,23 +719,23 @@ LOOP  ...              Loop body
 Executes an I/O operation via IOCC structure.
 
 ```
-      XIO  L IOCC      Execute I/O command at IOCC
+      XIO  |L| IOCC       Execute I/O command at IOCC
 ```
 
 **IOCC Structure:**
 ```
-IOCC  DC   BUFFER      Word count address (WCA)
-      DC   /0900       Device code + function + modifiers
+IOCC   DC BUFFER         Word count address (WCA)
+       DC /0900          Device code + function + modifiers
 ```
 
 **Example - Read Card:**
 ```
-      XIO  L RIOCC     Initiate card read
+       XIO  |L| RIOCC    Initiate card read
 
-RIOCC DC   CARDBUF     Buffer address
-      DC   /0950       Device 01, InitRead, 80 words
+RIOCC  DC CARDBUF        Buffer address
+       DC /0950          Device 01, InitRead, 80 words
 
-CARDBUF BSS 80         80-word buffer
+CARDBUF BSS 80           80-word buffer
 ```
 
 ### Control Instruction

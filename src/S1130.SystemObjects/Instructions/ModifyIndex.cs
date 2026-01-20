@@ -10,7 +10,7 @@
 			int oldValue;													// old value
 			int newValue;													// .. and new value
 
-			if (cpu.FormatLong)											// q. long format?
+			if (cpu.FormatLong)												// q. long format?
 			{																// a. yes..
 				var effectiveAddress = cpu.Displacement;					// .. Get effective Address
 				if (cpu.Tag != 0)											// q. is target XR?
@@ -37,10 +37,66 @@
 			}
 			var longOrHasTag = cpu.FormatLong || (cpu.Tag != 0);
 			var newValueChange = ((newValue == 0) || ((newValue & 0x8000) != (oldValue & 0x8000)));
+			SetIarToNextInstruction(cpu);
 			if (longOrHasTag && newValueChange)								// q. long or tag & new value changed?
 			{																// a. yes..
 				cpu.Iar++;													// skip next instruction
 			}
+		}
+		
+		/// <summary>
+		/// Disassembles MDX instruction.
+		/// New Format: MDX |modifier|/address[,modifier] 
+		/// Examples: "MDX |L2|/0100", "MDX |1|/0050", "MDX |L|/0200,5"
+		/// Two operands when long format without tag: address and modifier value
+		/// </summary>
+		public override string Disassemble(ICpu cpu, ushort address)
+		{
+			var parts = new System.Collections.Generic.List<string>();
+			parts.Add("MDX");
+			
+			// Build format modifier string
+			string modifier = "";
+			
+			if (cpu.IndirectAddress)
+			{
+				modifier = cpu.Tag > 0 ? $"|I{cpu.Tag}|" : "|I|";
+			}
+			else if (cpu.FormatLong)
+			{
+				modifier = cpu.Tag > 0 ? $"|L{cpu.Tag}|" : "|L|";
+			}
+			else
+			{
+				// Short format
+				if (cpu.Tag > 0)
+					modifier = $"|{cpu.Tag}|";
+			}
+			
+			// Calculate target address
+			ushort targetAddress;
+			if (cpu.FormatLong)
+			{
+				targetAddress = cpu.Displacement;
+			}
+			else
+			{
+				int relativeAddress = (address + 1) + (sbyte)cpu.Displacement;
+				targetAddress = (ushort)(relativeAddress & 0xFFFF);
+			}
+			
+			// For long format without tag, we have two operands: address and modifier
+			if (cpu.FormatLong && cpu.Tag == 0)
+			{
+				sbyte modifierValue = (sbyte)(cpu.Modifiers & 0xFF);
+				parts.Add($"{modifier}/{targetAddress:X4},{modifierValue}");
+			}
+			else
+			{
+				parts.Add($"{modifier}/{targetAddress:X4}");
+			}
+			
+			return string.Join(" ", parts);
 		}
 	}
 }

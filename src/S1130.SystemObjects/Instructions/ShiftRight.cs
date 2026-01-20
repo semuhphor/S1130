@@ -29,6 +29,7 @@ namespace S1130.SystemObjects.Instructions
 					cpu.AccExt = (uint)(work & Mask32);
 					break;
 			}
+			SetIarToNextInstruction(cpu);
 		}
 	}
 }

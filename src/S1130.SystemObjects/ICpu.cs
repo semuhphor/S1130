@@ -25,6 +25,7 @@ namespace S1130.SystemObjects
 		IndexRegisters Xr { get; }
 		IInstruction[] Instructions { get; }
 		IInstruction CurrentInstruction { get; }
+		ushort CurrentInstructionLength { get; }
 		InterruptPool IntPool { get; }
 		IDevice[] Devices { get; }
 
@@ -45,7 +46,8 @@ namespace S1130.SystemObjects
 		void HandleInterrupt();
 		void ClearCurrentInterrupt();
 
-		void NextInstruction();
+		void DecodeCurrentInstruction();
+		// void NextInstruction();
 		void ExecuteInstruction();
 		ConcurrentQueue<Interrupt>[] InterruptQueues { get; }
 		ConcurrentStack<Interrupt> CurrentInterrupt { get; }
@@ -73,5 +75,13 @@ namespace S1130.SystemObjects
         /// <param name="sourceCode">Assembly source code with lines separated by CR, LF or CRLF</param>
         /// <returns>Assembly result containing listing, errors and success flag</returns>
         AssemblyResult Assemble(string sourceCode);
+
+		/// <summary>
+		/// Disassembles the instruction at the specified memory address.
+		/// </summary>
+		/// <param name="address">Memory address to disassemble</param>
+		/// <returns>Assembly source string for the instruction, or error message if invalid</returns>
+		string Disassemble(ushort address);
+		string Disassemble();
 	}
 }

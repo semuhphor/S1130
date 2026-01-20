@@ -10,8 +10,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_D_Short_NoTag_PositiveOffset()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Divide, 0, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.Divide, 0, 0x10, InsCpu);
+			
 			InsCpu[InsCpu.Iar + 0x10] = 0x0100;
 			ExecAndTest(initialAccExt: 0x00002001, initialOverflow: false,  expectedAcc: 0x0020, expectedExt: 0x0001,expectedOverflow:false);
 		}
@@ -20,8 +20,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_D_Short_XR2_DivideByZero()
 		{
 			BeforeEachTest();
-			InsCpu.AtIar = InstructionBuilder.BuildShort(OpCodes.Divide, 2, 0x10);
-			InsCpu.NextInstruction();
+			InstructionBuilder.BuildShortAtIar(OpCodes.Divide, 2, 0x10, InsCpu);
+			
 			InsCpu.Xr[2] = 0x1000;
 			InsCpu[InsCpu.Iar + 0x10] = 0;
 			
@@ -39,7 +39,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.Divide, 2, 0x1010, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[2] = 0x1000;
 			InsCpu[InsCpu.Xr[2] + 0x1010] = 0xfffe;
 			ExecAndTest(initialAccExt: 0x00000015, initialOverflow: false, expectedAcc: 0xfff6, expectedExt: 0x0001, expectedOverflow: false);
@@ -50,7 +50,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongAtIar(OpCodes.Divide, 2, 0x1010, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu[0x1010] = 0x6014;
 			ExecAndTest(initialAccExt: 0x00006014, initialOverflow: false, expectedAcc: 0x0001, expectedExt: 0x0000, expectedOverflow: false);
 		}
@@ -60,7 +60,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Divide, 2, 0x1010, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[2] = 0x1000;
 			InsCpu[InsCpu.Xr[2] + 0x1010] = 0x0400;
 			InsCpu[0x0400] = 0x0005;
@@ -72,7 +72,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildLongIndirectAtIar(OpCodes.Divide, 2, 0x1010, InsCpu);
-			InsCpu.NextInstruction();
+			
 			InsCpu.Xr[2] = 0x1000;
 			InsCpu[InsCpu.Xr[2] + 0x1010] = 0x0400;
 			InsCpu[0x0400] = 0x0005;
