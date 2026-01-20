@@ -27,8 +27,17 @@ namespace S1130.SystemObjects
         {
             if (IsComment)
             {
-                // Comment lines: 20-column prefix + comment
-                return new string(' ', 20) + CommentText;
+                // Comment lines: 20-column prefix + comment (convert // to *)
+                var comment = CommentText.TrimStart();
+                if (comment.StartsWith("//"))
+                {
+                    comment = "*" + comment.Substring(2);
+                }
+                else if (!comment.StartsWith("*"))
+                {
+                    comment = "* " + comment;
+                }
+                return new string(' ', 20) + comment;
             }
 
             // Columns 1-20: Object code area (blank)
@@ -72,6 +81,12 @@ namespace S1130.SystemObjects
         {
             if (IsComment)
             {
+                // Convert * comments to // format
+                var comment = CommentText.TrimStart();
+                if (comment.StartsWith("*"))
+                {
+                    return "//" + comment.Substring(1);
+                }
                 return CommentText;
             }
 
@@ -201,13 +216,14 @@ namespace S1130.SystemObjects
             {
                 var formatToken = tokens[tokenIndex];
                 
-                // Check if this is a format specifier
-                if (formatToken == "." || formatToken == "L" || 
-                    formatToken == "1" || formatToken == "2" || formatToken == "3" ||
-                    formatToken.StartsWith("L") || formatToken.StartsWith("I"))
+                // Check if this is a format specifier (with or without pipes)
+                var bareFormat = formatToken.Replace("|", "");
+                if (bareFormat == "." || bareFormat == "L" || 
+                    bareFormat == "1" || bareFormat == "2" || bareFormat == "3" ||
+                    bareFormat.StartsWith("L") || bareFormat.StartsWith("I"))
                 {
                     char formatCode, tag;
-                    ParseFormatSpecifier(formatToken, out formatCode, out tag);
+                    ParseFormatSpecifier(bareFormat, out formatCode, out tag);
                     result.FormatCode = formatCode;
                     result.Tag = tag;
                     tokenIndex++;
@@ -365,7 +381,16 @@ namespace S1130.SystemObjects
 
             foreach (var line in lines)
             {
+                // Skip whitespace-only lines
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                    
                 var parsedLine = AssemblerLine.ParseS1130(line);
+                
+                // Skip lines that are just "//" comments with no text
+                if (parsedLine.IsComment && string.IsNullOrWhiteSpace(parsedLine.CommentText.Replace("//", "").Replace("*", "")))
+                    continue;
+                    
                 result.AppendLine(parsedLine.ToIBM1130Format());
             }
 

@@ -130,6 +130,26 @@ namespace S1130.SystemObjects.Assembler
                             }
                             continue; // EQU doesn't generate code or advance address
                         }
+                        else if (parsed.Opcode == "END")
+                        {
+                            // END marks end of source, optionally specifies entry point
+                            if (!string.IsNullOrEmpty(parsed.Operand))
+                            {
+                                // Entry point specified
+                                var evaluator = new ExpressionEvaluator(_symbolTable, _currentAddress);
+                                if (evaluator.Evaluate(parsed.Operand, out int entryAddress, out string error))
+                                {
+                                    _startAddress = entryAddress;
+                                    _startAddressSet = true;
+                                }
+                                else
+                                {
+                                    AddError(lineNumber, line, error, ErrorType.InvalidExpression);
+                                }
+                            }
+                            // Stop processing - END terminates assembly
+                            break;
+                        }
                         else if (parsed.Opcode == "BSS")
                         {
                             // BSS reserves space
@@ -241,6 +261,12 @@ namespace S1130.SystemObjects.Assembler
                     // Skip directives that don't generate code
                     if (parsed.Opcode == "EQU" || parsed.Opcode == "BES")
                         continue;
+
+                    // Handle END directive
+                    if (parsed.Opcode == "END")
+                    {
+                        break; // END terminates assembly
+                    }
 
                     // Handle BSS (advance address without generating code)
                     if (parsed.Opcode == "BSS")
