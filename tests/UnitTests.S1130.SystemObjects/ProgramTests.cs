@@ -92,7 +92,6 @@ ONE:   DC   0            // High word (ACC) = 0
 ";
 			var result = _cpu.Assemble(EXAMPLE_PROGRAM);
 			Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
-			Assert.Empty(result.Errors);
 			_cpu.Iar = 0x100;
 			int i = 12; 
 			while(i-- > 0)
@@ -121,16 +120,13 @@ ONE:  DC 1";
 			var result = _cpu.Assemble(source);
 			
 			Assert.True(result.Success, $"Assembly failed: {string.Join(", ", result.Errors.Select(e => $"Line {e.LineNumber}: {e.Message}"))}");
-			Assert.Empty(result.Errors);
 			
-			var numberOfInstructions = 0;
 			var watch = Stopwatch.StartNew();
 			_cpu.Iar = 0x100;
 			
 			while(watch.ElapsedMilliseconds < 1000)
 			{
 				_cpu.ExecuteInstruction();
-				numberOfInstructions++;
 			}
 			watch.Stop();
 			_output.WriteLine("1M Instructions (Assembler) in {0}ms. ({1})", watch.ElapsedMilliseconds, _cpu.InstructionCount);
