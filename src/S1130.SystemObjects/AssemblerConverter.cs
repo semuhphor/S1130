@@ -201,7 +201,7 @@ namespace S1130.SystemObjects
             // Check if first token is a label
             if (!IsOperationOrDirective(tokens[0]))
             {
-                result.Label = tokens[0].ToUpper();
+                result.Label = tokens[0].TrimEnd(':').ToUpper();
                 tokenIndex++;
             }
 

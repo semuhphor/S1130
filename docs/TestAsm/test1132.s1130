@@ -69,7 +69,7 @@ SWAIT: XIO  |L| PSENS    // Sense device (no reset)
        AND  |L| SPCM    // Test space response bit
        BSC  |L| SWAIT,Z   // Wait for space complete
        
-       XIO  |L| PSENSR   // Sense and reset
+       XIO  |L| PSENR    // Sense and reset
 //
 // Stop printer
 //
@@ -230,7 +230,7 @@ SVX1: BSS  1            // Saved XR1
 PSENS: DC   0            // Address field (not used)
        DC   /0706         // Device /06, function 111 (sense)
 
-PSENSR: DC  0            // Sense and reset
+PSENR: DC   0            // Sense and reset
        DC   /0707         // Device /06, function 111, bit 15
 
 PSTRT: DC   0            // Start printer
