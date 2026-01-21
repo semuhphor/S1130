@@ -10,20 +10,20 @@
                           WAIT    
                     * Initialize Level 1 interrupt vector (location 9 decimal = /09 hex)
                     INIT: DC      0
-                          LD   L  ISRADDR
+                          LD   L  ISADR
                           STO  L  /0009
                           BSC  I  INIT
-                    ISRAD DC      ISR
+                    ISADR DC      ISR
                     * Main print routine
                     PRINT DC      0
                     * Check printer ready
-                    PLOOP XIO  L  PSENSE
-                          AND  L  READYM
+                    PLOOP XIO  L  PSENS
+                          AND  L  RDYM
                           BSC  L  PLOOP,Z
                     * Initialize variables
                           LD   L  /0000
-                          STO  L  CHRCNT
-                          STO  L  BUFPTR
+                          STO  L  CHCNT
+                          STO  L  BPTR
                     * Clear scan field (locations 32-39 = /20-/27)
                           STO  L  /0020
                           STO  L  /0021
@@ -34,29 +34,29 @@
                           STO  L  /0026
                           STO  L  /0027
                     * Start printer - begins interrupt sequence
-                          XIO  L  PSTART
+                          XIO  L  PSTRT
                     * Wait for 48 character cycles plus 16 idle cycles = 64 total
-                    PWAIT LD   L  CHRCNT
+                    PWAIT LD   L  CHCNT
                           S    L  /0040
                           BSC  L  PWAIT,+-
                     * Space one line
-                          XIO  L  PSPACE
+                          XIO  L  PSPAC
                     * Wait for space complete
-                    SWAIT XIO  L  PSENSE
-                          AND  L  SPACEM
+                    SWAIT XIO  L  PSENS
+                          AND  L  SPCM
                           BSC  L  SWAIT,Z
-                          XIO  L  PSENSER
+                          XIO  L  PSENSR
                     * Stop printer
                           XIO  L  PSTOP
                           BSC  I  PRINT
                     * Interrupt Service Routine for Level 1 (1132 Read Emitter)
                     ISR:  DC      0
                     * Save registers
-                          STO  L  SAVACC
-                          STX  L1 SAVXR1
+                          STO  L  SVACC
+                          STX  L1 SVX1
                     * Read character from emitter
-                          XIO  L  READEMIT
-                          STO  L  CURCHAR
+                          XIO  L  RDEM
+                          STO  L  CCHAR
                     * Clear scan field for this cycle
                           LD   L  /0000
                           STO  L  /0020
@@ -69,40 +69,40 @@
                           STO  L  /0027
                     * Compare character with print buffer
                           LDX  L1 /0000
-                    CLOOP LD   L1 PRTBUF
+                    CLOOP LD   L1 PBUF
                           SRA     8
-                          S    L  CURCHAR
+                          S    L  CCHAR
                           BSC  L  MATCH,Z
                     NEXT: LD   L1 /0000
                           A    L  /0001
                           STX  L1 /0000
-                          S    L  PRTLEN
+                          S    L  PLEN
                           BSC  L  CLOOP,+-
                     * Character matched - set bit in scan field
-                    MATCH BSI  L  SETBIT
+                    MATCH BSI  L  STBIT
                           BSC  L  NEXT
-                    ENDCM DC      PRTLEN
+                    ENDCM DC      PLEN
                     * Set completion bit (bit 15 of word 39)
                           LD   L  /0027
                           OR   L  /0001
                           STO  L  /0027
                     * Increment character counter
-                          LD   L  CHRCNT
+                          LD   L  CHCNT
                           A    L  /0001
-                          STO  L  CHRCNT
+                          STO  L  CHCNT
                     * Restore registers
-                          LDX  L1 SAVXR1
-                          LD   L  SAVACC
+                          LDX  L1 SVX1
+                          LD   L  SVACC
                     * Return from interrupt (BOSC resets level)
                           BSC  I  ISR
                     * Set bit in scan field based on XR1 position
-                    SETBI DC      0
-                          LD   L1 BITTBL
-                          OR   L1 SCNFLD
-                          STO  L1 SCNFLD
-                          BSC  I  SETBIT
+                    STBIT DC      0
+                          LD   L1 BTBL
+                          OR   L1 SCNF
+                          STO  L1 SCNF
+                          BSC  I  STBIT
                     * Bit position table (bit masks for positions 0-15)
-                    BITTB DC      /8000
+                    BTBL: DC      /8000
                           DC      /4000
                           DC      /2000
                           DC      /1000
@@ -119,9 +119,9 @@
                           DC      /0002
                           DC      /0001
                     * Scan field base address (location 32 = /20)
-                    SCNFL DC      /0020
+                    SCNF: DC      /0020
                     * Print buffer - Text to print (EBCDIC, uppercase only)
-                    PRTBU DC      /C140
+                    PBUF: DC      /C140
                           DC      /C240
                           DC      /C340
                           DC      /C440
@@ -156,27 +156,27 @@
                           DC      /F640
                           DC      /F740
                           DC      /F940
-                    PRTLE EQU     35
+                    PLEN: EQU     35
                     * Variables
-                    CHRCN BSS     1
-                    BUFPT BSS     1
-                    CURCH BSS     1
-                    SAVAC BSS     1
-                    SAVXR BSS     1
+                    CHCNT BSS     1
+                    BPTR: BSS     1
+                    CCHAR BSS     1
+                    SVACC BSS     1
+                    SVX1: BSS     1
                     * I/O Control Commands for 1132 Printer (device /06)
                     PSENS DC      0
                           DC      /0706
                     PSENS DC      0
                           DC      /0707
-                    PSTAR DC      0
+                    PSTRT DC      0
                           DC      /0486
                     PSTOP DC      0
                           DC      /0446
                     PSPAC DC      0
                           DC      /0406
-                    READE DC      CURCHAR
+                    RDEM: DC      CCHAR
                           DC      /0206
                     * Status word masks
-                    READY DC      /1860
-                    SPACE DC      /2000
+                    RDYM: DC      /1860
+                    SPCM: DC      /2000
                           END     START

@@ -16,11 +16,11 @@ START: BSI  |L| INIT      // Initialize interrupt vector
 // Initialize Level 1 interrupt vector (location 9 decimal = /09 hex)
 //
 INIT:  DC   0             // Return address
-       LD   |L| ISRADDR   // Load ISR address
+       LD   |L| ISADR   // Load ISR address
        STO  |L| /0009     // Store in Level 1 vector
        BSC  |I| INIT      // Return
 
-ISRADDR: DC  ISR          // Address of interrupt service routine
+ISADR: DC  ISR          // Address of interrupt service routine
 //
 // Main print routine
 //
@@ -28,15 +28,15 @@ PRINT: DC   0             // Return address
 //
 // Check printer ready
 //
-PLOOP: XIO  |L| PSENSE    // Sense device (no reset)
-       AND  |L| READYM    // Test ready bits
+PLOOP: XIO  |L| PSENS    // Sense device (no reset)
+       AND  |L| RDYM    // Test ready bits
        BSC  |L| PLOOP,Z   // Loop if not ready
 //
 // Initialize variables
 //
        LD   |L| /0000     // Zero
-       STO  |L| CHRCNT    // Clear character counter
-       STO  |L| BUFPTR    // Reset buffer pointer
+       STO  |L| CHCNT    // Clear character counter
+       STO  |L| BPTR    // Reset buffer pointer
 //
 // Clear scan field (locations 32-39 = /20-/27)
 //
@@ -51,25 +51,25 @@ PLOOP: XIO  |L| PSENSE    // Sense device (no reset)
 //
 // Start printer - begins interrupt sequence
 //
-       XIO  |L| PSTART    // Start printer
+       XIO  |L| PSTRT    // Start printer
 //
 // Wait for 48 character cycles plus 16 idle cycles = 64 total
 //
-PWAIT: LD   |L| CHRCNT    // Load counter
+PWAIT: LD   |L| CHCNT    // Load counter
        S    |L| /0040     // Subtract 64
        BSC  |L| PWAIT,+-  // Loop until done
 //
 // Space one line
 //
-       XIO  |L| PSPACE    // Space command
+       XIO  |L| PSPAC    // Space command
 //
 // Wait for space complete
 //
-SWAIT: XIO  |L| PSENSE    // Sense device (no reset)
-       AND  |L| SPACEM    // Test space response bit
+SWAIT: XIO  |L| PSENS    // Sense device (no reset)
+       AND  |L| SPCM    // Test space response bit
        BSC  |L| SWAIT,Z   // Wait for space complete
        
-       XIO  |L| PSENSER   // Sense and reset
+       XIO  |L| PSENSR   // Sense and reset
 //
 // Stop printer
 //
@@ -83,13 +83,13 @@ ISR:   DC   0             // Return address (saved by CPU)
 //
 // Save registers
 //
-       STO  |L| SAVACC    // Save accumulator
-       STX  |L1| SAVXR1    // Save XR1 (long format required)
+       STO  |L| SVACC    // Save accumulator
+       STX  |L1| SVX1    // Save XR1 (long format required)
 //
 // Read character from emitter
 //
-       XIO  |L| READEMIT  // Read emitter
-       STO  |L| CURCHAR   // Save current character
+       XIO  |L| RDEM  // Read emitter
+       STO  |L| CCHAR   // Save current character
 //
 // Clear scan field for this cycle
 //
@@ -107,23 +107,23 @@ ISR:   DC   0             // Return address (saved by CPU)
 //
        LDX  |L1| /0000     // XR1 = position counter (long format)
 //       
-CLOOP: LD   |L1| PRTBUF    // Load buffer character (long format, indexed)
+CLOOP: LD   |L1| PBUF    // Load buffer character (long format, indexed)
        SRA  8             // Right justify
-       S    |L| CURCHAR   // Compare with current char
+       S    |L| CCHAR   // Compare with current char
        BSC  |L| MATCH,Z   // Branch if match
 //       
 NEXT:  LD   |L1| /0000    // Load XR1 value
        A    |L| /0001     // Increment by 1
        STX  |L1| /0000    // Store back to XR1
-       S    |L| PRTLEN    // Compare with buffer length
+       S    |L| PLEN    // Compare with buffer length
        BSC  |L| CLOOP,+-  // Continue loop if not equal
 //
 // Character matched - set bit in scan field
 //
-MATCH: BSI  |L| SETBIT    // Set bit for this position
+MATCH: BSI  |L| STBIT    // Set bit for this position
        BSC  |L| NEXT      // Continue
 //       
-ENDCMP: DC   PRTLEN       // Buffer length to compare
+ENDCM: DC   PLEN       // Buffer length to compare
 //
 // Set completion bit (bit 15 of word 39)
 //
@@ -133,14 +133,14 @@ ENDCMP: DC   PRTLEN       // Buffer length to compare
 //
 // Increment character counter
 //
-       LD   |L| CHRCNT    // Load counter
+       LD   |L| CHCNT    // Load counter
        A    |L| /0001     // Add 1
-       STO  |L| CHRCNT    // Store back
+       STO  |L| CHCNT    // Store back
 //
 // Restore registers
 //
-       LDX  |L1| SAVXR1    // Restore XR1 (long format)
-       LD   |L| SAVACC    // Restore accumulator
+       LDX  |L1| SVX1    // Restore XR1 (long format)
+       LD   |L| SVACC    // Restore accumulator
 //
 // Return from interrupt (BOSC resets level)
 //
@@ -148,15 +148,15 @@ ENDCMP: DC   PRTLEN       // Buffer length to compare
 //
 // Set bit in scan field based on XR1 position
 //
-SETBIT: DC   0            // Return address
-       LD   |L1| BITTBL    // Load bit mask for position (long format, indexed)
-       OR   |L1| SCNFLD    // OR with scan field word (long format, indexed)
-       STO  |L1| SCNFLD    // Store back (long format, indexed)
-       BSC  |I| SETBIT    // Return via indirect branch
+STBIT: DC   0            // Return address
+       LD   |L1| BTBL    // Load bit mask for position (long format, indexed)
+       OR   |L1| SCNF    // OR with scan field word (long format, indexed)
+       STO  |L1| SCNF    // Store back (long format, indexed)
+       BSC  |I| STBIT    // Return via indirect branch
 //
 // Bit position table (bit masks for positions 0-15)
 //
-BITTBL: DC   /8000        // Bit 0
+BTBL: DC   /8000        // Bit 0
        DC   /4000         // Bit 1
        DC   /2000         // Bit 2
        DC   /1000         // Bit 3
@@ -175,11 +175,11 @@ BITTBL: DC   /8000        // Bit 0
 //
 // Scan field base address (location 32 = /20)
 //
-SCNFLD: DC   /0020        // Base address
+SCNF: DC   /0020        // Base address
 //
 // Print buffer - Text to print (EBCDIC, uppercase only)
 //
-PRTBUF: DC   /C140        // 'A' + space in high byte
+PBUF: DC   /C140        // 'A' + space in high byte
        DC   /C240         // 'B' + space
        DC   /C340         // 'C' + space
        DC   /C440         // 'D' + space
@@ -215,40 +215,41 @@ PRTBUF: DC   /C140        // 'A' + space in high byte
        DC   /F740         // '7' + space
        DC   /F940         // '9' + space
 //
-PRTLEN: EQU   35          // String length
+PLEN: EQU   35          // String length
 //
 // Variables
 //
-CHRCNT: BSS  1            // Character cycle counter
-BUFPTR: BSS  1            // Buffer pointer
-CURCHAR: BSS 1            // Current character from emitter
-SAVACC: BSS  1            // Saved accumulator
-SAVXR1: BSS  1            // Saved XR1
+CHCNT: BSS  1            // Character cycle counter
+BPTR: BSS  1            // Buffer pointer
+CCHAR: BSS 1            // Current character from emitter
+SVACC: BSS  1            // Saved accumulator
+SVX1: BSS  1            // Saved XR1
 //
 // I/O Control Commands for 1132 Printer (device /06)
 //
-PSENSE: DC   0            // Address field (not used)
+PSENS: DC   0            // Address field (not used)
        DC   /0706         // Device /06, function 111 (sense)
 
-PSENSER: DC  0            // Sense and reset
+PSENSR: DC  0            // Sense and reset
        DC   /0707         // Device /06, function 111, bit 15
 
-PSTART: DC   0            // Start printer
+PSTRT: DC   0            // Start printer
        DC   /0486         // Device /06, function 100, bit 8
 
 PSTOP: DC   0             // Stop printer  
        DC   /0446         // Device /06, function 100, bit 9
 
-PSPACE: DC   0            // Space one line
+PSPAC: DC   0            // Space one line
        DC   /0406         // Device /06, function 100, bit 15
 
-READEMIT: DC CURCHAR      // Read emitter stores here
+RDEM: DC CCHAR      // Read emitter stores here
        DC   /0206         // Device /06, function 010 (read emitter)
 //
 // Status word masks
 //
-READYM: DC   /1860        // Bits 3,5,6 (not ready, carriage busy, printer busy)
-SPACEM: DC   /2000        // Bit 2 (space response)
+RDYM: DC   /1860        // Bits 3,5,6 (not ready, carriage busy, printer busy)
+SPCM: DC   /2000        // Bit 2 (space response)
 
        END  START         // End of program, entry point at START
+
 
