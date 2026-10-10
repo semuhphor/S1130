@@ -5,54 +5,13 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": "Run Unit Tests",
+            // Use with: VSTEST_HOST_DEBUG=1 dotnet test ...  (or the "test-debug-wait" task),
+            // then pick the "testhost" process here. Normally you don't need this: right-click a
+            // test in the Testing sidebar (or the gutter icon) and choose "Debug Test".
+            "name": "Attach to xUnit test host",
             "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/bin/Debug/net10.0/UnitTests.S1130.SystemObjects.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects",
-            "console": "internalConsole",
-            "stopAtEntry": false,
-            "suppressJITOptimizations": true
-        },
-        {
-            "name": "Debug Single Test Class",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "dotnet",
-            "args": [
-                "test",
-                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
-                "--filter",
-                "${input:testClassName}",
-                "--logger",
-                "console;verbosity=detailed"
-            ],
-            "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "stopAtEntry": false,
-            "suppressJITOptimizations": true
-        },
-        {
-            "name": "Debug Specific Test",
-            "type": "coreclr",
-            "request": "launch", 
-            "preLaunchTask": "build",
-            "program": "dotnet",
-            "args": [
-                "test",
-                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
-                "--filter",
-                "${input:testMethodName}",
-                "--logger",
-                "console;verbosity=detailed"
-            ],
-            "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "stopAtEntry": false,
-            "suppressJITOptimizations": true
+            "request": "attach",
+            "processId": "${command:pickProcess}"
         },
         {
             "name": "Build Solution",
@@ -74,20 +33,6 @@
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}"
-        }
-    ],
-    "inputs": [
-        {
-            "id": "testClassName",
-            "description": "Enter test class name (e.g., CpuTests, AddTests)",
-            "default": "CpuTests",
-            "type": "promptString"
-        },
-        {
-            "id": "testMethodName", 
-            "description": "Enter specific test method name",
-            "default": "",
-            "type": "promptString"
         }
     ]
 }

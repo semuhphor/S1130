@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp"
+    ],
+    "unwantedRecommendations": [
+        "formulahendry.dotnet-test-explorer"
+    ]
+}

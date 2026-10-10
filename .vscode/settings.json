@@ -2,12 +2,21 @@
     "dotnet.defaultSolution": "S1130.sln",
     "dotnet.enablePackageRestore": true,
     "dotnet.server.useOmnisharp": false,
-    "dotnetTestExplorer.testProjectPath": "**/UnitTests.S1130.SystemObjects.csproj",
     "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "openFiles",
     "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "openFiles",
-    "testExplorer.useNativeTesting": true,
-    "testExplorer.gutterDecoration": true,
-    "xunit.parallelizeTestCollections": false,
+
+    // Testing sidebar (C# Dev Kit): discover, run and debug xUnit tests in both test projects.
+    "dotnet.testWindow.useTestingPlatformProtocol": false,
+    "dotnet.testWindow.disableBuildOnRefresh": false,
+    "dotnet.unitTestDebuggingOptions": {
+        "justMyCode": true,
+        "suppressJITOptimizations": true,
+        "console": "internalConsole"
+    },
+    "testing.automaticallyOpenPeekView": "failureInVisibleDocument",
+    "testing.defaultGutterClickAction": "run",
+    "testing.openTesting": "openOnTestFailure",
+
     "files.exclude": {
         "**/bin": true,
         "**/obj": true

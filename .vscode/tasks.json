@@ -36,7 +36,7 @@
             "type": "process",
             "args": [
                 "test",
-                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
+                "${workspaceFolder}/S1130.sln",
                 "--logger",
                 "console;verbosity=normal"
             ],
@@ -45,6 +45,25 @@
                 "kind": "test",
                 "isDefault": true
             },
+            "dependsOn": "build-solution"
+        },
+        {
+            "label": "test-debug-wait",
+            "detail": "Starts the SystemObjects tests with VSTEST_HOST_DEBUG=1; then use 'Attach to xUnit test host'.",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
+                "--no-build"
+            ],
+            "options": {
+                "env": {
+                    "VSTEST_HOST_DEBUG": "1"
+                }
+            },
+            "problemMatcher": "$msCompile",
+            "group": "test",
             "dependsOn": "build"
         },
         {
@@ -53,14 +72,14 @@
             "type": "process",
             "args": [
                 "test",
-                "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj",
+                "${workspaceFolder}/S1130.sln",
                 "--collect:\"XPlat Code Coverage\"",
                 "--logger",
                 "console;verbosity=normal"
             ],
             "problemMatcher": "$msCompile",
             "group": "test",
-            "dependsOn": "build"
+            "dependsOn": "build-solution"
         },
         {
             "label": "clean",
@@ -108,6 +127,7 @@
             "args": [
                 "watch",
                 "test",
+                "--project",
                 "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/UnitTests.S1130.SystemObjects.csproj"
             ],
             "problemMatcher": "$msCompile",
