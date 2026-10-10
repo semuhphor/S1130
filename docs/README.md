@@ -40,6 +40,12 @@ Complete guide to the IBM 1130 assembler, including:
 - Use the assembler API
 - Debug assembly errors
 
+### [IBM1130-Functional-Characteristics-Summary.md](IBM1130-Functional-Characteristics-Summary.md)
+Verified structured summary of the IBM manual GA26-5881 (addressing rules, opcodes, BSC/MDX semantics, IOCC layout, device codes, interrupt mechanism, disk/1442/2501/console behavior). Read this before changing CPU or device behavior.
+
+### [AI-HANDOFF-FunctionalCharacteristics.md](AI-HANDOFF-FunctionalCharacteristics.md)
+Notes for AI agents: where the manual source lives (gitignored `ForReferenceOnly/functional/`), how to read it, which facts were verified, and a warning that summarizer agents fabricated tables from it.
+
 ## Quick Start
 
 ### For Users
