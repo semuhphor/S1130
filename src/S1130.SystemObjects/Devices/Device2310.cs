@@ -33,9 +33,9 @@ namespace S1130.SystemObjects.Devices
 		public const ushort NextSectorMask = 0x0003;
 		public const int InterruptLevel = 2;
 		public const byte SeekForward = 0x00;
-		public const byte SeekBackward = 0x40;
-		public const byte ReadCheck = 0x80;
-		public const int SectorMask = 0x07;
+		public const byte SeekBackward = 0x04;								// control modifier bit 13
+		public const byte ReadCheck = 0x80;									// initiate-read modifier bit 8
+		public const int SectorMask = 0x07;									// modifier bits 13-15
 
 		private readonly byte _deviceCode;									// device code (calculated)
 
@@ -52,15 +52,16 @@ namespace S1130.SystemObjects.Devices
 		private ICartridge _cartridge;										// cartridge 
 		private int _seekOffset;											// number of cyliders to seek (+/-)
 		private int _sector;												// sector to read
-		private int _wcAddress;												// address to write from
+		private int _wcAddress;												// word-count address latched from the IOCC
 
-		public Device2310(ICpu cpu, int driveNumber = 0)					// constructor cpu and drive number (0-5)		
+		public Device2310(ICpu cpu, int driveNumber = 0)					// constructor cpu and drive number (0-4)		
 		{
 			if (driveNumber < 0 || driveNumber >= 5)							// q. actual device?
 			{																	// a. no .. throw error
 				throw new ArgumentException("2310 drive number must be between 0 and 4");
 			}
-			_deviceCode = new byte[] {0x4, 0x09, 0x0a, 0x0b, 0x0c}[driveNumber];// ... set up device code
+			// Drive 0 is the CPU single disk (00100); 2310 drives 1-4 are 10001-10100
+			_deviceCode = new byte[] {0x04, 0x11, 0x12, 0x13, 0x14}[driveNumber];
 			_ilsw >>= driveNumber;												// ... set up ilsw (shift bit on device number)
 			CpuInstance = cpu;													// ... and save the cpu
 		}
@@ -101,11 +102,6 @@ namespace S1130.SystemObjects.Devices
 		/// </summary>
 		private void HandleSenseDevice()
 		{
-			if ((CpuInstance.IoccModifiers & 1) == 1)
-			{
-				DeactivateInterrupt(CpuInstance);
-			}
-			
 			ushort newAcc = 0;
 			if (_cartridge == null)
 			{
@@ -127,6 +123,12 @@ namespace S1130.SystemObjects.Devices
 				}
 			}
 			CpuInstance.Acc = newAcc;
+
+			if ((CpuInstance.IoccModifiers & 1) == 1)					// modifier bit 15: reset operation complete (and data error)
+			{
+				_complete = false;
+				DeactivateInterrupt(CpuInstance);
+			}
 		}
 
 		/// <summary>
@@ -159,6 +161,7 @@ namespace S1130.SystemObjects.Devices
 
 			_readCheck = (CpuInstance.IoccModifiers & ReadCheck) != 0;
 			_sector = CpuInstance.IoccModifiers & SectorMask;
+			_wcAddress = CpuInstance.IoccAddress;
 			_complete = false;
 			_busy = true;
 			_seeking = false;
@@ -197,9 +200,13 @@ namespace S1130.SystemObjects.Devices
 			{																	// a. yes ..
 				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
 				var buffer = _cartridge.Read(_sector);							// .. read the sector to buffer in cart
-				CpuInstance.TransferToMemory(buffer, 321);						// .. transfer to memory
+				if (!_readCheck)												// q. a real read (not read-check)?
+				{																// a. yes ..
+					CpuInstance.TransferToMemory(_wcAddress, buffer, 321);		// .. transfer to memory at the latched WCA
+				}																// (read-check only verifies; no transfer)
 				_complete = true;												// done tranferring
 				_reading = false;												// .. no longer reading
+				_busy = false;													// .. not busy any more
 				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. tell the cpu we are done.
 			}
 			else if (_writing)													// q. writing?
@@ -207,9 +214,11 @@ namespace S1130.SystemObjects.Devices
 				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
 				var wc = CpuInstance[_wcAddress];								// .. number of words to write
 				wc = (ushort) ((wc > 321) ? 321 : wc);							// .. ensure max words are 321
-				_cartridge.Write(_sector, CpuInstance.GetBuffer(), wc);			// .. write the sector
+				var data = new ArraySegment<ushort>(CpuInstance.Memory, _wcAddress + 1, wc);
+				_cartridge.Write(_sector, data, wc);							// .. write the sector from the latched WCA
 				_complete = true;												// done tranferring
 				_writing = false;												// .. no longer writing
+				_busy = false;													// .. not busy any more
 				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. tell the cpu we are done.
 			}
 			base.Run();

@@ -38,7 +38,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			_2501 += ADeck;
 			InitiateRead(_2501, 0x400, 80);	
 			SenseDevice(_2501);
-			Assert.Equal(Device2501.BusyStatus, InsCpu.Acc);
+			Assert.Equal(Device2501.BusyStatus | Device2501.NotReadyOrBusyStatus, InsCpu.Acc);   // "not ready OR busy" is also on while busy
 		}
 
 		[Fact]
@@ -79,7 +79,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			Assert.NotNull(_2501.ActiveInterrupt);
 			Assert.Equal(0x1000, _2501.ActiveInterrupt.Ilsw);
 			SenseDevice(_2501);
-			Assert.Equal(Device2501.LastCardStatus | Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
+			Assert.Equal(Device2501.LastCardStatus | Device2501.OperationCompleteStatus | Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
 			CheckCardReadProperly(0x1001, 80);
 			SenseDevice(_2501, 1);
 			Assert.Equal(Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
@@ -96,6 +96,28 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			_2501.Run();
 			CheckCardReadProperly(0x1001, 5);
 			Assert.Equal((ushort) 0x1006, InsCpu[0x1006]);
+		}
+
+		[Fact]
+		public void WordCountUsesOnlyBits9To15()
+		{
+			BeforeEachTest();
+			_2501 += GetTestCard();
+			InitiateRead(_2501, 0x1000, 5);
+			InsCpu[0x1000] = 0xFF05;                                              // junk in bits 0-8, count 5 in bits 9-15
+			InsCpu[0x1006] = 0x1006;
+			_2501.Run();
+			CheckCardReadProperly(0x1001, 5);
+			Assert.Equal((ushort) 0x1006, InsCpu[0x1006]);
+		}
+
+		[Fact]
+		public void RunWithoutInitiateReadDoesNotInterrupt()
+		{
+			BeforeEachTest();
+			_2501 += GetTestCard();
+			_2501.Run();
+			Assert.Null(_2501.ActiveInterrupt);
 		}
 
 		protected void CheckCardReadProperly(int address, int wc)

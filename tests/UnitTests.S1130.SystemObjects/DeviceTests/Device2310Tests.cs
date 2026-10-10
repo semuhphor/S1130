@@ -21,11 +21,11 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		public void CreateDeviceTests_ShouldHaveCorrectDeviceId()       // test that device ids are correct
 		{
 			BeforeEachTest();
-			Assert.Equal(0x04, new Device2310(InsCpu).DeviceCode);      // device zero 
-			Assert.Equal(0x09, new Device2310(InsCpu, 1).DeviceCode);   // device one
-			Assert.Equal(0x0a, new Device2310(InsCpu, 2).DeviceCode);   // device two
-			Assert.Equal(0x0b, new Device2310(InsCpu, 3).DeviceCode);   // device three
-			Assert.Equal(0x0c, new Device2310(InsCpu, 4).DeviceCode);   // device four
+			Assert.Equal(0x04, new Device2310(InsCpu).DeviceCode);      // CPU single disk (00100)
+			Assert.Equal(0x11, new Device2310(InsCpu, 1).DeviceCode);   // 2310 drive 1 (10001)
+			Assert.Equal(0x12, new Device2310(InsCpu, 2).DeviceCode);   // 2310 drive 2 (10010)
+			Assert.Equal(0x13, new Device2310(InsCpu, 3).DeviceCode);   // 2310 drive 3 (10011)
+			Assert.Equal(0x14, new Device2310(InsCpu, 4).DeviceCode);   // 2310 drive 4 (10100)
 		}
 
 		[Fact]

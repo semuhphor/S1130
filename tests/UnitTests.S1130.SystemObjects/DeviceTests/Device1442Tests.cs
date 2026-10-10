@@ -1,229 +1,298 @@
 using System;
-using System.Linq;
 using Xunit;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Devices;
-using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.DeviceTests
 {
-public class Device1442Tests : DeviceTestBase
+    public class Device1442Tests : DeviceTestBase
     {
         private Device1442 _1442;
-        protected Deck ADeck;
 
         protected override void BeforeEachTest()
         {
             base.BeforeEachTest();
             _1442 = new Device1442(InsCpu);
-            ADeck = new Deck() + new [] { new Card(), new Card()};
+            InsCpu.AddDevice(_1442);
+        }
+
+        private void IssueRead(int address)
+        {
+            InsCpu.IoccDeviceCode = _1442.DeviceCode;
+            InsCpu.IoccFunction = DevFunction.Read;
+            InsCpu.IoccAddress = address;
+            _1442.ExecuteIocc();
+        }
+
+        private void IssueWrite(int address)
+        {
+            InsCpu.IoccDeviceCode = _1442.DeviceCode;
+            InsCpu.IoccFunction = DevFunction.Write;
+            InsCpu.IoccAddress = address;
+            _1442.ExecuteIocc();
+        }
+
+        /// <summary>Drives a complete Start Read + 80 column reads the way an interrupt handler would.</summary>
+        private void ReadWholeCard(int buffer)
+        {
+            IssueControl(_1442, 0, Device1442.StartReadBit);
+            Assert.True(_1442.IsReading);
+            for (int column = 0; column < 80; column++)
+            {
+                Assert.True(_1442.ReadResponsePending, $"Expected read response for column {column}");
+                Assert.Equal(Device1442.ResponseInterruptLevel, _1442.ActiveInterrupt.InterruptLevel);
+                SenseDevice(_1442, Device1442.ResetLevel0Bit);
+                Assert.Equal(Device1442.ReadResponseStatus | Device1442.BusyStatus | Device1442.NotReadyOrBusyStatus,
+                             InsCpu.Acc & ~Device1442.LastCardStatus);
+                IssueRead(buffer + column);
+            }
+            Assert.False(_1442.IsReading);
+        }
+
+        private static Card RandomCard(int seed)
+        {
+            var data = new ushort[80];
+            var random = new Random(seed);
+            for (int i = 0; i < 80; i++)
+            {
+                data[i] = (ushort)(random.Next() & 0xFFF0);                     // rows 12..9 in bits 0-11
+            }
+            return new Card(data);
         }
 
         [Fact]
         public void ShouldHaveCorrectDeviceCode()
         {
             BeforeEachTest();
-            Assert.Equal(0x02, _1442.DeviceCode); // 00010 binary
+            Assert.Equal(0x02, _1442.DeviceCode);                                // 00010 binary
+        }
+
+        [Fact]
+        public void ControlModifierBits_MatchIoccLowByte()
+        {
+            Assert.Equal(0x80, Device1442.StackerSelectBit);                     // bit 8
+            Assert.Equal(0x04, Device1442.StartReadBit);                         // bit 13
+            Assert.Equal(0x02, Device1442.FeedCycleBit);                         // bit 14
+            Assert.Equal(0x01, Device1442.StartPunchBit);                        // bit 15
+        }
+
+        [Fact]
+        public void ShouldReturnNotReadyBeforeOperatorStart()
+        {
+            BeforeEachTest();
+            _1442.Hopper.Enqueue(new Card());
+            SenseDevice(_1442);
+            Assert.Equal(Device1442.NotReadyOrBusyStatus, InsCpu.Acc);
         }
 
         [Fact]
         public void ShouldReturnNotReadyWithoutCards()
         {
             BeforeEachTest();
+            _1442.Start();
             SenseDevice(_1442);
             Assert.Equal(Device1442.NotReadyOrBusyStatus, InsCpu.Acc);
         }
 
         [Fact]
-        public void ShouldShowBusyDuringRead()
+        public void StartRegistersFirstCardAtReadStation()
         {
             BeforeEachTest();
-            _1442.ReadHopper.Enqueue(new Card());
-            InitiateRead(_1442, 0x400, 80);
+            var card = new Card();
+            _1442.Hopper.Enqueue(card);
+            _1442.Start();
+            Assert.Same(card, _1442.CardAtReadStation);
+            Assert.True(_1442.Hopper.IsEmpty);
             SenseDevice(_1442);
-            Assert.Equal(Device1442.BusyStatus, InsCpu.Acc);
+            Assert.Equal(0, InsCpu.Acc);                                          // ready, not busy
         }
 
         [Fact]
-        public void ShouldShowOperationCompleteAfterRead()
+        public void StartReadRaisesLevel0ReadResponse()
         {
             BeforeEachTest();
-            _1442.ReadHopper.Enqueue(new Card());
-            _1442.ReadHopper.Enqueue(new Card()); // Enqueue second card so first isn't "last card"
-            InitiateRead(_1442, 0x400, 80);
-            _1442.CompleteCurrentOperation(); // Simulate completion of read
+            _1442 += new Card();
+            _1442.Start();
+            IssueControl(_1442, 0, Device1442.StartReadBit);
+            Assert.True(_1442.IsReading);
+            Assert.True(_1442.ReadResponsePending);
+            Assert.Equal(0, _1442.ActiveInterrupt.InterruptLevel);
+            SenseDevice(_1442);
+            Assert.Equal(Device1442.ReadResponseStatus | Device1442.LastCardStatus | Device1442.BusyStatus | Device1442.NotReadyOrBusyStatus, InsCpu.Acc);
+        }
+
+        [Fact]
+        public void SenseWithLevel0Reset_ClearsResponseButKeepsOperationRunning()
+        {
+            BeforeEachTest();
+            _1442 += new Card();
+            _1442.Start();
+            IssueControl(_1442, 0, Device1442.StartReadBit);
+            SenseDevice(_1442, Device1442.ResetLevel0Bit);
+            Assert.NotEqual(0, InsCpu.Acc & Device1442.ReadResponseStatus);      // status reported before reset
+            Assert.True(_1442.IsReading);                                         // operation NOT aborted
+            Assert.False(_1442.ReadResponsePending);
+            Assert.Null(_1442.ActiveInterrupt);
+        }
+
+        [Fact]
+        public void ShouldReadRandomCardToMemory_ColumnByColumn()
+        {
+            BeforeEachTest();
+            var card = RandomCard(42);
+            _1442 += card;
+            _1442 += new Card();                                                  // second card so first is not "last"
+            _1442.Start();
+
+            const int buffer = 0x200;
+            ReadWholeCard(buffer);
+
+            for (int i = 0; i < 80; i++)
+            {
+                Assert.Equal(card.Columns[i], InsCpu[buffer + i]);
+            }
+            Assert.True(_1442.OperationComplete);
+            Assert.Equal(Device1442.CompleteInterruptLevel, _1442.ActiveInterrupt.InterruptLevel);
+            Assert.Equal(Device1442.Level4Ilsw, _1442.ActiveInterrupt.Ilsw);
             SenseDevice(_1442);
             Assert.Equal(Device1442.OperationCompleteStatus, InsCpu.Acc);
+            Assert.Same(card, _1442.CardAtPunchStation);                          // read card now sits at punch station
+            Assert.True(_1442.Stacker.IsEmpty);
         }
 
         [Fact]
-        public void ShouldMoveCardToStackerAfterRead()
+        public void LastCardIsReportedWithOperationComplete()
         {
             BeforeEachTest();
-            var card = new Card();
-            _1442.ReadHopper.Enqueue(card);
-            InitiateRead(_1442, 0x400, 80);
-            _1442.CompleteCurrentOperation();
-            
-            Assert.True(_1442.ReadHopper.IsEmpty);
-            Assert.True(_1442.Stacker.TryPeek(out var stackedCard));
-            Assert.Same(card, stackedCard);
-        }
-
-        [Fact]
-        public void ShouldInitiatePunchOperation()
-        {
-            BeforeEachTest();
-            var card = new Card();
-            _1442.PunchHopper.Enqueue(card);
-            InitiatePunch(_1442, 0x400, 80);
+            _1442 += new Card();
+            _1442.Start();
+            ReadWholeCard(0x200);
             SenseDevice(_1442);
-            Assert.Equal(Device1442.BusyStatus, InsCpu.Acc);
-        }
-
-        private void InitiatePunch(Device1442 device, int wca, int wc)
-        {
-            InsCpu.IoccDeviceCode = device.DeviceCode;
-            InsCpu.IoccFunction = DevFunction.Write;
-            InsCpu.IoccAddress = wca;
-            InsCpu[wca] = (ushort)wc;
-            while (wc != 0)
-            {
-                InsCpu[wca + wc--] = 0xffff;
-            }
-            device.ExecuteIocc();
+            Assert.Equal(Device1442.OperationCompleteStatus | Device1442.LastCardStatus, InsCpu.Acc);
         }
 
         [Fact]
-        public void ShouldHandleFeedCycleControl()
+        public void SenseWithLevel4Reset_ClearsOperationComplete()
         {
             BeforeEachTest();
-            var card = new Card();
-            _1442.ReadHopper.Enqueue(card);
-            
-            // Issue feed cycle control (bit 14)
-            IssueControl(_1442, 0, 0x40);
-            
-            Assert.True(_1442.ReadHopper.IsEmpty);
-            Assert.True(_1442.Stacker.TryPeek(out var stackedCard));
-            Assert.Same(card, stackedCard);
+            _1442 += new Card();
+            _1442 += new Card();
+            _1442.Start();
+            ReadWholeCard(0x200);
+            SenseDevice(_1442, Device1442.ResetLevel4Bit);
+            Assert.False(_1442.OperationComplete);
+            Assert.Null(_1442.ActiveInterrupt);
+            SenseDevice(_1442);
+            Assert.Equal(0, InsCpu.Acc);
         }
 
         [Fact]
-        public void ShouldHandleStartReadControl()
+        public void FeedCycleMovesCardsOneStation()
         {
             BeforeEachTest();
-            _1442.ReadHopper.Enqueue(new Card());
-            
-            // Issue start read control (bit 13)
-            IssueControl(_1442, 0, 0x20);
-            
-            Assert.True(_1442.IsReading);
-            Assert.Equal(Device1442.BusyStatus, InsCpu.Acc);
-        }
-
-        [Fact]
-        public void ShouldHandleStartPunchControl()
-        {
-            BeforeEachTest();
-            _1442.PunchHopper.Enqueue(new Card());
-            
-            // Issue start punch control (bit 15)
-            IssueControl(_1442, 0, 0x80);
-            
-            Assert.True(_1442.IsPunching);
-            Assert.Equal(Device1442.BusyStatus, InsCpu.Acc);
+            var a = new Card(); var b = new Card(); var c = new Card();
+            _1442 += a; _1442 += b; _1442 += c;
+            _1442.Start();                                                        // a at read station
+            IssueControl(_1442, 0, Device1442.FeedCycleBit);                      // a -> punch, b -> read
+            Assert.Same(a, _1442.CardAtPunchStation);
+            Assert.Same(b, _1442.CardAtReadStation);
+            Assert.True(_1442.Stacker.IsEmpty);
+            IssueControl(_1442, 0, Device1442.FeedCycleBit);                      // a -> stacker, b -> punch, c -> read
+            Assert.True(_1442.Stacker.TryPeek(out var stacked));
+            Assert.Same(a, stacked);
+            Assert.Same(b, _1442.CardAtPunchStation);
+            Assert.Same(c, _1442.CardAtReadStation);
         }
 
         [Fact]
         public void ShouldNotAllowCombinedControlBits()
         {
             BeforeEachTest();
-            
-            // Try to combine start read and start punch (bits 13 and 15)
-            IssueControl(_1442, 0, 0xA0);
-            
+            _1442 += new Card();
+            _1442.Start();
+            IssueControl(_1442, 0, (byte)(Device1442.StartReadBit | Device1442.StartPunchBit));
             Assert.False(_1442.IsReading);
             Assert.False(_1442.IsPunching);
         }
 
         [Fact]
-        public void ShouldGenerateReadResponseInterrupts()
+        public void StartPunchFeedsCardWhenPunchStationEmpty_AndPunchesUntilEndPunchBit()
         {
             BeforeEachTest();
-            var card = new Card();
-            _1442.ReadHopper.Enqueue(card);
-            
-            // Start read operation  
-            IssueControl(_1442, 0, 0x20);
-            
-            // Simulate reading first column
-            _1442.ProcessNextColumn();
-            
-            Assert.True(_1442.HasColumnInterrupt);
+            var blank = new Card();
+            _1442 += blank;
+            _1442.Start();                                                        // blank at read station
+
+            IssueControl(_1442, 0, Device1442.StartPunchBit);
+            Assert.True(_1442.IsPunching);
+            Assert.Same(blank, _1442.CardAtPunchStation);                          // fed past the read station unread
+            Assert.True(_1442.PunchResponsePending);
+            Assert.Equal(0, _1442.ActiveInterrupt.InterruptLevel);
+
+            const int buffer = 0x300;
+            InsCpu[buffer + 0] = 0x9000;                                           // 'A' image
+            InsCpu[buffer + 1] = 0x8800;
+            InsCpu[buffer + 2] = 0x8400 | Device1442.EndPunchBit;                  // last column, still punched
+
+            for (int column = 0; column < 3; column++)
+            {
+                Assert.True(_1442.PunchResponsePending, $"Expected punch response for column {column}");
+                SenseDevice(_1442, Device1442.ResetLevel0Bit);
+                Assert.NotEqual(0, InsCpu.Acc & Device1442.PunchResponseStatus);
+                IssueWrite(buffer + column);
+            }
+
+            Assert.False(_1442.IsPunching);
+            Assert.True(_1442.OperationComplete);
+            Assert.Equal(Device1442.CompleteInterruptLevel, _1442.ActiveInterrupt.InterruptLevel);
+            Assert.Equal(0x9000, blank.Columns[0]);
+            Assert.Equal(0x8800, blank.Columns[1]);
+            Assert.Equal(0x8400, blank.Columns[2]);                                // end-punch bit itself is not a row
+            Assert.Equal(0, blank.Columns[3]);
+            Assert.Same(blank, _1442.CardAtPunchStation);                          // stays until next feed
         }
 
         [Fact]
-        public void ShouldReadRandomCardToMemory()
+        public void ReadThenPunchSameCard()
         {
             BeforeEachTest();
-            
-            // Register the device with the CPU so XIO can find it
-            InsCpu.AddDevice(_1442);
-            
-            const ushort cardBuffer = 0x200; // Card data buffer address
-            
-            // Create a card with random data
-            var cardData = new ushort[80];
-            var random = new Random(42); // Fixed seed for reproducibility
-            for (int i = 0; i < 80; i++)
-            {
-                cardData[i] = (ushort)(random.Next() & 0xFFF); // 12-bit card column data
-            }
-            var testCard = new Card(cardData);
-            _1442.ReadHopper.Enqueue(testCard);
-            
-            // Set up card buffer with word count
-            InsCpu[cardBuffer] = 80; // Word count
-            
-            // Simulate the proper 1442 read sequence as described in the IBM 1130 Functional Characteristics manual:
-            // 1. Control Start Read command - starts card moving, triggers read response interrupts for each column
-            IssueControl(_1442, 0, 0x20); // Start Read bit (bit 13)
-            
-            Assert.True(_1442.IsReading, "Card read should have started");
-            
-            // 2. For each of the 80 columns:
-            //    - Device generates a Level 0 (Read Response) interrupt
-            //    - Interrupt handler issues a Read command (function 010 = 2) with the address where to store the column
-            //    - This must happen within 800µs for model 6, 700µs for model 7
-            for (int column = 0; column < 80; column++)
-            {
-                // Check that column interrupt is active
-                Assert.True(_1442.HasColumnInterrupt, $"Expected column interrupt for column {column}");
-                
-                // Issue Read command to transfer column data from buffer to memory
-                // Function code 010 (2) = Read
-                // For character-mode devices, IoccAddress is the target memory address (not an IOCC structure)
-                InsCpu.IoccDeviceCode = _1442.DeviceCode;
-                InsCpu.IoccFunction = (DevFunction)2; // Read function
-                InsCpu.IoccAddress = cardBuffer + column + 1; // Direct memory address where to store this column
-                _1442.ExecuteIocc();
-            }
-            
-            // 3. After all 80 columns are read, device generates Level 4 (Operation Complete) interrupt
-            // The device should no longer be reading
-            Assert.False(_1442.IsReading, "Card read should be complete");
-            
-            // Verify the card data was transferred to memory (starts at cardBuffer+1)
-            for (int i = 0; i < 80; i++)
-            {
-                Assert.Equal(cardData[i], InsCpu[cardBuffer + 1 + i]);
-            }
-            
-            // Verify card moved to stacker
-            Assert.True(_1442.ReadHopper.IsEmpty);
-            Assert.True(_1442.Stacker.TryPeek(out var stackedCard));
-            Assert.Same(testCard, stackedCard);
+            var card = RandomCard(7);
+            _1442 += card;
+            _1442 += new Card();
+            _1442.Start();
+            ReadWholeCard(0x200);
+            SenseDevice(_1442, Device1442.ResetLevel4Bit);
+
+            IssueControl(_1442, 0, Device1442.StartPunchBit);                     // punches the card just read
+            Assert.Same(card, _1442.CardAtPunchStation);
+            InsCpu[0x400] = 0x0010 | Device1442.EndPunchBit;
+            SenseDevice(_1442, Device1442.ResetLevel0Bit);
+            IssueWrite(0x400);
+            Assert.Equal(0x0010, card.Columns[0]);
+            Assert.True(_1442.OperationComplete);
+        }
+
+        [Fact]
+        public void WriteWithoutStartPunchIsIgnored()
+        {
+            BeforeEachTest();
+            _1442 += new Card();
+            _1442.Start();
+            InsCpu[0x400] = 0xFFF0;
+            IssueWrite(0x400);
+            Assert.False(_1442.IsPunching);
+            Assert.Equal(0, _1442.CardAtReadStation.Columns[0]);
+        }
+
+        [Fact]
+        public void ReadWithoutResponseIsIgnored()
+        {
+            BeforeEachTest();
+            _1442 += RandomCard(3);
+            _1442.Start();
+            InsCpu[0x200] = 0x1234;
+            IssueRead(0x200);
+            Assert.Equal(0x1234, InsCpu[0x200]);
         }
     }
 }

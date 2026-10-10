@@ -115,9 +115,9 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
             Assert.NotNull(_2501.ActiveInterrupt);
             Assert.Equal(Device2501.Ilsw, _2501.ActiveInterrupt.Ilsw);
 
-            // Verify status shows complete
+            // Verify status shows complete and last card; hopper is now empty so the reader is not ready
             SenseDevice(_2501);
-            Assert.Equal(Device2501.OperationCompleteStatus | Device2501.LastCardStatus, InsCpu.Acc);
+            Assert.Equal(Device2501.OperationCompleteStatus | Device2501.LastCardStatus | Device2501.NotReadyOrBusyStatus, InsCpu.Acc);
         }
     }
 }

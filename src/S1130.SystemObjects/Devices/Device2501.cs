@@ -17,6 +17,9 @@ namespace S1130.SystemObjects.Devices
 	 *		.... 1... .... ....		Operation complete (interrupt 4)
 	 *		.... .... .... ..1.		Busy (read in progress)
 	 *		.... .... .... ...1		Not ready or busy
+	 *
+	 * The address word of the Initiate Read IOCC points at a data table whose first word holds
+	 * the word count in bits 9-15 (max 80); card columns are stored from the following word.
 	 * ******************************************************************************************/
 	
 	/// <summary>
@@ -38,7 +41,6 @@ namespace S1130.SystemObjects.Devices
 		private bool _readInProgess;
 		private bool _complete;
 		private bool _lastCard;
-		private bool _ipl;  // Track if this is an IPL operation
 
 		public Device2501(ICpu cpu)
 		{
@@ -63,7 +65,6 @@ namespace S1130.SystemObjects.Devices
             _complete = false;
             _lastCard = false;
             _readInProgess = false;
-            _ipl = true;
 
             // Get appropriate IPL card data
             ushort[] bootData = apl 
@@ -90,7 +91,7 @@ namespace S1130.SystemObjects.Devices
 						DeactivateInterrupt(CpuInstance);
 					}
 					CpuInstance.Acc = 0;
-					if (Hopper.IsEmpty && !_complete) // Only show not ready if we're not completing an operation
+					if (Hopper.IsEmpty || _readInProgess)        // hopper empty -> reader leaves the ready condition
 					{
 						CpuInstance.Acc |= NotReadyOrBusyStatus;
 					}
@@ -124,24 +125,20 @@ namespace S1130.SystemObjects.Devices
 				ICard card;
 				if (Hopper.TryDequeue(out card))
 				{
-					CpuInstance.TransferToMemory(_address, card.Columns, 80);
-					if (_ipl)
+					// Word count is in bits 9-15 of the first word of the data table (max 80)
+					var wordCount = Math.Min(CpuInstance[_address] & 0x7F, 80);
+					for (int i = 0; i < wordCount; i++)
 					{
-						// For IPL operations, we want to indicate both complete and last card
-						_complete = true;
-						_lastCard = true;
-						_ipl = false; // Reset IPL flag since it's done
+						CpuInstance[_address + 1 + i] = card.Columns[i];
 					}
-					else
-					{
-						// For normal operations, only mark complete if not the last card
-						_complete = !Hopper.IsEmpty;
-						_lastCard = Hopper.IsEmpty;
-					}
+					// Operation Complete occurs after column 80 of every card; Last Card is set in
+					// addition when the hopper has run empty.
+					_complete = true;
+					_lastCard = Hopper.IsEmpty;
+					_readInProgess = false;
+					ActivateInterrupt(CpuInstance, 4, Ilsw);
 				}
 			}
-			_readInProgess = false;
-			ActivateInterrupt(CpuInstance, 4, Ilsw);
 			base.Run();
 		}
 

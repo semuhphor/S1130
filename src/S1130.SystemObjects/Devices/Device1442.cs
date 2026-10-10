@@ -1,388 +1,299 @@
-using System;
 using System.Collections.Concurrent;
 
 namespace S1130.SystemObjects.Devices
 {
-    /// <summary>
-    /// Emulates an IBM 1442 Card Read Punch.
-    /// Implements column-by-column processing with automatic checking for both read and punch operations.
-    /// </summary>
+    /* ******************************************************************************************
+     * Device: IBM 1442 Card Read Punch (Models 6/7; Model 5 is punch-only)
+     *
+     * Direct-program-control device (see IBM 1130 Functional Characteristics, "Punched Card
+     * Input/Output Devices"). The CPU must issue one Read or Write IOCC per card column in
+     * response to a level-0 response interrupt. Operation Complete is a level-4 interrupt.
+     *
+     * Card path (single hopper):  hopper -> read station -> punch station -> stacker.
+     * A feed cycle moves every card one station. Start Read reads the card as it moves from the
+     * read station to the punch station; Start Punch punches the card at the punch station,
+     * feeding one there first if the station is empty.
+     *
+     * IOCC functions:
+     *   Read    (010)  column image from read buffer -> core word at IOCC address
+     *   Write   (001)  core word at IOCC address -> punch one column
+     *   Control (100)  modifiers: bit 8 stacker select, bit 13 start read, bit 14 feed cycle,
+     *                  bit 15 start punch (13/14/15 must not be combined)
+     *   Sense   (111)  DSW -> ACC; modifier bit 15 resets level-0 responses, bit 14 resets level 4
+     *
+     * Device status word:
+     *   bit 0  1... .... .... ....  Read Response        (level 0)
+     *   bit 1  .1.. .... .... ....  Punch Response       (level 0)
+     *   bit 2  ..1. .... .... ....  Error Check
+     *   bit 3  ...1 .... .... ....  Last Card
+     *   bit 4  .... 1... .... ....  Operation Complete   (level 4)
+     *   bit 14 .... .... .... ..1.  Busy
+     *   bit 15 .... .... .... ...1  Not Ready or Busy
+     *
+     * Card image: card rows 12,11,0,1..9 occupy word bits 0-11 (0x8000..0x0010). Punch data is in
+     * bits 0-11 and a 1 in bit 12 (0x0008) marks the last column to punch (end-punch).
+     * ******************************************************************************************/
     public class Device1442 : DeviceBase
     {
-        // Control command modifiers (high byte of modifier word)
-        private const byte FeedCycleBit = 0x40;     // Bit 14
-        private const byte StartReadBit = 0x20;     // Bit 13
-        private const byte StartPunchBit = 0x80;    // Bit 15
-        private const byte StackerSelectBit = 0x01;  // Bit 8
+        // Control modifiers (IOCC low byte; IBM bit n = 1 << (15 - n))
+        public const byte StackerSelectBit = 0x80;  // bit 8
+        public const byte StartReadBit = 0x04;      // bit 13
+        public const byte FeedCycleBit = 0x02;      // bit 14
+        public const byte StartPunchBit = 0x01;     // bit 15
 
-        // Status word bits
+        // Sense Device reset modifiers
+        public const byte ResetLevel0Bit = 0x01;    // bit 15
+        public const byte ResetLevel4Bit = 0x02;    // bit 14
+
+        // Device status word
+        public const ushort ReadResponseStatus = 0x8000;
+        public const ushort PunchResponseStatus = 0x4000;
+        public const ushort ErrorCheckStatus = 0x2000;
         public const ushort LastCardStatus = 0x1000;
         public const ushort OperationCompleteStatus = 0x0800;
         public const ushort BusyStatus = 0x0002;
         public const ushort NotReadyOrBusyStatus = 0x0001;
-        public const ushort ReadCheckStatus = 0x4000;    // Error during read
-        public const ushort PunchCheckStatus = 0x2000;   // Error during punch
-        public const ushort FeedCheckStatus = 0x8000;    // Card feed error
-        
-        // Fields for tracking device state
-        private int _currentColumn;
-        private int _address = 0;  // Legacy field for ProcessNextColumn() compatibility
-        private bool _readInProgress;
-        private bool _punchInProgress;
-        private bool _complete;
-        private bool _lastCard;
-        private ICard _currentCard;
-        private bool _operationStarted;
 
-        // Interrupt level status words
-        private const ushort ReadIlsw = 0x0800;  // Level 4 interrupt
-        private const ushort PunchIlsw = 0x0100; // Level 0 interrupt
+        public const ushort EndPunchBit = 0x0008;   // bit 12 of the punch data word
+        public const ushort CardImageMask = 0xFFF0; // bits 0-11
 
-        // Card hoppers
-        public readonly ConcurrentQueue<ICard> ReadHopper = new ConcurrentQueue<ICard>();
-        public readonly ConcurrentQueue<ICard> PunchHopper = new ConcurrentQueue<ICard>();
+        public const int ResponseInterruptLevel = 0;
+        public const int CompleteInterruptLevel = 4;
+        public const ushort Level4Ilsw = 0x2000;    // ILSW bit 2 identifies the 1442 on level 4
+
+        public readonly ConcurrentQueue<ICard> Hopper = new ConcurrentQueue<ICard>();
         public readonly ConcurrentQueue<ICard> Stacker = new ConcurrentQueue<ICard>();
 
-        // Testing and state tracking 
-        public bool HasColumnInterrupt { get; private set; }
-
-        public override byte DeviceCode => 0x02; // 00010 binary
-
-        // Properties for testing and state tracking
-        public bool IsReading => _readInProgress;
-        public bool IsPunching => _punchInProgress;
+        private ICard _readStation;
+        private ICard _punchStation;
+        private int _column;
+        private bool _reading;
+        private bool _punching;
+        private bool _readResponse;                  // level-0 interrupt request (cleared by sense reset or Read)
+        private bool _punchResponse;                 // level-0 interrupt request (cleared by sense reset or Write)
+        private bool _columnReady;                   // a column is waiting to be transferred (cleared by Read/Write)
+        private bool _complete;
+        private bool _lastCard;
+        private bool _errorCheck;
+        private bool _started;                       // initial feed (operator START) has been done
 
         public Device1442(ICpu cpu)
         {
             CpuInstance = cpu;
         }
 
+        public override byte DeviceCode => 0x02;     // 00010
+
+        public bool IsReading => _reading;
+        public bool IsPunching => _punching;
+        public bool ReadResponsePending => _readResponse;
+        public bool PunchResponsePending => _punchResponse;
+        public bool OperationComplete => _complete;
+        public ICard CardAtReadStation => _readStation;
+        public ICard CardAtPunchStation => _punchStation;
+
+        /// <summary>
+        /// Operator START key: performs the initial feed cycle that registers the first card at the
+        /// read station and makes the device ready.
+        /// </summary>
+        public void Start()
+        {
+            _started = true;
+            if (_readStation == null)
+            {
+                FeedOneStation();
+            }
+        }
+
+        private bool Ready => _started && (_readStation != null || _punchStation != null || !Hopper.IsEmpty);
+
         public override void ExecuteIocc()
         {
             switch (CpuInstance.IoccFunction)
             {
                 case DevFunction.SenseDevice:
-                    if ((CpuInstance.IoccModifiers & 1) == 1)
-                    {
-                        // Reset all status bits
-                        _complete = false;
-                        _operationStarted = false;
-                        _readInProgress = false;
-                        _punchInProgress = false;
-                        DeactivateInterrupt(CpuInstance);
-                        CpuInstance.Acc = 0;
-                        return;
-                    }
-                    
-                    // Set status bits in priority order
-                    CpuInstance.Acc = 0;
-                    if (_readInProgress || _punchInProgress)
-                    {
-                        CpuInstance.Acc = BusyStatus;
-                    }
-                    else if (_complete)
-                    {
-                        CpuInstance.Acc = OperationCompleteStatus;
-                        if (_lastCard)
-                        {
-                            CpuInstance.Acc |= LastCardStatus;
-                        }
-                    }
-                    else if (ReadHopper.IsEmpty && PunchHopper.IsEmpty)
-                    {
-                        CpuInstance.Acc = NotReadyOrBusyStatus;
-                    }
+                    SenseDevice();
                     break;
-
                 case DevFunction.Control:
-                    HandleControlCommand();
+                    Control();
                     break;
-                
                 case DevFunction.Read:
-                    // Read command (010): Transfer one column from device buffer to memory at IoccAddress
-                    // Called by CPU in response to Level 0 (Read Response) interrupt
-                    if (_readInProgress && _currentCard != null && _currentColumn < 80)
-                    {
-                        // Read column twice and compare (simulating read check)
-                        var firstRead = _currentCard.Columns[_currentColumn];
-                        var secondRead = _currentCard.Columns[_currentColumn];
-
-                        if (firstRead == secondRead)
-                        {
-                            // Transfer column to memory at specified address
-                            CpuInstance[CpuInstance.IoccAddress] = firstRead;
-                            _currentColumn++;
-                            HasColumnInterrupt = false; // Clear column interrupt after servicing
-                            
-                            if (_currentColumn < 80)
-                            {
-                                // More columns to read - generate next column interrupt
-                                HasColumnInterrupt = true;
-                                ActivateInterrupt(CpuInstance, 0, ReadIlsw);
-                            }
-                            else
-                            {
-                                // All columns read - complete the operation
-                                CompleteReadOperation();
-                            }
-                        }
-                        else
-                        {
-                            // Read check error
-                            _complete = true;
-                            _readInProgress = false;
-                            CpuInstance.Acc |= ReadCheckStatus;
-                            ActivateInterrupt(CpuInstance, 4, ReadIlsw);
-                        }
-                    }
+                    ReadColumn();
                     break;
-                
                 case DevFunction.Write:
-                    // Write command (001): Transfer one column from memory at IoccAddress to device buffer
-                    // Called by CPU in response to Level 0 (Punch Response) interrupt
-                    // Also handles legacy test mode when punch not yet started
-                    if (_punchInProgress && _currentCard != null && _currentColumn < 80)
-                    {
-                        ProcessNextPunchColumn();
-                    }
-                    else if (!_operationStarted && !_punchInProgress && PunchHopper.TryDequeue(out _currentCard))
-                    {
-                        // Legacy test mode: start punch operation
-                        _punchInProgress = true;
-                        _currentColumn = 0;
-                        _complete = false;
-                        _operationStarted = true;
-                        CpuInstance.Acc = BusyStatus;
-                    }
-                    break;
-                
-                case DevFunction.InitRead:
-                    // InitRead is a test/compatibility helper that processes all columns at once
-                    // Real programs should use Control Start Read + 80 Read commands
-                    if (!_operationStarted && ReadHopper.TryDequeue(out _currentCard))
-                    {
-                        _readInProgress = true;
-                        _currentColumn = 0;
-                        _complete = false;
-                        _lastCard = ReadHopper.IsEmpty;
-                        _operationStarted = true;
-                        CpuInstance.Acc = BusyStatus;
-                        
-                        // Process all 80 columns automatically (for testing)
-                        int wca = CpuInstance.IoccAddress;
-                        for (int col = 0; col < 80; col++)
-                        {
-                            CpuInstance[wca + col + 1] = _currentCard.Columns[col];
-                        }
-                        _currentColumn = 80;
-                        // Don't call CompleteReadOperation() - let test call CompleteCurrentOperation()
-                    }
+                    PunchColumn();
                     break;
             }
         }
 
-        private void HandleControlCommand()
+        private void SenseDevice()
         {
-            var modifier = CpuInstance.IoccModifiers;
-            var controlBits = (byte)(modifier & (FeedCycleBit | StartReadBit | StartPunchBit));
+            ushort dsw = 0;
+            if (_readResponse) dsw |= ReadResponseStatus;
+            if (_punchResponse) dsw |= PunchResponseStatus;
+            if (_errorCheck) dsw |= ErrorCheckStatus;
+            if (_lastCard) dsw |= LastCardStatus;
+            if (_complete) dsw |= OperationCompleteStatus;
+            if (_reading || _punching) dsw |= BusyStatus;
+            if (!Ready || _reading || _punching) dsw |= NotReadyOrBusyStatus;
+            CpuInstance.Acc = dsw;
 
-            // Check for invalid combinations of control bits
-            if (BitCount(controlBits) > 1)
+            var mods = CpuInstance.IoccModifiers;
+            if ((mods & ResetLevel0Bit) != 0)
+            {
+                _readResponse = _punchResponse = false;
+                ReleaseInterrupt(ResponseInterruptLevel);
+            }
+            if ((mods & ResetLevel4Bit) != 0)
+            {
+                _complete = _errorCheck = false;
+                ReleaseInterrupt(CompleteInterruptLevel);
+            }
+        }
+
+        private void ReleaseInterrupt(int level)
+        {
+            if (ActiveInterrupt != null && ActiveInterrupt.InterruptLevel == level)
+            {
+                DeactivateInterrupt(CpuInstance);
+            }
+        }
+
+        private void Control()
+        {
+            if (!Ready || _reading || _punching)
             {
                 return;
             }
-
-            switch (controlBits)
+            var mods = CpuInstance.IoccModifiers;
+            var selected = mods & (StartReadBit | FeedCycleBit | StartPunchBit);
+            if (selected != 0 && (selected & (selected - 1)) != 0)
+            {
+                return;                                   // 13/14/15 must not be combined
+            }
+            switch (selected)
             {
                 case FeedCycleBit:
-                    PerformFeedCycle();
+                    FeedOneStation();
                     break;
                 case StartReadBit:
-                    StartReadOperation();
+                    StartRead();
                     break;
                 case StartPunchBit:
-                    StartPunchOperation();
+                    StartPunch();
                     break;
             }
         }
 
-        private static int BitCount(byte value)
+        /// <summary>Moves every card one station: punch station -> stacker, read -> punch, hopper -> read.</summary>
+        private void FeedOneStation()
         {
-            int count = 0;
-            while (value != 0)
+            if (_punchStation != null)
             {
-                count += value & 1;
-                value >>= 1;
+                Stacker.Enqueue(_punchStation);
             }
-            return count;
+            _punchStation = _readStation;
+            _readStation = Hopper.TryDequeue(out var next) ? next : null;
         }
 
-        private void PerformFeedCycle()
+        private void StartRead()
         {
-            if (_currentCard != null)
+            if (_readStation == null)
             {
-                Stacker.Enqueue(_currentCard);
-                _currentCard = null;
+                return;                                   // nothing registered at the read station
             }
-
-            if (ReadHopper.TryDequeue(out var card))
-            {
-                Stacker.Enqueue(card);
-            }
+            _reading = true;
+            _complete = false;
+            _column = 0;
+            _lastCard = Hopper.IsEmpty;                   // last card is now passing the read station
+            RequestResponse(isRead: true);
         }
 
-        private void StartReadOperation()
+        private void StartPunch()
         {
-            if (!_readInProgress && !_punchInProgress && ReadHopper.TryDequeue(out _currentCard))
+            if (_punchStation == null)
             {
-                _operationStarted = false;
-                _readInProgress = true;
-                _currentColumn = 0;
-                _complete = false;
-                _lastCard = ReadHopper.IsEmpty; // Set last card indicator if hopper is now empty
-                CpuInstance.Acc = BusyStatus;
-                HasColumnInterrupt = true;
-                ActivateInterrupt(CpuInstance, 0, ReadIlsw); // Activate Level 0 interrupt for first column
-            }
-        }
-
-        private void StartPunchOperation()
-        {
-            if (!_readInProgress && !_punchInProgress && PunchHopper.Count > 0)
-            {
-                _operationStarted = false;
-                _punchInProgress = true;
-                CpuInstance.Acc = BusyStatus;
-                ActivateInterrupt(CpuInstance, 0, PunchIlsw);
-            }
-        }
-
-        private void ProcessNextReadColumn()
-        {
-            if (_currentColumn < 80 && _currentCard != null)
-            {
-                // Read column twice and compare (simulating read check)
-                var firstRead = _currentCard.Columns[_currentColumn];
-                var secondRead = _currentCard.Columns[_currentColumn];
-
-                if (firstRead == secondRead)
+                FeedOneStation();                         // card feeds past the read station unread
+                if (_punchStation == null)
                 {
-                    CpuInstance[_address] = firstRead;
-                    _currentColumn++;
-                    HasColumnInterrupt = true;
-                    
-                    if (_currentColumn >= 80)
-                    {
-                        CompleteReadOperation();
-                    }
-                }
-                else
-                {
-                    // Read check error
-                    CpuInstance.Acc |= ReadCheckStatus;
-                }
-            }
-        }
-
-        private void ProcessNextPunchColumn()
-        {
-            if (_currentColumn < 80 && _currentCard != null)
-            {
-                var punchData = CpuInstance[_address];
-                
-                // Check for end-punch bit (bit 12)
-                if ((punchData & 0x1000) != 0)
-                {
-                    CompletePunchOperation();
                     return;
                 }
+            }
+            _punching = true;
+            _complete = false;
+            _column = 0;
+            RequestResponse(isRead: false);
+        }
 
-                _currentCard.Columns[_currentColumn] = punchData;
-                _currentColumn++;
-                
-                // Simulate punch check
-                if (_currentColumn > 0)
-                {
-                    var previousColumn = _currentCard.Columns[_currentColumn - 1];
-                    if (previousColumn != CpuInstance[_address - 1])
-                    {
-                        CpuInstance.Acc |= PunchCheckStatus;
-                    }
-                }
-                
-                HasColumnInterrupt = true;
-                ActivateInterrupt(CpuInstance, 0, PunchIlsw);
+        private void RequestResponse(bool isRead)
+        {
+            if (isRead) _readResponse = true; else _punchResponse = true;
+            _columnReady = true;
+            ActivateInterrupt(CpuInstance, ResponseInterruptLevel, 0);
+        }
+
+        private void ReadColumn()
+        {
+            if (!_reading || !_columnReady)
+            {
+                return;
+            }
+            CpuInstance[CpuInstance.IoccAddress] = (ushort)(_readStation.Columns[_column] & CardImageMask);
+            _column++;
+            _columnReady = false;
+            _readResponse = false;
+            ReleaseInterrupt(ResponseInterruptLevel);
+            if (_column < 80)
+            {
+                RequestResponse(isRead: true);
+            }
+            else
+            {
+                _reading = false;
+                FeedOneStation();                         // the read card is now at the punch station
+                Complete();
             }
         }
 
-        private void CompleteReadOperation()
+        private void PunchColumn()
         {
-            _readInProgress = false;
-            _operationStarted = false;
+            if (!_punching || !_columnReady)
+            {
+                return;
+            }
+            var data = CpuInstance[CpuInstance.IoccAddress];
+            _punchStation.Columns[_column] = (ushort)(data & CardImageMask);
+            _column++;
+            _columnReady = false;
+            _punchResponse = false;
+            ReleaseInterrupt(ResponseInterruptLevel);
+            if ((data & EndPunchBit) != 0 || _column >= 80)
+            {
+                _punching = false;
+                Complete();                               // card stays at the punch station until the next feed
+            }
+            else
+            {
+                RequestResponse(isRead: false);
+            }
+        }
+
+        private void Complete()
+        {
             _complete = true;
-            // Don't change _lastCard here - it was set during init
-            HasColumnInterrupt = false;
-            
-            // Move card to stacker
-            if (_currentCard != null)
-            {
-                Stacker.Enqueue(_currentCard);
-                _currentCard = null;
-            }
-            
-            // Signal completion with correct status
-            CpuInstance.Acc = OperationCompleteStatus;
-            if (_lastCard)
-            {
-                CpuInstance.Acc |= LastCardStatus;
-            }
-            ActivateInterrupt(CpuInstance, 4, ReadIlsw);
+            ActivateInterrupt(CpuInstance, CompleteInterruptLevel, Level4Ilsw);
         }
 
-        private void CompletePunchOperation()
+        public static Device1442 operator +(Device1442 device, Deck deck)
         {
-            _punchInProgress = false;
-            _operationStarted = false;
-            _complete = true;
-            HasColumnInterrupt = false;
-            
-            // Move card to stacker
-            if (_currentCard != null)
-            {
-                Stacker.Enqueue(_currentCard);
-                _currentCard = null;
-            }
-            
-            // Signal completion with correct status
-            CpuInstance.Acc = OperationCompleteStatus;
-            ActivateInterrupt(CpuInstance, 0, PunchIlsw);
+            deck.Cards.ForEach(c => device.Hopper.Enqueue(c));
+            return device;
         }
 
-        public void CompleteCurrentOperation()
+        public static Device1442 operator +(Device1442 device, ICard card)
         {
-            if (_readInProgress)
-            {
-                CompleteReadOperation();
-            }
-            else if (_punchInProgress)
-            {
-                CompletePunchOperation();
-            }
+            device.Hopper.Enqueue(card);
+            return device;
         }
-
-        // Exposed for testing
-        public void ProcessNextColumn()
-        {
-            if (_readInProgress)
-            {
-                ProcessNextReadColumn();
-            }
-            else if (_punchInProgress)
-            {
-                ProcessNextPunchColumn();
-            }
-        }
-
-
     }
 }
