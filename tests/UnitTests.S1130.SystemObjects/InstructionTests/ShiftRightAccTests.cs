@@ -48,6 +48,25 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
 			InsCpu.Xr[2] = 0x00;
 			ExecAndTest(initialAcc: 0x4312, expectedAcc: 0x4312);
+			Assert.Equal(0x101, InsCpu.Iar);
+		}
+
+		[Fact]
+		public void Execute_SRA_Count48_ClearsAcc()
+		{
+			BeforeEachTest();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 0, 0x30, InsCpu);
+			ExecAndTest(initialAcc: 0xffff, expectedAcc: 0x0000);
+		}
+
+		[Fact]
+		public void Execute_SRA_Negative_IsLogical()
+		{
+			BeforeEachTest();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 0, 0x01, InsCpu);
+			InsCpu.Ext = 0x1234;
+			ExecAndTest(initialAcc: 0x8000, expectedAcc: 0x4000);
+			Assert.Equal(0x1234, InsCpu.Ext);
 		}
 
 		protected override void BuildAnInstruction()

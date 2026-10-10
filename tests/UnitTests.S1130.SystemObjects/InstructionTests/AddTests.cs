@@ -11,7 +11,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Add, 0, 0x10, InsCpu);
-			InsCpu[InsCpu.Iar + 0x10] = 0x0012;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x0012;
 			ExecAndTest(initialAcc: 0x0001, initialCarry: true, initialOverflow: false, expectedAcc: 0x0013, expectedCarry: false, expectedOverflow: false);
 		}
 
@@ -20,7 +20,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Add, 0, 0x10, InsCpu);
-			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0xffff;
 			ExecAndTest(initialAcc: 0x0001, initialCarry: false, initialOverflow: false, expectedAcc: 0x0000, expectedCarry: true, expectedOverflow: false);
 		}
 
@@ -29,7 +29,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Add, 0, 0x10, InsCpu);
-			InsCpu[InsCpu.Iar + 0x10] = 0x0001;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x0001;
 			ExecAndTest(initialAcc: 0x0001, initialCarry: false, initialOverflow: true, expectedAcc: 0x0002, expectedCarry: false, expectedOverflow: true);
 		}
 
@@ -38,7 +38,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Add, 0, 0x10, InsCpu);
-			InsCpu[InsCpu.Iar + 0x10] = 0x4000;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x4000;
 			ExecAndTest(initialAcc: 0x4000, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: false, expectedOverflow: true);
 		}
 
@@ -47,7 +47,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Add, 0, 0x10, InsCpu);
-			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0xffff;
 			ExecAndTest(initialAcc: 0x0001, initialCarry: false, initialOverflow: false, expectedAcc: 0x0000, expectedCarry: true, expectedOverflow: false);
 		}
 

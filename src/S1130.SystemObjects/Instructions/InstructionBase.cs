@@ -33,8 +33,17 @@
 
 	    protected int GetEffectiveAddressNoXr(ICpu cpu)
 	    {
-			return GetEffectiveAddress(cpu, cpu.FormatLong ? 0 : cpu.Iar);
+			return GetEffectiveAddress(cpu, cpu.FormatLong ? 0 : NextInstructionAddress(cpu));
 	    }
+
+		/// <summary>
+		/// The IAR value the hardware holds while generating a short-format effective address:
+		/// the address of the word immediately following the (one-word) instruction.
+		/// </summary>
+		private static int NextInstructionAddress(ICpu cpu)
+		{
+			return cpu.Iar + 1;
+		}
 
 		protected bool Is16BitSignBitOn(int value)
 		{
@@ -63,7 +72,11 @@
 
         private int GetBase(ICpu cpu)
         {
-            return (!cpu.FormatLong || cpu.Tag != 0) ? cpu.Xr[cpu.Tag] : 0;
+            if (cpu.FormatLong)
+            {
+                return cpu.Tag != 0 ? cpu.Xr[cpu.Tag] : 0;
+            }
+            return cpu.Tag != 0 ? cpu.Xr[cpu.Tag] : NextInstructionAddress(cpu);
         }
 
 		public int GetShiftDistance(ICpu cpu)

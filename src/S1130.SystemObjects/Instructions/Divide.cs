@@ -22,23 +22,25 @@ namespace S1130.SystemObjects.Instructions
 		/// </summary>
 		/// <param name="cpu">The CPU instance to execute the instruction on</param>
 		/// <remarks>
-		/// Note: Quotient overflow behavior is undefined in IBM 1130 hardware.
-		/// This implementation sets the Overflow flag and leaves Acc/Ext unchanged.
+		/// The 32-bit dividend in Acc:Ext is divided by the 16-bit word at the effective address.
+		/// Quotient goes to Acc, remainder to Ext; the remainder takes the sign of the dividend.
+		/// Overflow is set (and Acc/Ext left unchanged) on division by zero or when the quotient
+		/// is outside -32768..32767. The hardware leaves Acc/Ext undefined in that case.
 		/// </remarks>
 		public void Execute(ICpu cpu)
 		{
-			var divider = cpu[GetEffectiveAddress(cpu)];
+			var divider = (int)(short)cpu[GetEffectiveAddress(cpu)];
 			if (divider != 0)
 			{
-				var quotient = (int)cpu.AccExt / (int)SignExtend(divider);
-				if (quotient > short.MaxValue)
+				var dividend = (int)cpu.AccExt;
+				var quotient = (long)dividend / divider;
+				if (quotient > short.MaxValue || quotient < short.MinValue)
 				{
-					// Quotient overflow: Set overflow flag, preserve Acc/Ext (undefined in hardware)
 					cpu.Overflow = true;
 				}
 				else
 				{
-					cpu.Ext = (ushort)(cpu.AccExt % (short)divider);
+					cpu.Ext = (ushort)(dividend % divider);
 					cpu.Acc = (ushort)(quotient & 0xffff);
 				}
 			}

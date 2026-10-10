@@ -12,7 +12,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Multiply, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0x0100;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x0100;
 			ExecAndTest(initialAcc: 0x2001, expectedAccExt: 0x00200100);
 		}
 
@@ -21,7 +21,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Multiply, 0, 0x10, InsCpu);
-			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0xffff;
 			ExecAndTest(initialAcc: 0x0001, expectedAccExt: 0xffffffff);
 		}
 
@@ -30,7 +30,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Multiply, 0, 0x10, InsCpu);
-			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0xffff;
 			ExecAndTest(initialAcc: 0xffff, expectedAccExt: 0x00000001);
 		}
 

@@ -1,4 +1,4 @@
-﻿using Xunit;
+using Xunit;
 using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InstructionTests
@@ -11,7 +11,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
             BeforeEachTest();
             int address = 0x110;
-            InstructionBuilder.BuildShortAtIar(OpCodes.LoadDouble, 0, (ushort) address, InsCpu);
+            InstructionBuilder.BuildShortAtIar(OpCodes.LoadDouble, 0, (ushort) (address - 1), InsCpu);
             InsCpu[address++] = 0x1234;
             InsCpu[address]= 0x4567;
             InsCpu.ExecuteInstruction();
@@ -54,7 +54,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_LDD_Short_NoTag_NegativeDisplacement()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.LoadDouble, 0, 0xF0, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.LoadDouble, 0, 0xEF, InsCpu);
             int address = InsCpu.Iar + GetOffsetFor(0xf0);
 			InsCpu[address++] = 0x1234;
 			InsCpu[address] = 0x4567;
@@ -110,7 +110,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_LDD_Short_NoTag_OddAddress()
         {
 			BeforeEachTest();
-            InstructionBuilder.BuildShortAtIar(OpCodes.LoadDouble, 0, 0x11, InsCpu);
+            InstructionBuilder.BuildShortAtIar(OpCodes.LoadDouble, 0, 0x10, InsCpu);
             int address = InsCpu.Iar + 0x11;
             InsCpu[address++] = 0x1234;
             InsCpu[address] = 0x4567;

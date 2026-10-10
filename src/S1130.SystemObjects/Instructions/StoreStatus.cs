@@ -7,7 +7,7 @@ namespace S1130.SystemObjects.Instructions
 
 		public void Execute(ICpu cpu)
 		{
-			cpu[GetEffectiveAddress(cpu)] &= 0xFF03;
+			cpu[GetEffectiveAddress(cpu)] &= 0xFF00;
 			cpu[GetEffectiveAddress(cpu)] |= (ushort) ((cpu.Carry ? 0x02 : 0x00) | (cpu.Overflow ? 0x01 : 0x00));
 			cpu.Carry = false;
 			cpu.Overflow = false;

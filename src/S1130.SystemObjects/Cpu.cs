@@ -86,25 +86,23 @@ namespace S1130.SystemObjects
 
 		/// <summary>
 		/// Indexer to access system memory by address.
-		/// Provides direct read/write access to memory locations with bounds checking.
+		/// High-order address bits beyond the installed storage size are ignored (IBM 1130 wraparound),
+		/// so any 16-bit address maps onto a valid word.
 		/// </summary>
 		/// <param name="address">Memory address to access</param>
 		/// <returns>16-bit word at the specified address</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Thrown when address is outside valid memory bounds</exception>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown when address is negative</exception>
 		public ushort this[int address]
 		{
-			get 
-			{
-				if (address < 0 || address >= MemorySize)
-					throw new ArgumentOutOfRangeException(nameof(address), $"Memory address {address} is outside valid range 0-{MemorySize - 1}");
-				return Memory[address]; 
-			}
-			set 
-			{
-				if (address < 0 || address >= MemorySize)
-					throw new ArgumentOutOfRangeException(nameof(address), $"Memory address {address} is outside valid range 0-{MemorySize - 1}");
-				Memory[address] = value; 
-			}
+			get { return Memory[WrapAddress(address)]; }
+			set { Memory[WrapAddress(address)] = value; }
+		}
+
+		private int WrapAddress(int address)
+		{
+			if (address < 0)
+				throw new ArgumentOutOfRangeException(nameof(address), $"Memory address {address} is negative");
+			return address % MemorySize;
 		}
 
 		/// <summary>
@@ -261,12 +259,38 @@ namespace S1130.SystemObjects
 					if (_interruptQueues[interruptLevel].TryPeek(out interrupt))// q. found interrupt causing interrupt?
 					{                                                           // a. yes..
 						CurrentInterrupt.Push(interrupt);                       // .. push it as current interrupt	
-						var addressOfInterruptHandler = Memory[intVector];      // .. get the address of the handler
-						Memory[addressOfInterruptHandler] = Iar;                // .. save the current IAR return address
+						var addressOfInterruptHandler = this[intVector];        // .. get the address of the handler
+						this[addressOfInterruptHandler] = Iar;                  // .. save the current IAR return address
 						Iar = (ushort)(addressOfInterruptHandler + 1);          // .. and go to the interrupt handler
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// Returns the Interrupt Level Status Word for the level currently being serviced
+		/// (XIO Sense Interrupt). The ILSW is the OR of the status bits of every device with a
+		/// request pending on that level. If no level is being serviced, the highest pending
+		/// level is used; if none is pending, zero is returned.
+		/// </summary>
+		public ushort SenseInterruptLevelStatusWord()
+		{
+			int? level = null;
+			if (_currentInterrupts.TryPeek(out var current))
+			{
+				level = current.InterruptLevel;
+			}
+			level ??= CurrentInterruptLevel;
+			if (!level.HasValue)
+			{
+				return 0;
+			}
+			ushort ilsw = 0;
+			foreach (var pending in _interruptQueues[level.Value])
+			{
+				ilsw |= pending.Ilsw;
+			}
+			return ilsw;
 		}
 
 		public void ClearCurrentInterrupt()                                 // Clear current interrupt
@@ -289,14 +313,8 @@ namespace S1130.SystemObjects
 
 		public void DecodeCurrentInstruction()                                                        // System State constructor
 		{
-			if (Iar >= MemorySize)
-				throw new InvalidOperationException($"IAR out of bounds: 0x{Iar:X4} >= 0x{MemorySize:X4}");
-
-			var firstWord = Memory[Iar];                                      // retrieve the first work
+			var firstWord = this[Iar];                                          // retrieve the first word (wraps if beyond storage)
 			Opcode = (ushort)((firstWord & 0xF800) >> 11);                      // .. get the opcode shifted to low-order bits
-
-			if (Opcode >= Instructions.Length)
-				throw new InvalidOperationException($"Invalid opcode 0x{Opcode:X2} at address 0x{(Iar - 1):X4}. First word: 0x{firstWord:X4}");
 
 			CurrentInstruction = Instructions[Opcode];                          // save the current instruction
 			if (CurrentInstruction != null)                                     // q. instruciton found?
@@ -308,7 +326,7 @@ namespace S1130.SystemObjects
 				if (formatBit && CurrentInstruction.HasLongFormat)              // q. long format instruction?
 				{                                                               // a. yes ...
 					FormatLong = true;                                          // .. show it is long
-					Displacement = Memory[Iar + 1];                               // .. get displacement second word
+					Displacement = this[Iar + 1];                               // .. get displacement second word
 					IndirectAddress = (firstWord & 0x80) != 0;                  // .. and get indirect address bit
 				}
 				else                                                            // otherwise ..
@@ -448,8 +466,8 @@ namespace S1130.SystemObjects
 		}
 		public void IoccDecode(int address)                                 // Decode an IOCC
 		{
-			IoccAddress = Memory[address];                                      // get the memory address (WCA from first word)
-			ushort secondWord = Memory[address | 1];                            // then pull second word (force odd address for second word)
+			IoccAddress = this[address];                                        // get the memory address (WCA from first word)
+			ushort secondWord = this[address | 1];                              // then pull second word (force odd address for second word)
 			IoccDeviceCode = (secondWord & 0xf800) >> 11;                       // .. extract device code
 			IoccFunction = (DevFunction)((secondWord & 0x0700) >> 8);           // .. extract function
 			IoccModifiers = secondWord & 0xff;                                  // .. and extract modifiers

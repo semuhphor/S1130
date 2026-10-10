@@ -45,6 +45,7 @@ namespace S1130.SystemObjects
 		void AddInterrupt(Interrupt interrupt);
 		void HandleInterrupt();
 		void ClearCurrentInterrupt();
+		ushort SenseInterruptLevelStatusWord();
 
 		void DecodeCurrentInstruction();
 		// void NextInstruction();

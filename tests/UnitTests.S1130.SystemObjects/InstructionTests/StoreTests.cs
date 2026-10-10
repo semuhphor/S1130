@@ -10,7 +10,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_ST_Short_NoTag()
         {
 			BeforeEachTest();
-            InstructionBuilder.BuildShortAtIar(OpCodes.Store, 0, 0x10, InsCpu);
+            InstructionBuilder.BuildShortAtIar(OpCodes.Store, 0, 0x0F, InsCpu);
             InsCpu.Acc = 0x2345;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x2345, InsCpu[0x110]);
@@ -21,7 +21,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         {
 			BeforeEachTest();
 	        InsCpu.Iar = 0x7f00;
-            InstructionBuilder.BuildShortAtIar(OpCodes.Store, 0, 0x10, InsCpu);
+            InstructionBuilder.BuildShortAtIar(OpCodes.Store, 0, 0x0F, InsCpu);
             InsCpu.Acc = 0x2345;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x2345, InsCpu[0x7f10]);

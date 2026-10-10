@@ -12,8 +12,8 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.BranchStore, 0, 0x10, InsCpu);
 			InsCpu.ExecuteInstruction();
-			Assert.Equal(0x111, InsCpu.Iar);
-			Assert.Equal(0x101, InsCpu[0x110]);
+			Assert.Equal(0x112, InsCpu.Iar);                                      // EA = (IAR+1) + disp = 0x111; routine starts at EA+1
+			Assert.Equal(0x101, InsCpu[0x111]);
 		}
 
 		[Fact]

@@ -12,7 +12,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InsCpu.Carry = true;
 			InsCpu.Overflow = true;
-			InstructionBuilder.BuildShortAtIar(OpCodes.StoreStatus, 0, 0x10, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreStatus, 0, 0x0F, InsCpu);
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x03, InsCpu[0x110] & 0x03);
 			Assert.False(InsCpu.Carry);
@@ -27,7 +27,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Carry = false;
 			InsCpu.Overflow = true;
 			InsCpu.Iar = 0x7f00;
-			InstructionBuilder.BuildShortAtIar(OpCodes.StoreStatus, 0, 0x10, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreStatus, 0, 0x0F, InsCpu);
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x01, InsCpu[0x7f10] & 0x03);
 			Assert.False(InsCpu.Carry);
@@ -79,6 +79,18 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.False(InsCpu.Carry);
 			Assert.False(InsCpu.Overflow);
             Assert.Equal(0x102, InsCpu.Iar);
+		}
+
+		[Fact]
+		public void Execute_STS_ClearsStaleIndicatorBits_AndBits8To13()
+		{
+			BeforeEachTest();
+			InsCpu.Carry = false;
+			InsCpu.Overflow = false;
+			InstructionBuilder.BuildLongAtIar(OpCodes.StoreStatus, 0, 0x400, InsCpu);
+			InsCpu[0x0400] = 0xC0FF;   // bits 0-7 = C0, bits 8-15 all set (stale indicators in 14-15)
+			InsCpu.ExecuteInstruction();
+			Assert.Equal(0xC000, InsCpu[0x0400]);
 		}
 
 		protected override void BuildAnInstruction()

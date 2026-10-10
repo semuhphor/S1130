@@ -714,7 +714,7 @@ namespace S1130.SystemObjects.Assembler
             Add("MDX", new InstructionDefinition
             {
                 Mnemonic = "MDX",
-                Opcode = 0x0A, // ModifyIndex
+                Opcode = 0x0E, // ModifyIndex
                 ValidPatterns = new List<InstructionPattern>
                 {
                     InstructionPattern.ShortNoIndex,

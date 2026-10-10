@@ -580,7 +580,7 @@ namespace UnitTests.S1130.SystemObjects
                 Description = "Store Index - Index 1, long"
             });
 
-            // MODIFY INDEX (MDX) - OpCode 0x0A
+            // MODIFY INDEX (MDX) - OpCode 0x0E
             tests.Add(new InstructionTest
             {
                 Mnemonic = "MDX",

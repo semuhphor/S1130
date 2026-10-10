@@ -96,7 +96,7 @@ namespace UnitTests.S1130.SystemObjects
         public void Disassemble_MDX_LongWithTag_UsesNewSyntax()
         {
             var cpu = new Cpu();
-            cpu[0] = (ushort)((0x0A << 11) | 0x400 | (2 << 8));
+            cpu[0] = (ushort)((0x0E << 11) | 0x400 | (2 << 8));
             cpu[1] = 0x0100;
             cpu.Iar = 0;
             var result = cpu.Disassemble(0);
@@ -107,7 +107,7 @@ namespace UnitTests.S1130.SystemObjects
         public void Disassemble_MDX_LongWithModifier_UsesNewSyntax()
         {
             var cpu = new Cpu();
-            cpu[0] = (ushort)((0x0A << 11) | 0x400 | 5);
+            cpu[0] = (ushort)((0x0E << 11) | 0x400 | 5);
             cpu[1] = 0x0100;
             cpu.Iar = 0;
             var result = cpu.Disassemble(0);

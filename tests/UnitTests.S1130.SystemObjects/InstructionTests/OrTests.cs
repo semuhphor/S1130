@@ -12,7 +12,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Or, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0x1234;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x1234;
 			ExecAndTest(initialAcc: 0x4210, expectedAcc: 0x5234);
 		}
 

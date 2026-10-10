@@ -1,4 +1,5 @@
-﻿using Xunit;
+using System;
+using Xunit;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.Instructions;
@@ -145,6 +146,35 @@ namespace UnitTests.S1130.SystemObjects
 			Assert.NotEqual(DevFunction.SenseDevice, _cpu.IoccFunction);								// .. and not sense device
 			Assert.Equal(0, _cpu.IoccModifiers);														// .. and modifier wrong
 			Assert.Equal(0x400, _cpu.IoccAddress);													// .. this is correct because of how odd/even works
+		}
+
+		[Fact]
+		public void AddressWraparound_HighBitsIgnored()
+		{
+			_cpu = new Cpu();
+			_cpu[0x0010] = 0x1234;
+			Assert.Equal(0x1234, _cpu[0x8010]);                                                        // bit 0 ignored on a 32K machine
+			_cpu[0xFFFF] = 0xabcd;
+			Assert.Equal(0xabcd, _cpu[0x7FFF]);
+			Assert.Equal(0xabcd, _cpu.Memory[0x7FFF]);
+		}
+
+		[Fact]
+		public void AddressWraparound_SmallerMemory()
+		{
+			_cpu = new Cpu { MemorySize = 4096 };
+			_cpu[0x0FFF] = 0x5555;
+			Assert.Equal(0x5555, _cpu[0x1FFF]);
+			Assert.Equal(0x5555, _cpu[0x4FFF]);
+			_cpu[0x1000] = 0x7777;                                                                      // max+1 wraps to /0000
+			Assert.Equal(0x7777, _cpu[0x0000]);
+		}
+
+		[Fact]
+		public void AddressWraparound_NegativeStillThrows()
+		{
+			_cpu = new Cpu();
+			Assert.Throws<ArgumentOutOfRangeException>(() => _cpu[-1]);
 		}
     }
 }

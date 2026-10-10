@@ -12,7 +12,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Divide, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0x0100;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x0100;
 			ExecAndTest(initialAccExt: 0x00002001, initialOverflow: false,  expectedAcc: 0x0020, expectedExt: 0x0001,expectedOverflow:false);
 		}
 
@@ -23,7 +23,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InstructionBuilder.BuildShortAtIar(OpCodes.Divide, 2, 0x10, InsCpu);
 			
 			InsCpu.Xr[2] = 0x1000;
-			InsCpu[InsCpu.Iar + 0x10] = 0;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0;
 			
 			// Division by zero: verify Overflow set and Acc/Ext preserved
 			uint initialAccExt = 0x00002001;
@@ -85,6 +85,44 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			
 			Assert.True(InsCpu.Overflow);
 			Assert.Equal(initialAccExt, InsCpu.AccExt); // Verify registers unchanged
+		}
+
+		[Fact]
+		public void Execute_D_NegativeDividend_RemainderTakesDividendSign()
+		{
+			BeforeEachTest();
+			InstructionBuilder.BuildLongAtIar(OpCodes.Divide, 0, 0x1010, InsCpu);
+			
+			InsCpu[0x1010] = 0x0002;
+			// -7 / 2 = -3 remainder -1
+			ExecAndTest(initialAccExt: 0xfffffff9, initialOverflow: false, expectedAcc: 0xfffd, expectedExt: 0xffff, expectedOverflow: false);
+		}
+
+		[Fact]
+		public void Execute_D_NegativeQuotientOverflow_SetsOverflow()
+		{
+			BeforeEachTest();
+			InstructionBuilder.BuildLongAtIar(OpCodes.Divide, 0, 0x1010, InsCpu);
+			
+			InsCpu[0x1010] = 0x0001;
+			// -40000 / 1 is below -32768
+			uint initialAccExt = unchecked((uint)-40000);
+			InsCpu.AccExt = initialAccExt;
+			InsCpu.ExecuteInstruction();
+			
+			Assert.True(InsCpu.Overflow);
+			Assert.Equal(initialAccExt, InsCpu.AccExt);
+		}
+
+		[Fact]
+		public void Execute_D_LargestValidCase_FromManual()
+		{
+			BeforeEachTest();
+			InstructionBuilder.BuildLongAtIar(OpCodes.Divide, 0, 0x1010, InsCpu);
+			
+			// Manual: (2^30 + 2^15 - 1) / -2^15 is the largest dividend that divides correctly
+			InsCpu[0x1010] = 0x8000;
+			ExecAndTest(initialAccExt: 0x40007fff, initialOverflow: false, expectedAcc: 0x8000, expectedExt: 0x7fff, expectedOverflow: false);
 		}
 
 		protected override void BuildAnInstruction()

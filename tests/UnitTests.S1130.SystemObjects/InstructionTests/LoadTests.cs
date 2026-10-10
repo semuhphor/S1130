@@ -1,4 +1,4 @@
-﻿using Xunit;
+using Xunit;
 using S1130.SystemObjects.Instructions;
 
 namespace UnitTests.S1130.SystemObjects.InstructionTests
@@ -12,7 +12,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Load, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0x1234;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x1234;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x1234, InsCpu.Acc);
 			Assert.Equal(0x101, InsCpu.Iar);
@@ -25,7 +25,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			InsCpu.Iar = 0x7fe0;
 			InstructionBuilder.BuildShortAtIar(OpCodes.Load, 0, 0x04, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x04] = 0x1234;
+			InsCpu[InsCpu.Iar + 1 + 0x04] = 0x1234;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x1234, InsCpu.Acc);
 			Assert.Equal(0x7fe1, InsCpu.Iar);
@@ -37,7 +37,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
             InstructionBuilder.BuildShortAtIar(OpCodes.Load, 0, 0xe0, InsCpu);
             
-	        InsCpu[InsCpu.Iar + GetOffsetFor(0xe0)] = 0x82e0;
+	        InsCpu[InsCpu.Iar + 1 + GetOffsetFor(0xe0)] = 0x82e0;
             InsCpu.ExecuteInstruction();
             Assert.Equal(0x82e0, InsCpu.Acc);
             Assert.Equal(0x101, InsCpu.Iar);

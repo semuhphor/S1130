@@ -9,7 +9,14 @@ namespace S1130.SystemObjects.Instructions
 		{
 			var address = GetEffectiveAddress(cpu);
 			cpu.IoccDecode(address);											// Decode the IOCC
-			cpu.IoccDevice?.ExecuteIocc();										// .. do what it says
+			if (cpu.IoccFunction == DevFunction.SenseInterrupte)				// q. sense interrupt?
+			{																	// a. yes .. common to all devices, no device code needed
+				cpu.Acc = cpu.SenseInterruptLevelStatusWord();					// .. ILSW of the level being serviced
+			}
+			else
+			{
+				cpu.IoccDevice?.ExecuteIocc();									// .. otherwise let the device do what it says
+			}
 			SetIarToNextInstruction(cpu);
 		}
 	}

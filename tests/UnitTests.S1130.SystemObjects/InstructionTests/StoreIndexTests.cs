@@ -10,7 +10,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_STX_Short_Xr1()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.StoreIndex, 1, 0x10, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreIndex, 1, 0x0F, InsCpu);
 			InsCpu.Xr[1] = 0x2001;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x2001, InsCpu[0x110]);
@@ -22,7 +22,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		{
 			BeforeEachTest();
 			InsCpu.Iar = 0x7f00;
-			InstructionBuilder.BuildShortAtIar(OpCodes.StoreIndex, 2, 0x10, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreIndex, 2, 0x0F, InsCpu);
 			InsCpu.Xr[2] = 0x2345;
 			InsCpu.ExecuteInstruction();
 			Assert.Equal(0x2345, InsCpu[0x7f10]);

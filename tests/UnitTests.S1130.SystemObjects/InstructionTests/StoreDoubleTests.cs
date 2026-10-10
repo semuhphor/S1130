@@ -10,7 +10,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_STD_Short_NoTag()
         {
 			BeforeEachTest();
-            InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x10, InsCpu);
+            InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x0F, InsCpu);
             
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
@@ -69,7 +69,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
         public void Execute_STD_Short_NoTag_OddAddress()
         {
 			BeforeEachTest();
-            InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x11, InsCpu);
+            InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x10, InsCpu);
             InsCpu.Acc = 0x2345;
             InsCpu.Ext = 0x1234;
             InsCpu[0x112] = 0x645; // will not be overwritten
@@ -81,7 +81,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 
 	    protected override void BuildAnInstruction()
 	    {
-			InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x10, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreDouble, 0, 0x0F, InsCpu);
 		}
 
 	    protected override string OpName

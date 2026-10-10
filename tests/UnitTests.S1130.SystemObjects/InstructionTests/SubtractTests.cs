@@ -12,7 +12,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Subtract, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0x0012;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x0012;
 			ExecAndTest(initialAcc: 0x0013, initialCarry: true, initialOverflow: false, expectedAcc: 0x0001, expectedCarry: false, expectedOverflow: false);
 		}
 
@@ -22,7 +22,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Subtract, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0xFFFF;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0xFFFF;
 			ExecAndTest(initialAcc: 0x0000, initialCarry: false, initialOverflow: false, expectedAcc: 0x0001, expectedCarry: true, expectedOverflow: false);
 		}
 
@@ -32,7 +32,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Subtract, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0x0001;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x0001;
 			ExecAndTest(initialAcc: 0x000f, initialCarry: false, initialOverflow: true, expectedAcc: 0x000e, expectedCarry: false, expectedOverflow: true);
 		}
 
@@ -42,7 +42,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Subtract, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0x0001;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0x0001;
 			ExecAndTest(initialAcc: 0x8000, initialCarry: false, initialOverflow: false, expectedAcc: 0x7fff, expectedCarry: false, expectedOverflow: true);
 		}
 
@@ -52,7 +52,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			BeforeEachTest();
 			InstructionBuilder.BuildShortAtIar(OpCodes.Subtract, 0, 0x10, InsCpu);
 			
-			InsCpu[InsCpu.Iar + 0x10] = 0xffff;
+			InsCpu[InsCpu.Iar + 1 + 0x10] = 0xffff;
 			ExecAndTest(initialAcc: 0x7fff, initialCarry: false, initialOverflow: false, expectedAcc: 0x8000, expectedCarry: true, expectedOverflow: true);
 		}
 
