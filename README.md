@@ -16,7 +16,7 @@ The emulator provides a complete IBM 1130 system simulation including:
 
 ### Prerequisites
 
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) (version 10.0.0 or later as specified in global.json)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download) (version 10.0.100 or later; the SDK feature band is selected by global.json)
 - A C# compatible IDE or text editor
 
 ### Building the Project
@@ -89,7 +89,7 @@ Bob Flanders and contributors
 The project includes a backend Web API and an optional React frontend. Here are the steps to run both locally on Windows PowerShell.
 
 Prerequisites:
-- .NET 10 SDK (global.json pins 10.0.0)
+- .NET 10 SDK (global.json requests 10.0.100 and rolls forward to the latest installed feature band)
 - Node.js and npm (only required for the frontend)
 
 Run the backend (Web API):

@@ -1,7 +1,7 @@
 # AI Agent Instructions for S1130 IBM 1130 Emulator
 
 ## Project Overview
-This is a complete IBM 1130 computer emulator implemented in C# .NET 8. The emulator simulates the CPU, instruction set, memory management, device I/O, and interrupt handling of the original 1960s mainframe computer.
+This is a complete IBM 1130 computer emulator implemented in C# .NET 10. The emulator simulates the CPU, instruction set, memory management, device I/O, and interrupt handling of the original 1960s mainframe computer.
 
 ## Architecture Components
 

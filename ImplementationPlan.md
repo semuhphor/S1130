@@ -21,7 +21,7 @@ Create a simple web interface that:
 
 Notes
 - Backend: ASP.NET Core 8 Web API (cross-platform: Windows, Linux, macOS)
-- Frontend: React 18 + TypeScript (cross-platform: runs in any modern browser)
+- Frontend: React 19 + TypeScript (cross-platform: runs in any modern browser)
 - The emulator and web interface can run on Windows, Linux, or macOS
 - Follow ICpu/InstructionBase/DeviceBase patterns from the emulator
 - Windows PowerShell commands shown (use bash equivalents on Linux/macOS)
@@ -48,7 +48,7 @@ Phase 1 — Core Assembler Web Interface (Priority: Highest)
 Task 1.1: Create Web API project and reference emulator
 - Commands (from solution root f:\Development\S1130):
   - cd .\src
-  - dotnet new webapi -n S1130.WebApi --framework net8.0
+  - dotnet new webapi -n S1130.WebApi --framework net10.0
   - cd ..
   - dotnet sln .\S1130.sln add .\src\S1130.WebApi\S1130.WebApi.csproj
   - dotnet add .\src\S1130.WebApi\S1130.WebApi.csproj reference .\src\S1130.SystemObjects\S1130.SystemObjects.csproj

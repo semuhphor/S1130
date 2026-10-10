@@ -16,7 +16,7 @@
 
 ## Overview
 
-The S1130 is a complete emulator of the IBM 1130 minicomputer system written in C# .NET 8. It accurately simulates:
+The S1130 is a complete emulator of the IBM 1130 minicomputer system written in C# .NET 10. It accurately simulates:
 - 16-bit CPU with accumulator, extension, and index registers
 - 32K words of memory (default, configurable)
 - Complete instruction set (arithmetic, logical, branch, shift, I/O)

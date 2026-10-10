@@ -79,14 +79,14 @@ docker-compose up --build
 
 ## Architecture
 
-- **Backend**: ASP.NET Core 8 Web API running on port 5000
-- **Frontend**: React 18 served by Nginx on port 80 (mapped to 3000)
+- **Backend**: ASP.NET Core 10 Web API running on port 5000
+- **Frontend**: React 19 served by Nginx on port 80 (mapped to 3000)
 - **Network**: Both containers on isolated bridge network for inter-service communication
 
 ## Container Details
 
 ### Backend Container
-- Base: `mcr.microsoft.com/dotnet/aspnet:8.0`
+- Base: `mcr.microsoft.com/dotnet/aspnet:10.0`
 - Multi-stage build for optimized size
 - Health check endpoint available
 

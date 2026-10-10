@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/bin/Debug/net8.0/UnitTests.S1130.SystemObjects.dll",
+            "program": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects/bin/Debug/net10.0/UnitTests.S1130.SystemObjects.dll",
             "args": [],
             "cwd": "${workspaceFolder}/tests/UnitTests.S1130.SystemObjects",
             "console": "internalConsole",
