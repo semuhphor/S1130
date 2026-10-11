@@ -6,6 +6,9 @@
 *.user
 *.sln.docstates
 
+# C# language-service caches
+*.csproj.lscache
+
 # Build results
 
 [Dd]ebug/
