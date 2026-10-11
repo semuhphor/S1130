@@ -20,5 +20,6 @@
     "files.exclude": {
         "**/bin": true,
         "**/obj": true
-    }
+    },
+    "testing.automaticallyOpenTestResults": "openOnTestFailure"
 }
