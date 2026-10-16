@@ -1,0 +1,20 @@
+CONTEXT: I want the 1130 to (vitually) run like a real 1130. 
+ROLE:  You will be a planner for the project. Then an implementer of the project.
+INTERVIEW: Ask me questions one by one about the planning and implementation process.
+TASK: I want a docker container web site that I can deploy and allow users to have a "computer room". The current s1130 source is the "guts" of an 1130 -- an execution engine that has the ability to a subset of devices
+attached to the cpu. The unit-record devices (card reader, card punch, printer) should accept or  build queues of records that represent the input or output of raw data they work with. Something beyond the 1130 will 
+interpret the characters into prinable records or from (ascii/unicode) to card input.
+
+The overall picture is:
+You enter into the web site and log in. (modern email/password|passkey and TFA). You will enter a computer room.
+you will click on the device to use. (the 1130).
+you will put a disk in. (DMS disk will be available.) (you will be able to save modified disks.)
+You will boot it.
+you will put cards in the reader (drag a file .. mabye .crd) to the reader --- Card decks for the user should be kept somewhere until they delete them.
+ 
+It probably need a library of card decks and disks.
+printouts will be available by pressing some button (output will be translated into a pdf and put in your libary?)
+
+If we ccould get this running... very cool.
+
+Multiple users should be able to log in and have a unique 1130 computer room.
