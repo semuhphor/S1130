@@ -11,7 +11,7 @@ Goal: a Docker-deployable web site where each invited user has a private, virtua
 | Accounts | ASP.NET Core Identity: email/password, TOTP 2FA, passkeys. Invite-only; an admin creates accounts. |
 | Storage | SQLite for metadata. Disks, decks and printouts are files on a mounted Docker volume. Per-user quota about 50 MB (admin adjustable). |
 | Disks | A read-only master DMS disk ships with the site. Each user gets a private copy on first use, can reset it to the master, remove it, and create a new pack (blank or pre-formatted). Disk image format follows the reference simulator (`ForReferenceOnly\ibm1130_disk.c`) so existing DMS images load. |
-| Devices | 1130 with console typewriter (1053) and console panel, 1132 printer, 1442 read/punch, 1131 disk drive (device code 4, 2315 cartridge). 2501 and 2310 are not needed for the first release. |
+| Devices | 1130 with console typewriter (1053) and console panel, 1132 printer, 1442 read/punch, 1131 disk drive (device code 4, 2315 cartridge; already implemented as drive 0 of `Device2310`). The 2501 is not needed for the first release. |
 | I/O model | Devices only queue raw records: 80-column 12-bit Hollerith images for cards, raw print lines/carriage controls for the 1132, print words for the console. The web layer translates to and from text/PDF. |
 | Card input | Text (primary) and binary decks. The site inspects the deck, suggests a format, and lets the user override. Everything is stored as raw 80-column images. |
 | Output | "Complete Printout" and "Complete Punch Output" buttons ask for a name and save to the library. On a name clash: overwrite, cancel, or rename. Printouts render to PDF (greenbar style); punched decks export as text or binary. |
@@ -22,7 +22,7 @@ Goal: a Docker-deployable web site where each invited user has a private, virtua
 ## Milestones
 
 ### M1. Emulator foundations (console tests only, no web)
-1. Implement the 1131 disk (device 4): 321 cylinders x 8 sectors x 320 words, seek/read/write/sense, level 2 ILSW bit `0x8000`, sector timing and interrupts, image load/save in the reference format. Port logic from `ibm1130_disk.c`.
+1. Finish the 1131/2310/2311 disk. `Device2310` already covers the 1131 as drive 0 (device 4, level 2 ILSW `0x8000`) and 2310 drives 1-4 (devices 0x11-0x14, ILSW `0x4000`-`0x0800`, matching the reference simulator). Remaining: audit it against `ibm1130_disk.c` for seek/read/write/sense completeness, sector timing and interrupts, and image load/save in the reference format.
 2. Console switches (device 7): data switches, run/stop/program-start state, level 5 handling (program stop / INT RUN).
 3. IPL: cold-start from the 1442 (card boot loader as in `load_cr_boot`/`cr_boot` in `ibm1130_cr.c`), wait state, program load.
 4. 1132 printer (`ibm1130_prt.c` as reference): raw line queue, carriage control and forms.
@@ -45,7 +45,7 @@ Dockerfile, volume layout, configuration, master DMS disk provisioning, backup n
 
 ## Risks / open items
 - DMS image must match the device configuration (1442 reader/punch, 1132, 1131 disk); verify against `ForReferenceOnly\dmsr2v12`.
-- Existing disk work targets the 2310; DMS needs the 1131/2315.
+- The disk is mostly implemented; the gaps against DMS needs are not yet measured.
 - Rights and licensing for the DMS disk image and any fonts.
 - Concurrency limit on simultaneously active machines is not yet decided.
 - Whether the console panel shows real register lamps or status lamps only in the first release is not yet decided.
