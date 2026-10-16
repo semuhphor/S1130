@@ -7,6 +7,7 @@ namespace S1130.SystemObjects
 		byte DeviceCode { get; }
 		void ExecuteIocc();
 		Interrupt ActiveInterrupt{ get; }
+		bool HoldsInterrupt(Interrupt interrupt);
 		void Run();
 	}
 }

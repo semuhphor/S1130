@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using S1130.SystemObjects.InterruptManagement;
 
 namespace S1130.SystemObjects.Devices
 {
@@ -151,12 +152,37 @@ namespace S1130.SystemObjects.Devices
             }
         }
 
+        // The 1442 can have a level 0 response and a level 4 completion pending at once.
+        private Interrupt _responseInterrupt;
+        private Interrupt _completeInterrupt;
+
+        public override bool HoldsInterrupt(Interrupt interrupt) =>
+            interrupt == _responseInterrupt || interrupt == _completeInterrupt;
+
+        private void RaiseInterrupt(int level, ushort ilsw)
+        {
+            var isResponse = level == ResponseInterruptLevel;
+            if ((isResponse ? _responseInterrupt : _completeInterrupt) != null)
+            {
+                return;
+            }
+            var interrupt = CpuInstance.IntPool.GetInterrupt(level, this, ilsw);
+            if (isResponse) _responseInterrupt = interrupt; else _completeInterrupt = interrupt;
+            ActiveInterrupt = _responseInterrupt ?? _completeInterrupt;
+            CpuInstance.AddInterrupt(interrupt);
+        }
+
         private void ReleaseInterrupt(int level)
         {
-            if (ActiveInterrupt != null && ActiveInterrupt.InterruptLevel == level)
+            var isResponse = level == ResponseInterruptLevel;
+            var interrupt = isResponse ? _responseInterrupt : _completeInterrupt;
+            if (interrupt == null)
             {
-                DeactivateInterrupt(CpuInstance);
+                return;
             }
+            if (isResponse) _responseInterrupt = null; else _completeInterrupt = null;
+            ActiveInterrupt = _responseInterrupt ?? _completeInterrupt;
+            CpuInstance.RemoveInterrupt(interrupt);
         }
 
         private void Control()
@@ -229,7 +255,7 @@ namespace S1130.SystemObjects.Devices
         {
             if (isRead) _readResponse = true; else _punchResponse = true;
             _columnReady = true;
-            ActivateInterrupt(CpuInstance, ResponseInterruptLevel, 0);
+            RaiseInterrupt(ResponseInterruptLevel, 0);
         }
 
         private void ReadColumn()
@@ -281,7 +307,7 @@ namespace S1130.SystemObjects.Devices
         private void Complete()
         {
             _complete = true;
-            ActivateInterrupt(CpuInstance, CompleteInterruptLevel, Level4Ilsw);
+            RaiseInterrupt(CompleteInterruptLevel, Level4Ilsw);
         }
 
         public static Device1442 operator +(Device1442 device, Deck deck)

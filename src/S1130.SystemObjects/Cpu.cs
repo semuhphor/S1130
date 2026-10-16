@@ -331,7 +331,7 @@ namespace S1130.SystemObjects
 				{                                                               // a. yes ..
 					IntPool.PutInterruptInBag(intr);                            // .. return to the pool
 				}
-				else if (intr.CausingDevice.ActiveInterrupt != intr)            // q. device dropped it without telling the cpu?
+				else if (!intr.CausingDevice.HoldsInterrupt(intr))              // q. device dropped it without telling the cpu?
 				{                                                               // a. yes ..
 					RemoveInterrupt(intr);                                      // .. withdraw it and return to the pool
 				}                                                               // otherwise the request stays pending and re-interrupts

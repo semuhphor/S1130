@@ -9,6 +9,8 @@ namespace S1130.SystemObjects
 		public abstract void ExecuteIocc();
 		public Interrupt ActiveInterrupt { get; protected set; }
 
+		public virtual bool HoldsInterrupt(Interrupt interrupt) => ActiveInterrupt == interrupt;
+
 		public virtual void Run()
 		{
 			Thread.Sleep(0);

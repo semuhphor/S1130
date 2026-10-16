@@ -172,6 +172,26 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
         }
 
         [Fact]
+        public void NewReadWhileLevel4Pending_KeepsBothRequests()
+        {
+            BeforeEachTest();
+            _1442 += new Card();
+            _1442 += new Card();
+            _1442 += new Card();
+            _1442.Start();
+            ReadWholeCard(0x200);                                                 // level 4 completion left unreset
+            IssueControl(_1442, 0, Device1442.StartReadBit);                      // next card requests level 0
+            Assert.Equal(2, InsCpu.ActiveInterruptCount);
+            Assert.Equal(Device1442.ResponseInterruptLevel, _1442.ActiveInterrupt.InterruptLevel);
+            SenseDevice(_1442, Device1442.ResetLevel0Bit);                        // level 0 reset leaves level 4 pending
+            Assert.Equal(1, InsCpu.ActiveInterruptCount);
+            Assert.Equal(Device1442.CompleteInterruptLevel, _1442.ActiveInterrupt.InterruptLevel);
+            SenseDevice(_1442, Device1442.ResetLevel4Bit);
+            Assert.Equal(0, InsCpu.ActiveInterruptCount);
+            Assert.Null(_1442.ActiveInterrupt);
+        }
+
+        [Fact]
         public void SenseWithLevel4Reset_ClearsOperationComplete()
         {
             BeforeEachTest();
