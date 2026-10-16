@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Text;
+using S1130.SystemObjects.Utility;
 
 namespace S1130.SystemObjects.Devices;
 
@@ -56,6 +58,19 @@ public class DeviceConsoleKeyboard : DeviceBase
 
 	/// <summary>Characters (bits 0-7 of each print word) that have been printed.</summary>
 	public ConcurrentQueue<ushort> PrinterBuffer = new ConcurrentQueue<ushort>();
+
+	private readonly StringBuilder _printedText = new StringBuilder();
+
+	/// <summary>Everything printed so far, decoded from the printer's tilt/rotate codes.</summary>
+	public string PrintedText
+	{
+		get { lock (_printedText) { return _printedText.ToString(); } }
+	}
+
+	public void ClearPrintedText()
+	{
+		lock (_printedText) { _printedText.Clear(); }
+	}
 
 	/// <summary>Position of the two-position CONSOLE/KEYBOARD switch (true = CONSOLE).</summary>
 	public bool ConsoleSwitchInConsolePosition { get; set; }
@@ -144,6 +159,7 @@ public class DeviceConsoleKeyboard : DeviceBase
 		if (_printerBusy)
 		{
 			PrinterBuffer.Enqueue(_printing);
+			lock (_printedText) { _printedText.Append(ConsolePrinterCodes.Decode(_printing)); }
 			_printerBusy = false;
 			_printerResponse = true;
 			ActivateInterrupt(CpuInstance, InterruptLevel, Ilsw);

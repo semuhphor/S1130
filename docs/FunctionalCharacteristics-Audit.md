@@ -152,7 +152,7 @@ All other opcodes match Figure 15: LD 18, LDD 19, STO 1A, STD 1B, LDX 0C, STX 0D
 
 | # | Sev | Finding |
 |---|---|---|
-| 4.4.1 | MED | `DeviceConsoleKeyboard` is a stub: Sense Device always returns 0 (ready), Read sets `Acc = 0` instead of storing a character at `IoccAddress`, Write and Control are empty. The DSW bit comments in the header (Printer Response bit 0, Keyboard Response bit 1, Int Req bit 2, Console/Keyboard switch bit 3, Printer Busy bit 4, Printer Not Ready bit 5, Keyboard Busy bit 6) **do** match the manual. `Device1053` is entirely commented out. Not registered by default (`BuildDefaultDevices` adds only the entry switches). |
+| 4.4.1 | FIXED | `DeviceConsoleKeyboard` implements the console printer and keyboard (device 00001, level 4), is registered by default, and decodes printed tilt/rotate codes to `PrintedText` via `ConsolePrinterCodes`. The obsolete `Device1053` stub was removed. Printer timing (15.5 char/s) is not modelled. |
 
 **Verified correct:** `ConsoleEntrySwitches` — device code `00111`, Read stores the switch word at `IoccAddress`.
 

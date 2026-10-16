@@ -569,6 +569,7 @@ namespace S1130.SystemObjects
 		{
 			Devices = new IDevice[32];                                          // init the device array
 			AddDevice(new ConsoleEntrySwitches(this));                          // .. add console entry switches
+			AddDevice(new DeviceConsoleKeyboard(this));                         // .. add console printer and keyboard
 		}
 
 		public void SetDebug(int location, IDebugSetting debugSetting)      // set a particulare memory location to debug mode
