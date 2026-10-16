@@ -17,6 +17,7 @@ namespace S1130.SystemObjects
 		private readonly ConcurrentQueue<Interrupt>[] _interruptQueues;         // queues for active interrupts
 		private readonly ConcurrentStack<Interrupt> _currentInterrupts;         // stack of interrupts being serviced
 		private int _activeInterruptCount;                                      // number of interrupts active
+		private readonly object _interruptLock = new object();                  // guards interrupt queue changes
 		private ulong _count;                                                   // number of instructions executed;
 
 		/// <summary>
@@ -221,8 +222,36 @@ namespace S1130.SystemObjects
 			var interruptLevel = interrupt.InterruptLevel;                      // Get the interrupt level
 			if (interruptLevel >= 0 && interruptLevel <= 5)                     // q. CurrentInterruptLevel level in range?
 			{                                                                   // a. yes .. 
-				_interruptQueues[interruptLevel].Enqueue(interrupt);            // .. queue the interrupt
-				Interlocked.Increment(ref _activeInterruptCount);               // .. add number active
+				lock (_interruptLock)
+				{
+					interrupt.Pending = true;                                   // .. now contributes to the ILSW
+					_interruptQueues[interruptLevel].Enqueue(interrupt);        // .. queue the interrupt
+					Interlocked.Increment(ref _activeInterruptCount);           // .. add number active
+				}
+			}
+		}
+
+		/// <summary>
+		/// Withdraws a device's interrupt request (Sense Device reset) so its bit leaves the ILSW at once.
+		/// An interrupt currently being serviced stays on the service stack until BOSC resets the level.
+		/// </summary>
+		public void RemoveInterrupt(Interrupt interrupt)
+		{
+			lock (_interruptLock)
+			{
+				if (!interrupt.Pending)                                         // q. still queued?
+				{                                                               // a. no .. nothing to do
+					return;
+				}
+				var level = interrupt.InterruptLevel;
+				var remaining = _interruptQueues[level].Where(i => !ReferenceEquals(i, interrupt));
+				_interruptQueues[level] = new ConcurrentQueue<Interrupt>(remaining);
+				interrupt.Pending = false;
+				Interlocked.Decrement(ref _activeInterruptCount);
+				if (!_currentInterrupts.Any(i => ReferenceEquals(i, interrupt)))// q. being serviced?
+				{                                                               // a. no .. recycle now (otherwise BOSC does it)
+					IntPool.PutInterruptInBag(interrupt);
+				}
 			}
 		}
 
@@ -298,12 +327,14 @@ namespace S1130.SystemObjects
 			Interrupt intr;                                                     // interrupting interrupt
 			if (CurrentInterrupt.TryPop(out intr))                              // q. active interrupt available?
 			{                                                                   // a. yes ...
-				if (intr.CausingDevice.ActiveInterrupt != intr)                 // q. is this interrupt still on device?
-				{                                                               // a. no ..
-					_interruptQueues[intr.InterruptLevel].TryDequeue(out intr); // .. remove from interrupt queue
+				if (!intr.Pending)                                              // q. device already withdrew the request?
+				{                                                               // a. yes ..
 					IntPool.PutInterruptInBag(intr);                            // .. return to the pool
-					Interlocked.Decrement(ref _activeInterruptCount);           // .. and decrement number of active interrupts
 				}
+				else if (intr.CausingDevice.ActiveInterrupt != intr)            // q. device dropped it without telling the cpu?
+				{                                                               // a. yes ..
+					RemoveInterrupt(intr);                                      // .. withdraw it and return to the pool
+				}                                                               // otherwise the request stays pending and re-interrupts
 			}
 		}
 

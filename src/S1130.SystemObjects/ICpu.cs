@@ -43,6 +43,7 @@ namespace S1130.SystemObjects
 
 		int? CurrentInterruptLevel { get; }
 		void AddInterrupt(Interrupt interrupt);
+		void RemoveInterrupt(Interrupt interrupt);
 		void HandleInterrupt();
 		void ClearCurrentInterrupt();
 		ushort SenseInterruptLevelStatusWord();

@@ -27,7 +27,12 @@ namespace S1130.SystemObjects
 
 		protected void DeactivateInterrupt(ICpu cpu)
 		{
+			var interrupt = ActiveInterrupt;
 			ActiveInterrupt = null;
+			if (interrupt != null)
+			{
+				cpu.RemoveInterrupt(interrupt);									// request gone: its bit leaves the ILSW immediately
+			}
 		}
 	}
 }

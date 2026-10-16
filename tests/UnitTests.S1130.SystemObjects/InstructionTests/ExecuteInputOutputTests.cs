@@ -45,6 +45,30 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[Fact]
+		public void Execute_XIO_SenseInterrupt_ResetDeviceBitLeavesIlsw()
+		{
+			BeforeEachTest();
+			var dev = new SenseDummyDevice(InsCpu, 0x1f, 0x2000);
+			var dev2 = new SenseDummyDevice(InsCpu, 0x1e, 0x1000);
+			InsCpu.AddDevice(dev);
+			InsCpu.AddDevice(dev2);
+			InsCpu[Constants.InterruptVectors[4]] = 0x500;
+			dev.Raise(4);
+			dev2.Raise(4);
+			InsCpu.HandleInterrupt();                                         // enter the level-4 handler
+			dev.Reset();                                                      // Sense Device reset clears the first device's request
+			Assert.Equal(0x1000, InsCpu.SenseInterruptLevelStatusWord());     // .. its bit is gone, the other remains
+			Assert.Equal(1, InsCpu.ActiveInterruptCount);
+			dev2.Reset();
+			Assert.Equal(0, InsCpu.SenseInterruptLevelStatusWord());          // .. no pending bits while still in the handler
+			Assert.Equal(0, InsCpu.ActiveInterruptCount);
+			Assert.False(InsCpu.CurrentInterrupt.IsEmpty);                    // .. level stays in service until BOSC
+			InsCpu.ClearCurrentInterrupt();                                   // BOSC resets the level only
+			Assert.True(InsCpu.CurrentInterrupt.IsEmpty);
+			Assert.Equal(2, InsCpu.IntPool.Count);                            // .. each interrupt pooled exactly once
+		}
+
+		[Fact]
 		public void Execute_XIO_SenseInterrupt_NoInterrupt_ReturnsZero()
 		{
 			BeforeEachTest();
@@ -64,6 +88,7 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			public override byte DeviceCode => _code;
 			public override void ExecuteIocc() { }
 			public void Raise(int level) => ActivateInterrupt(CpuInstance, level, _ilsw);
+			public void Reset() => DeactivateInterrupt(CpuInstance);
 		}
 
 		protected override void BuildAnInstruction()
