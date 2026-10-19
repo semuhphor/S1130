@@ -291,9 +291,25 @@ namespace S1130.SystemObjects
 						var addressOfInterruptHandler = this[intVector];        // .. get the address of the handler
 						this[addressOfInterruptHandler] = Iar;                  // .. save the current IAR return address
 						Iar = (ushort)(addressOfInterruptHandler + 1);          // .. and go to the interrupt handler
+						Wait = false;                                           // .. an interrupt ends a wait state
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// Advances the processor by one step: executes an instruction, or, if the processor is in a wait
+		/// state, only checks for an interrupt (which ends the wait). Returns true if an instruction ran.
+		/// </summary>
+		public bool Step()
+		{
+			if (Wait)
+			{
+				HandleInterrupt();
+				return false;
+			}
+			ExecuteInstruction();
+			return true;
 		}
 
 		/// <summary>

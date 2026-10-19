@@ -22,9 +22,11 @@ See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and mil
 - The `Cpu` registers the built-in 2310 as device 4 (`Cpu.BuiltInDisk`). Tested with a real `DiskImageCartridge`: seek, read, write, and save on unmount (`BuiltInDiskTests`).
 - 2310 now follows the reference for status and errors: next-sector count, busy/empty/hard-error read as not ready, carriage home hidden when busy, data-error bit (bad word count > 321, cleared by sense reset), write to a read-only cartridge is a permanent hard error (no interrupt, cleared by remount), zero word count locks the controller, short counts transfer only that many words, 8-bit seek step, and a `SectorAddressMismatch` flag. `ICartridge` gained `ReadOnly`.
 - Console keyboard and printer (`DeviceConsoleKeyboard`, device 1): registered in `BuildDefaultDevices`; printed characters decode to text (`ConsolePrinterCodes`, `PrintedText`). Timing (15.5 chars/s) is not modelled.
+- `ProgramLoad` (IPL): expands a card's 80 columns into core words 0-79 (same conversion as the C simulator) and starts at 0 (`FromCard`, `FromReader` for the 1442 then 2501 hopper); `ColdStart` loads the built-in DMS/APL cold-start card and sets the console entry switches to the boot drive. `Cpu.Step()` runs one instruction, or in a wait state only checks for an interrupt; taking an interrupt now ends the wait. A test boots the real `dms.dsk` cold start through the resident monitor load.
+- DMS disk findings (`ForReferenceOnly\1130SW\dms.dsk`): built with 1442 reader + 1132 printer (1134 requested), core size 16K baked into the resident monitor (`$CORE` at core word /0E); it must be rebuilt (`loaddms` run on a 32K machine) for DMS to use 32K. The disk boots fine on our 32K CPU.
 
 **Tests and docs**
-- 544 SystemObjects + 23 WebApi = 567 tests pass with `dotnet test .\S1130.sln --nologo -v q`.
+- 561 SystemObjects + 23 WebApi = 584 tests pass with `dotnet test .\S1130.sln --nologo -v q`.
 - Functional-characteristics audit in `docs\FunctionalCharacteristics-Audit.md` (items 3.1/3.2 detail is stale).
 - Computer-room plan written and committed.
 
@@ -37,7 +39,7 @@ Milestones from the plan:
 - **M1 Emulator foundations:**
   - ~~Device scheduling~~ done: `DeviceRunner` (see above) calls `Run()` on a background thread.
   - 2310 remaining: seek/rotate timing is still crude (a fixed `LetInstuctionsExecute(10)` before the transfer, which already lets the next instruction run first, as the APL boot card needs); no real seek or rotation delays.
-  - Console switches (device 7) and level 5 / program stop; IPL from the 1442 (cold-start boot); 1132 printer; raw-column 1442 interface with column timing and punch output queue; observable CPU state for the UI.
+  - ~~Console switches (device 7) and IPL~~ done. Still to do: level 5 / program stop and device 7 sense; register the 1442 in `BuildDefaultDevices`; 1132 printer; raw-column 1442 interface with column timing and punch output queue; observable CPU state for the UI.
 - **M2 DMS bring-up:** trace against the reference simulator; confirm the DMS image's device configuration (`ForReferenceOnly\dmsr2v12`).
 - **M3 Web back end:** per-user machine host, SignalR, library API, quota, deck format detection, PDF generation, Identity (TOTP, passkeys), admin invites.
 - **M4 Computer-room UI:** clickable SVG room and zoom views.
@@ -51,5 +53,5 @@ Other open items:
 
 ## Next steps
 
-1. Console switches (device 7), IPL from the 1442 and the 1132 printer.
-2. Boot DMS in a console test.
+1. Register the 1442 by default and add the 1132 printer.
+2. Run the DMS boot further (monitor prompt / a DUP job) as a console test.
