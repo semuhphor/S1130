@@ -18,11 +18,12 @@ See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and mil
 - 1442 card read/punch (character mode). Level 0 (response) and level 4 (operation complete) interrupts are held separately, which fixed a single-slot bug.
 - 2310 disk drive (`Device2310`): drive 0 is the built-in drive (device 4, ILSW `0x8000`); drives 1-4 use devices 0x11-0x14. Audited against `ibm1130_disk.c` (see "To do" for the gaps).
 - `DiskImageCartridge`: in-memory 2315 cartridge whose image file is byte-compatible with the C simulator (203 cyl x 8 sectors x 321 little-endian words = 1,042,608 bytes, no header). Loads/saves files (atomic save, only when changed), creates blank packs (formatted or not), supports read-only. Verified against the real `dms.dsk`.
-- The `Cpu` now registers the built-in 2310 as device 4 (`Cpu.BuiltInDisk`). Tested with a real `DiskImageCartridge`: seek, read, write, and save on unmount (`BuiltInDiskTests`).
+- `DeviceRunner`: background thread that calls `Run()` on every device so started operations complete while programs run; a failing device is recorded in `LastError` and does not stop the others. `EmulatorService` starts one per CPU (and replaces it on Reset). Device state flags touched by both threads are `volatile`.
+- The `Cpu` registers the built-in 2310 as device 4 (`Cpu.BuiltInDisk`). Tested with a real `DiskImageCartridge`: seek, read, write, and save on unmount (`BuiltInDiskTests`). with a real `DiskImageCartridge`: seek, read, write, and save on unmount (`BuiltInDiskTests`).
 - Console keyboard and printer (`DeviceConsoleKeyboard`, device 1): registered in `BuildDefaultDevices`; printed characters decode to text (`ConsolePrinterCodes`, `PrintedText`). Timing (15.5 chars/s) is not modelled.
 
 **Tests and docs**
-- 549 tests pass (526 SystemObjects, 23 WebApi) with `dotnet test .\S1130.sln --nologo -v q`.
+- 555 tests pass (532 SystemObjects, 23 WebApi) with `dotnet test .\S1130.sln --nologo -v q`.
 - Functional-characteristics audit in `docs\FunctionalCharacteristics-Audit.md` (items 3.1/3.2 detail is stale).
 - Computer-room plan written and committed.
 

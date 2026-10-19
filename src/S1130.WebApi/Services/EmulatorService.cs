@@ -11,6 +11,7 @@ namespace S1130.WebApi.Services;
 public class EmulatorService
 {
     private ICpu _cpu;
+    private DeviceRunner _deviceRunner;
     private S1130.SystemObjects.Assembler.Assembler _assembler;
     private readonly object _lock = new();
     private CancellationTokenSource? _executionCts;
@@ -20,7 +21,16 @@ public class EmulatorService
     public EmulatorService()
     {
         _cpu = new Cpu();
+        _deviceRunner = StartDeviceRunner(_cpu);
         _assembler = new S1130.SystemObjects.Assembler.Assembler();
+    }
+
+    // Lets started device operations (disk, card reader, printer) finish while programs run.
+    private static DeviceRunner StartDeviceRunner(ICpu cpu)
+    {
+        var runner = new DeviceRunner(cpu);
+        runner.Start();
+        return runner;
     }
 
     /// <summary>
@@ -56,7 +66,9 @@ public class EmulatorService
         lock (_lock)
         {
             StopExecution();
+            _deviceRunner.Stop();
             _cpu = new Cpu();
+            _deviceRunner = StartDeviceRunner(_cpu);
             _assembler = new S1130.SystemObjects.Assembler.Assembler();
         }
     }

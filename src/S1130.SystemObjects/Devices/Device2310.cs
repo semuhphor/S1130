@@ -41,11 +41,11 @@ namespace S1130.SystemObjects.Devices
 
 		// device status 
 		private bool _cartMounted;											// true if cart is mouned
-		private bool _busy;													// true if operation active
-		private bool _seeking;												// true if seeing in progress
-		private bool _reading;												// true if read in progress
-		private bool _writing;												// true if write in progress
-		private bool _complete;												// true if operation finished
+		private volatile bool _busy;										// true if operation active (volatile: set by the CPU thread, read by the device runner)
+		private volatile bool _seeking;										// true if seeing in progress
+		private volatile bool _reading;										// true if read in progress
+		private volatile bool _writing;										// true if write in progress
+		private volatile bool _complete;									// true if operation finished
 		private bool _readCheck;											// true if read check requested
 		private ushort _ilsw = 0x8000;										// ILSW (defaulted for drive 0)
 		private CylinderTracker _cylinder = new CylinderTracker();			// current cylinder address

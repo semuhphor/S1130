@@ -78,7 +78,7 @@ public class DeviceConsoleKeyboard : DeviceBase
 	/// <summary>False when the printer is out of forms.</summary>
 	public bool PrinterHasForms { get; set; } = true;
 
-	private bool _printerBusy;
+	private volatile bool _printerBusy;
 	private ushort _printing;
 	private bool _printerResponse;
 	private bool _keyboardSelected;

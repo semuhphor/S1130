@@ -38,9 +38,9 @@ namespace S1130.SystemObjects.Devices
 		public readonly ConcurrentQueue<ICard> Hopper = new ConcurrentQueue<ICard>();
 
 		private int _address;
-		private bool _readInProgess;
-		private bool _complete;
-		private bool _lastCard;
+		private volatile bool _readInProgess;
+		private volatile bool _complete;
+		private volatile bool _lastCard;
 
 		public Device2501(ICpu cpu)
 		{
