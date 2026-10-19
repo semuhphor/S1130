@@ -23,7 +23,7 @@ See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and mil
 - Console keyboard and printer (`DeviceConsoleKeyboard`, device 1): registered in `BuildDefaultDevices`; printed characters decode to text (`ConsolePrinterCodes`, `PrintedText`). Timing (15.5 chars/s) is not modelled.
 
 **Tests and docs**
-- 555 tests pass (532 SystemObjects, 23 WebApi) with `dotnet test .\S1130.sln --nologo -v q`.
+- 558 tests pass (535 SystemObjects, 23 WebApi) with `dotnet test .\S1130.sln --nologo -v q`.
 - Functional-characteristics audit in `docs\FunctionalCharacteristics-Audit.md` (items 3.1/3.2 detail is stale).
 - Computer-room plan written and committed.
 
@@ -35,7 +35,7 @@ See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and mil
 Milestones from the plan:
 - **M1 Emulator foundations:**
   - **Device scheduling (found while registering the 2310):** nothing in the product calls `IDevice.Run()`; only unit tests do. `EmulatorService` just loops `ExecuteInstruction()`, so a disk/reader operation started by a running program never completes. Needs a device runner (separate thread, since `LetInstuctionsExecute` waits on the CPU's instruction count) or a rework of device timing. This blocks IPL.
-  - 2310 gaps from the audit (in order): sense word (next-sector count in bits 15-16, data-error bit, not-ready while busy); error states (write-protect via `DiskImageCartridge.WriteRejected`, bad/zero word count, hard error); seek step width 8 bits not 9; seek/rotate timing (reference defers the read until after the next instruction); sector-address check.
+  - 2310 gaps from the audit (in order): data-error sense bit (set by the error states below); error states (write-protect via `DiskImageCartridge.WriteRejected`, bad/zero word count, hard error); seek step width 8 bits not 9; seek/rotate timing (reference defers the read until after the next instruction); sector-address check. Done: next-sector count (bits 14-15, advances each sense) and not-ready while busy/empty, with carriage home hidden when busy.
   - Console switches (device 7) and level 5 / program stop; IPL from the 1442 (cold-start boot); 1132 printer; raw-column 1442 interface with column timing and punch output queue; observable CPU state for the UI.
 - **M2 DMS bring-up:** trace against the reference simulator; confirm the DMS image's device configuration (`ForReferenceOnly\dmsr2v12`).
 - **M3 Web back end:** per-user machine host, SignalR, library API, quota, deck format detection, PDF generation, Identity (TOTP, passkeys), admin invites.
@@ -51,6 +51,6 @@ Other open items:
 ## Next steps
 
 1. Add a device runner so started operations complete while the CPU runs, with tests.
-2. Fix the 2310 sense word and error states, with tests.
+2. Add the 2310 error states (and the data-error sense bit), with tests.
 3. Then console switches (device 7), IPL and the 1132 printer.
 4. Boot DMS in a console test.

@@ -51,6 +51,7 @@ namespace S1130.SystemObjects.Devices
 		private CylinderTracker _cylinder = new CylinderTracker();			// current cylinder address
 		private ICartridge _cartridge;										// cartridge 
 		private int _seekOffset;											// number of cyliders to seek (+/-)
+		private int _nextSector;											// "next sector spinning into position" (sense bits 14-15), 0-3
 		private int _sector;												// sector to read
 		private int _wcAddress;												// word-count address latched from the IOCC
 
@@ -111,18 +112,19 @@ namespace S1130.SystemObjects.Devices
 			{
 				if (_busy)
 				{
-					newAcc = Busy;
+					newAcc = Busy | NotReady;								// busy also reads as not ready
 				}
-				if (_cylinder.Current == 0)
+				else if (_cylinder.Current == 0)
 				{
-					newAcc |= AtCylZero;
+					newAcc |= AtCylZero;									// carriage home is reported only when ready
 				}
 				if (_complete)
 				{
 					newAcc |= OperationComplete;
 				}
 			}
-			CpuInstance.Acc = newAcc;
+			_nextSector = (_nextSector + 1) & NextSectorMask;				// spinning disk: count advances on every sense
+			CpuInstance.Acc = (ushort)(newAcc | _nextSector);
 
 			if ((CpuInstance.IoccModifiers & 1) == 1)					// modifier bit 15: reset operation complete (and data error)
 			{

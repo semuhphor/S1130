@@ -37,15 +37,45 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		}
 
 		[Fact]
+		public void Sense_NextSectorCountAdvancesAndWrapsAtFour()       // spinning disk: bits 14-15 count 1,2,3,0,1...
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();                                       // (this already sensed once: count is 1)
+			var counts = new int[5];
+			for (var i = 0; i < counts.Length; i++)
+			{
+				SenseDevice(_2310);                                         // sense (no reset)
+				counts[i] = InsCpu.Acc & Device2310.NextSectorMask;         // keep only the sector count
+			}
+			Assert.Equal(new[] { 2, 3, 0, 1, 2 }, counts);
+		}
+
+		[Fact]
+		public void Sense_BusyAlsoReadsNotReadyAndHidesCarriageHome()   // busy => not ready, no carriage home
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();
+			IssueControl(_2310, 1, Device2310.SeekForward);                 // start a seek (stays busy until Run)
+			Assert.Equal(Device2310.Busy | Device2310.NotReady, Sense(_2310));
+		}
+
+		[Fact]
+		public void Sense_NoCartridgeIsNotReady()                       // empty drive is not ready
+		{
+			BeforeEachTest();
+			Assert.Equal(Device2310.NotReady, Sense(_2310));
+		}
+
+		[Fact]
 		public void Seek_TestNewCylIlswAndIntLevel()                    // test that seek move head and interrupts
 		{
 			BeforeEachTest();
 			StartDriveAndTestReady();                                       // prepare drive to accept command
 			var acc = Sense(_2310);                                         // check the status
-			Assert.Equal(Device2310.AtCylZero, InsCpu.Acc);                 // ensure at cyl 0
+			Assert.Equal(Device2310.AtCylZero, acc);                        // ensure at cyl 0
 			IssueControl(_2310, 1, Device2310.SeekForward);                 // move in one cylinder
 			acc = Sense(_2310);                                             // check the status
-			Assert.Equal(Device2310.Busy | Device2310.AtCylZero, acc);      // .. we should be busy and still at cyl zero
+			Assert.Equal(Device2310.Busy | Device2310.NotReady, acc);       // .. busy reads as not ready, and carriage home is not reported
 			_2310.Run();                                                    // .. now run the seek
 			Assert.Equal(1, _cartridge.CurrentCylinder);                    // assert the move occurred
 			var activeInterrupt = _2310.ActiveInterrupt;                    // get the active interrupt
@@ -195,10 +225,9 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			byte dir = (byte)(offset < 0 ? Device2310.SeekBackward : 0);    // set direction
 			offset = Math.Abs(offset);                                      // ensure offset positive
 			IssueControl(_2310, offset, dir);                               // seek to new cylinder
-			var status = GetCurrentStatus(cart) | Device2310.Busy;          // busy .. maybe home
-			Assert.Equal(status, Sense(_2310));                             // .. ensure it is busy
+			Assert.Equal(Device2310.Busy | Device2310.NotReady, Sense(_2310)); // .. ensure it is busy (and so not ready)
 			_2310.Run();                                                    // .. do the seek
-			status = GetCurrentStatus(cart) | Device2310.OperationComplete; // op copmlete ... maybe home
+			var status = GetCurrentStatus(cart) | Device2310.OperationComplete; // op complete ... maybe home
 			Assert.Equal(status, Sense(_2310, 1));                          // Reset the interrupt and ensure complete
 		}
 
