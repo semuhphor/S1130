@@ -48,5 +48,8 @@ namespace S1130.SystemObjects.Devices
 		void Write(int sectorNumber, ArraySegment<ushort> sector, int wc);
 
 		int CurrentCylinder { get; set; }
+
+		/// <summary>True if the cartridge is write protected. The drive treats a write to it as a hard error.</summary>
+		bool ReadOnly { get; }
 	}
 }

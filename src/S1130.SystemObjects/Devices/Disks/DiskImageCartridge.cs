@@ -88,7 +88,7 @@ namespace S1130.SystemObjects.Devices.Disks
 		}
 
 		/// <summary>True if writes are rejected (write-protected cartridge).</summary>
-		public bool ReadOnly { get; }
+		public override bool ReadOnly { get; }
 
 		/// <summary>True if a write was attempted on a read-only cartridge since it was mounted.</summary>
 		public bool WriteRejected { get; private set; }

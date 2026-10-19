@@ -26,6 +26,7 @@ namespace S1130.SystemObjects.Devices
 	/// </summary>
 	public class Device2310 : DeviceBase
 	{
+		public const ushort DataError = 0x8000;
 		public const ushort OperationComplete = 0x4000;
 		public const ushort NotReady = 0x2000;
 		public const ushort Busy = 0x1000;
@@ -52,6 +53,10 @@ namespace S1130.SystemObjects.Devices
 		private ICartridge _cartridge;										// cartridge 
 		private int _seekOffset;											// number of cyliders to seek (+/-)
 		private int _nextSector;											// "next sector spinning into position" (sense bits 14-15), 0-3
+		private int _wordCount;												// words to transfer, latched at initiate (1-321)
+		private volatile bool _dataError;									// data error status (cleared by sense with reset bit)
+		private bool _badCountPending;										// bad word count seen: data error is raised when the op completes
+		private volatile bool _hardError;									// permanent error (write to protected cartridge); cleared only by remounting
 		private int _sector;												// sector to read
 		private int _wcAddress;												// word-count address latched from the IOCC
 
@@ -99,6 +104,12 @@ namespace S1130.SystemObjects.Devices
 		}
 
 		/// <summary>
+		/// True if the last write put a first word (the sector address) that does not match the
+		/// cylinder/sector written. The real drive just stores it; the C simulator prints a warning.
+		/// </summary>
+		public bool SectorAddressMismatch { get; private set; }
+
+		/// <summary>
 		/// Handles the Sense Device IOCC function, returning device status to the accumulator.
 		/// </summary>
 		private void HandleSenseDevice()
@@ -114,6 +125,10 @@ namespace S1130.SystemObjects.Devices
 				{
 					newAcc = Busy | NotReady;								// busy also reads as not ready
 				}
+				else if (_hardError)
+				{
+					newAcc = NotReady;										// permanent error: drive stays not ready
+				}
 				else if (_cylinder.Current == 0)
 				{
 					newAcc |= AtCylZero;									// carriage home is reported only when ready
@@ -122,13 +137,18 @@ namespace S1130.SystemObjects.Devices
 				{
 					newAcc |= OperationComplete;
 				}
+				if (_dataError || _hardError)
+				{
+					newAcc |= DataError;
+				}
 			}
 			_nextSector = (_nextSector + 1) & NextSectorMask;				// spinning disk: count advances on every sense
 			CpuInstance.Acc = (ushort)(newAcc | _nextSector);
 
-			if ((CpuInstance.IoccModifiers & 1) == 1)					// modifier bit 15: reset operation complete (and data error)
+			if ((CpuInstance.IoccModifiers & 1) == 1)					// modifier bit 15: reset operation complete and data error
 			{
 				_complete = false;
+				_dataError = false;											// (a hard error survives; only a remount clears it)
 				DeactivateInterrupt(CpuInstance);
 			}
 		}
@@ -141,7 +161,7 @@ namespace S1130.SystemObjects.Devices
 			if (!_cartMounted || _busy)
 				return;
 
-			_seekOffset = CpuInstance.IoccAddress & 0x1ff;
+			_seekOffset = CpuInstance.IoccAddress & 0xff;					// step count is 8 bits (as in the C simulator)
 			if (_seekOffset == 0)
 				return;
 
@@ -158,13 +178,15 @@ namespace S1130.SystemObjects.Devices
 		/// </summary>
 		private void HandleInitRead()
 		{
-			if (!_cartMounted || _busy)
+			if (!_cartMounted || _busy || _hardError)
 				return;
 
 			_readCheck = (CpuInstance.IoccModifiers & ReadCheck) != 0;
 			_sector = CpuInstance.IoccModifiers & SectorMask;
 			_wcAddress = CpuInstance.IoccAddress;
 			_complete = false;
+			if (!LatchWordCount())											// q. zero count?
+				return;														// a. yes .. the controller hangs, busy forever
 			_busy = true;
 			_seeking = false;
 			_reading = true;
@@ -175,15 +197,42 @@ namespace S1130.SystemObjects.Devices
 		/// </summary>
 		private void HandleInitWrite()
 		{
-			if (!_cartMounted || _busy)
+			if (!_cartMounted || _busy || _hardError)
 				return;
+
+			if (_cartridge.ReadOnly)										// q. write protected?
+			{																// a. yes .. permanent error, no interrupt
+				_hardError = true;
+				return;
+			}
 
 			_sector = CpuInstance.IoccModifiers & SectorMask;
 			_wcAddress = CpuInstance.IoccAddress;
 			_complete = false;
+			if (!LatchWordCount())											// q. zero count?
+				return;														// a. yes .. the controller hangs, busy forever
 			_busy = true;
 			_seeking = false;
 			_writing = true;
+		}
+
+		/// <summary>
+		/// Reads the word count from the first word of the IOCC area. A count above 321 is limited to 321 and
+		/// raises a data error when the operation completes. A zero count locks up the controller (it stays
+		/// busy and never interrupts), as on the real machine.
+		/// </summary>
+		/// <returns>false if the controller locked up (count of zero)</returns>
+		private bool LatchWordCount()
+		{
+			int wc = CpuInstance[_wcAddress];
+			_badCountPending = wc > 321;
+			if (wc == 0)
+			{
+				_busy = true;
+				return false;
+			}
+			_wordCount = _badCountPending ? 321 : wc;
+			return true;
 		}
 
 		public override void Run()											// do the operation
@@ -204,26 +253,35 @@ namespace S1130.SystemObjects.Devices
 				var buffer = _cartridge.Read(_sector);							// .. read the sector to buffer in cart
 				if (!_readCheck)												// q. a real read (not read-check)?
 				{																// a. yes ..
-					CpuInstance.TransferToMemory(_wcAddress, buffer, 321);		// .. transfer to memory at the latched WCA
+					CpuInstance.TransferToMemory(_wcAddress, buffer, _wordCount);	// .. transfer the requested words at the latched WCA
 				}																// (read-check only verifies; no transfer)
-				_complete = true;												// done tranferring
+				FinishTransfer();												// done tranferring
 				_reading = false;												// .. no longer reading
-				_busy = false;													// .. not busy any more
-				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. tell the cpu we are done.
 			}
 			else if (_writing)													// q. writing?
 			{																	// a. yes ..
 				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
-				var wc = CpuInstance[_wcAddress];								// .. number of words to write
-				wc = (ushort) ((wc > 321) ? 321 : wc);							// .. ensure max words are 321
+				var wc = _wordCount;											// .. number of words to write (1-321)
 				var data = new ArraySegment<ushort>(CpuInstance.Memory, _wcAddress + 1, wc);
-				_cartridge.Write(_sector, data, wc);							// .. write the sector from the latched WCA
-				_complete = true;												// done tranferring
+				SectorAddressMismatch = CpuInstance.Memory[_wcAddress + 1] != ((_cylinder.Current << 3) | _sector);
+				_cartridge.Write(_sector, data, wc);							// .. write the sector (the cartridge zero-fills the rest)
+				FinishTransfer();												// done tranferring
 				_writing = false;												// .. no longer writing
-				_busy = false;													// .. not busy any more
-				ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);			// .. tell the cpu we are done.
 			}
 			base.Run();
+		}
+
+		// Ends a read or write: flags complete (and a data error for a bad word count), then interrupts.
+		private void FinishTransfer()
+		{
+			if (_badCountPending)
+			{
+				_dataError = true;
+				_badCountPending = false;
+			}
+			_complete = true;
+			_busy = false;
+			ActivateInterrupt(CpuInstance, InterruptLevel, _ilsw);
 		}
 
 		// Mount cartridge in drive. Assumes we turn on drive
@@ -252,6 +310,10 @@ namespace S1130.SystemObjects.Devices
 			_seeking = false;
 			_reading = false;
 			_writing = false;
+			_dataError = false;													// remounting is a power cycle: clear errors
+			_hardError = false;
+			_badCountPending = false;
+			SectorAddressMismatch = false;
 			if (ActiveInterrupt != null)
 			{
 				DeactivateInterrupt(CpuInstance);

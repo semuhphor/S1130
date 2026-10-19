@@ -12,6 +12,7 @@ namespace S1130.SystemObjects.Devices.Disks
     {
         public abstract bool Mounted { get; }
         public abstract int CurrentCylinder { get; set; }
+        public abstract bool ReadOnly { get; }
         public abstract void Flush();
         public abstract void Mount();
         public abstract ushort[] Read(int sectorNumber);

@@ -60,6 +60,105 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		}
 
 		[Fact]
+		public void Seek_StepCountIsEightBits()                         // bit 8 of the address is not part of the count
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();
+			IssueControl(_2310, 0x100, Device2310.SeekForward);             // 256 & 0xff == 0 steps
+			Assert.Equal(Device2310.AtCylZero, Sense(_2310));               // no seek started: still ready, no busy
+		}
+
+		[Fact]
+		public void Write_ToReadOnlyCartridge_IsHardErrorWithNoInterrupt()  // write protect => permanent data error
+		{
+			BeforeEachTest();
+			((FakeCartridge)_cartridge).ReadOnly = true;
+			StartDriveAndTestReady();
+			InitiateDiskWrite(_2310, 0x1000, 321, 0);
+			_2310.Run();
+			Assert.False(((FakeCartridge)_cartridge).WriteCalled);          // nothing written
+			Assert.Null(_2310.ActiveInterrupt);                             // no interrupt
+			Assert.Equal(Device2310.DataError | Device2310.NotReady, Sense(_2310, 1)); // data error + not ready
+			Assert.Equal(Device2310.DataError | Device2310.NotReady, Sense(_2310)); // survives the reset: it is hard
+		}
+
+		[Fact]
+		public void HardError_ClearsWhenCartridgeRemounted()            // power cycle clears a hard error
+		{
+			BeforeEachTest();
+			((FakeCartridge)_cartridge).ReadOnly = true;
+			StartDriveAndTestReady();
+			InitiateDiskWrite(_2310, 0x1000, 321, 0);
+			_2310.UnMount();
+			((FakeCartridge)_cartridge).ReadOnly = false;
+			StartDriveAndTestReady();                                       // checks status is a clean "ready at cyl 0"
+		}
+
+		[Fact]
+		public void Read_WordCountTooBig_TransfersSectorAndRaisesDataError()    // count > 321
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();
+			InitiateRead(_2310, 0x1000, 322, false, 0);
+			_2310.Run();
+			Assert.Equal(1, InsCpu[0x1001 + 1]);                            // data was transferred
+			Assert.NotNull(_2310.ActiveInterrupt);                          // and the op completed
+			Assert.Equal(Device2310.DataError | Device2310.OperationComplete | Device2310.AtCylZero, Sense(_2310, 1));
+			Assert.Equal(Device2310.AtCylZero, Sense(_2310));               // reset cleared both bits
+		}
+
+		[Fact]
+		public void Read_ShortWordCount_TransfersOnlyThatMany()         // count < 321 limits the transfer
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();
+			InitiateRead(_2310, 0x1000, 3, false, 0);
+			InsCpu[0x1004] = 0xabcd;                                        // word just beyond the count
+			_2310.Run();
+			Assert.Equal(1, InsCpu[0x1002]);                                // (word 0 of the sector, its address, lands at wca+1)
+			Assert.Equal(2, InsCpu[0x1003]);
+			Assert.Equal(0xabcd, InsCpu[0x1004]);                           // untouched
+		}
+
+		[Fact]
+		public void Read_ZeroWordCount_LocksUpController()              // zero count: busy forever, no interrupt
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();
+			InsCpu[0x1000] = 0;
+			InsCpu.IoccDeviceCode = _2310.DeviceCode;
+			InsCpu.IoccFunction = DevFunction.InitRead;
+			InsCpu.IoccAddress = 0x1000;
+			InsCpu.IoccModifiers = 0;
+			_2310.ExecuteIocc();
+			_2310.Run();
+			Assert.Null(_2310.ActiveInterrupt);
+			Assert.Equal(Device2310.Busy | Device2310.NotReady, Sense(_2310));
+		}
+
+		[Fact]
+		public void Write_WrongSectorAddressWord_IsFlaggedButStillWritten() // the drive stores whatever it is given
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();
+			InitiateDiskWrite(_2310, 0x1000, 5, 0);
+			InsCpu[0x1001] = 0x55;                                          // not 0 (cyl 0, sector 0)
+			_2310.Run();
+			Assert.True(_2310.SectorAddressMismatch);
+			Assert.True(((FakeCartridge)_cartridge).WriteCalled);
+		}
+
+		[Fact]
+		public void Write_CorrectSectorAddressWord_IsNotFlagged()       // normal write
+		{
+			BeforeEachTest();
+			StartDriveAndTestReady();
+			InitiateDiskWrite(_2310, 0x1000, 5, 0);
+			_2310.Run();
+			Assert.False(_2310.SectorAddressMismatch);
+		}
+
+		[Fact]
 		public void Sense_NoCartridgeIsNotReady()                       // empty drive is not ready
 		{
 			BeforeEachTest();
@@ -322,6 +421,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 			public int SectorNumber { get; set; }                           // sector read
 			public bool FlushCalled { get; set; }                           // indicates flush called
 			public bool Mounted { get; private set; }                       // indicates if mounted
+			public bool ReadOnly { get; set; }                              // write protect (set by tests)
 			public readonly ushort[] Sector = new ushort[321];              // place for a sector
 
 			public ushort[] Read(int sectorNumber)                              // read a sector

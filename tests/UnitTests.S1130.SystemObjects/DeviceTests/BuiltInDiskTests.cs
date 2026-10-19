@@ -74,6 +74,22 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		}
 
 		[Fact]
+		public void Write_ToReadOnlyImage_IsRefusedAndImageUnchanged()
+		{
+			var disk = InsCpu.BuiltInDisk;
+			var image = new DiskImageCartridge(new byte[1042608], null, true);
+			disk.Mount(image);
+
+			InitiateDiskWrite(disk, 0x2000, 321, 0);
+			disk.Run();
+
+			Assert.Null(disk.ActiveInterrupt);									// hard error: no interrupt
+			Assert.False(image.IsDirty);										// nothing stored
+			SenseDevice(disk);
+			Assert.Equal(Device2310.DataError | Device2310.NotReady, InsCpu.Acc & 0xfffc);
+		}
+
+		[Fact]
 		public void UnMount_SavesImage_AndItReloadsWithTheWrittenData()
 		{
 			var path = Path.Combine(_dir, "disk.dsk");
