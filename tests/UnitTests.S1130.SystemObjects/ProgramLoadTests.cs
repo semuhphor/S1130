@@ -60,8 +60,7 @@ namespace UnitTests.S1130.SystemObjects
 		public void FromReader_TakesTheCardFromThe1442()
 		{
 			var cpu = new Cpu();
-			var reader = new Device1442(cpu);
-			cpu.AddDevice(reader);
+			var reader = (Device1442)cpu.Devices[0x02];
 			reader.Hopper.Enqueue(CardWith(0x0400));
 			reader.Hopper.Enqueue(CardWith(0xF800));
 

@@ -26,7 +26,8 @@ See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and mil
 - DMS disk findings (`ForReferenceOnly\1130SW\dms.dsk`): built with 1442 reader + 1132 printer (1134 requested), core size 16K baked into the resident monitor (`$CORE` at core word /0E); it must be rebuilt (`loaddms` run on a 32K machine) for DMS to use 32K. The disk boots fine on our 32K CPU.
 
 **Tests and docs**
-- 561 SystemObjects + 23 WebApi = 584 tests pass with `dotnet test .\S1130.sln --nologo -v q`.
+- `Device1132` printer (device 6, level 1): port of the C `ibm1130_prt.c`. Core-word print buffer (words 32-39), 48-char drum read, emitter/hammer scan with print check, 66-line carriage tape with skip/space, text output via `PrintedText`/`TakePrintedText()`, offline/forms check, timed by instruction count. Registered by default, as is the 1442.
+- 561 SystemObjects + 14 1132 tests + 23 WebApi pass with `dotnet test .\S1130.sln --nologo -v q`.
 - Functional-characteristics audit in `docs\FunctionalCharacteristics-Audit.md` (items 3.1/3.2 detail is stale).
 - Computer-room plan written and committed.
 
@@ -39,7 +40,7 @@ Milestones from the plan:
 - **M1 Emulator foundations:**
   - ~~Device scheduling~~ done: `DeviceRunner` (see above) calls `Run()` on a background thread.
   - 2310 remaining: seek/rotate timing is still crude (a fixed `LetInstuctionsExecute(10)` before the transfer, which already lets the next instruction run first, as the APL boot card needs); no real seek or rotation delays.
-  - ~~Console switches (device 7) and IPL~~ done. Still to do: level 5 / program stop and device 7 sense; register the 1442 in `BuildDefaultDevices`; 1132 printer; raw-column 1442 interface with column timing and punch output queue; observable CPU state for the UI.
+  - ~~Console switches (device 7) and IPL~~ done. Still to do: level 5 / program stop and device 7 sense; register the 1442 in `BuildDefaultDevices` (done); 1132 printer (done); raw-column 1442 interface with column timing and punch output queue; observable CPU state for the UI.
 - **M2 DMS bring-up:** trace against the reference simulator; confirm the DMS image's device configuration (`ForReferenceOnly\dmsr2v12`).
 - **M3 Web back end:** per-user machine host, SignalR, library API, quota, deck format detection, PDF generation, Identity (TOTP, passkeys), admin invites.
 - **M4 Computer-room UI:** clickable SVG room and zoom views.
@@ -53,5 +54,5 @@ Other open items:
 
 ## Next steps
 
-1. Register the 1442 by default and add the 1132 printer.
+1. Run the DMS boot further with the 1442 and 1132 registered and check output appears on the 1132.
 2. Run the DMS boot further (monitor prompt / a DUP job) as a console test.
