@@ -7,7 +7,9 @@ namespace S1130.SystemObjects.Instructions
 
 		public void Execute(ICpu cpu)
 		{
-			cpu[GetEffectiveAddressNoXr(cpu)] = cpu.Xr[cpu.Tag];
+			// With no tag the "index register" is the IAR as the hardware holds it: already past this instruction.
+			var value = cpu.Tag == 0 ? (ushort)(cpu.Iar + cpu.CurrentInstructionLength) : cpu.Xr[cpu.Tag];
+			cpu[GetEffectiveAddressNoXr(cpu)] = value;
 			SetIarToNextInstruction(cpu);
 		}
 	}

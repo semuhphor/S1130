@@ -27,6 +27,11 @@ See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and mil
 
 **Tests and docs**
 - `Device1132` printer (device 6, level 1): port of the C `ibm1130_prt.c`. Core-word print buffer (words 32-39), 48-char drum read, emitter/hammer scan with print check, 66-line carriage tape with skip/space, text output via `PrintedText`/`TakePrintedText()`, offline/forms check, timed by instruction count. Registered by default, as is the 1442.
+- `Device1403` printer (device 0x15, level 4): port of the C 1403 code. Block device: InitWrite prints 60 words (120 columns), Control spaces, Write skips to a carriage-tape channel; transfer/print/carriage-complete interrupts; same text output and timing model as the 1132. Registered by default. Skip-to-channel writes a form feed (new page). 12 tests.
+- New `ForReferenceOnly\1130SW\dms.dsk` is built for 1403 + 1442 + 32K (core word /0E = /8000); the boot test now expects that. **DMS now boots, reads a `// JOB` card from the 1442 and prints the job header, cartridge table and `V2 M12 ACTUAL 32K CONFIG 32K` on the 1403** (test `Dms_With1403_...`).
+- CPU bugs found by tracing DMS against the reference: shift with an index register (count = XR & 0x3F, type from the displacement; SLCA/SLC keep the XR high byte), and STX with no tag stores the address of the next instruction.
+- Stand-alone A-Z 1132 program (`docs\TestAsm\alphabet1132.s1130`) is work in progress: on the reference SIMH it prints only some letters, on ours nothing; its test is skipped.
+- Assembler limitations found: negative LDX immediates, no indirect LDX, BOSC never sets the reset bit.
 - 561 SystemObjects + 14 1132 tests + 23 WebApi pass with `dotnet test .\S1130.sln --nologo -v q`.
 - Functional-characteristics audit in `docs\FunctionalCharacteristics-Audit.md` (items 3.1/3.2 detail is stale).
 - Computer-room plan written and committed.

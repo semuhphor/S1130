@@ -20,9 +20,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_Carry()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0xC0, InsCpu);
 			
-			InsCpu.Xr[1] = 0xc4;
+			InsCpu.Xr[1] = 0x04;
 			ExecAndTest(initialAcc: 0x1000, initialExt: 0x0001, initialCarry: false, expectedAcc: 0x8000, expectedExt: 0x0008, expectedCarry: true);
 			Assert.Equal(1, InsCpu.Xr[1]);
 		}
@@ -31,9 +31,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_CountGoesZero_NoCarry()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0xC0, InsCpu);
 			
-			InsCpu.Xr[1] = 0xdf;
+			InsCpu.Xr[1] = 0x1F;
 			ExecAndTest(initialAcc: 0x0000, initialExt: 0x0001, initialCarry: false, expectedAcc: 0x8000, expectedExt: 0x0000, expectedCarry: false);
 			Assert.Equal(0, InsCpu.Xr[1]);
 		}
@@ -42,9 +42,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_CountGoesZero_CountTooSMall_NoCarry()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0xC0, InsCpu);
 			
-			InsCpu.Xr[1] = 0xde;
+			InsCpu.Xr[1] = 0x1E;
 			ExecAndTest(initialAcc: 0x0000, initialExt: 0x0001, initialCarry: false, expectedAcc: 0x4000, expectedExt: 0x0000, expectedCarry: false);
 			Assert.Equal(0, InsCpu.Xr[1]);
 		}
@@ -53,9 +53,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SLT_NoDecrement_BitAlreadyThere_Carry()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftLeft, 1, 0xC0, InsCpu);
 			
-			InsCpu.Xr[1] = 0xde;
+			InsCpu.Xr[1] = 0x1E;
 			ExecAndTest(initialAcc: 0x8000, initialExt: 0x0001, initialCarry: false, expectedAcc: 0x8000, expectedExt: 0x0001, expectedCarry: true);
 			Assert.Equal(30, InsCpu.Xr[1]);
 		}

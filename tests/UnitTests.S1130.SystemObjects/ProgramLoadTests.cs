@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using S1130.SystemObjects;
 using S1130.SystemObjects.Devices;
 using S1130.SystemObjects.Devices.Disks;
@@ -156,13 +157,53 @@ namespace UnitTests.S1130.SystemObjects
 
 				ProgramLoad.ColdStart(cpu, ColdStartKind.Dms, 0);
 				var deadline = DateTime.UtcNow.AddSeconds(5);
-				while (DateTime.UtcNow < deadline && cpu[0x0E] != 0x4000)
+				while (DateTime.UtcNow < deadline && cpu[0x0E] != 0x8000)
 				{
 					if (!cpu.Step()) System.Threading.Thread.Sleep(1);					// waiting for a device interrupt
 				}
 
-				Assert.True(cpu[0x0E] == 0x4000, $"IAR={cpu.Iar:X4} wait={cpu.Wait} count={cpu.InstructionCount} w0E={cpu[0x0E]:X4}");
+				Assert.True(cpu[0x0E] == 0x8000, $"IAR={cpu.Iar:X4} wait={cpu.Wait} count={cpu.InstructionCount} w0E={cpu[0x0E]:X4}");
 			}
+			finally
+			{
+				File.Delete(scratch);
+			}
+		}
+
+		/// <summary>
+		/// Boots the DMS disk built for the 1403 printer, 1442 and 32K, feeds a // JOB card through
+		/// the 1442 and checks that DMS comes up: it reads the card and the 1403 is used (DMS has
+		/// at least started talking to it by raising its status). Skips if the image is absent.
+		/// </summary>
+		[Fact]
+		public void Dms_With1403_ReadsAJobCardAndIdlesWaitingForMore()
+		{
+			var path = FindReferenceDisk();
+			if (path == null) return;
+
+			var scratch = Path.Combine(Path.GetTempPath(), $"dms-{Guid.NewGuid():N}.dsk");
+			File.Copy(path, scratch);
+			try
+			{
+				var cpu = new Cpu();
+				cpu.BuiltInDisk.Mount(DiskImageCartridge.Load(scratch, readOnly: false));
+				var reader = (Device1442)cpu.Devices[2];
+				var printer = (Device1403)cpu.Devices[0x15];
+				var codes = new ConversionCodes();
+				reader.Hopper.Enqueue(codes.ToCard("// JOB"));
+				using var runner = new DeviceRunner(cpu);
+				runner.Start();
+
+				ProgramLoad.ColdStart(cpu, ColdStartKind.Dms, 0);
+				var deadline = DateTime.UtcNow.AddSeconds(5);
+				while (DateTime.UtcNow < deadline)
+				{
+					if (!cpu.Step()) System.Threading.Thread.Sleep(1);
+				}
+
+				Assert.Equal(0x8000, cpu[0x0E]);										// monitor loaded
+				Assert.Contains("// JOB", printer.PrintedText);
+				Assert.Contains("V2 M12", printer.PrintedText);			}
 			finally
 			{
 				File.Delete(scratch);

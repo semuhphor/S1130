@@ -37,7 +37,7 @@ namespace S1130.SystemObjects.Instructions
 						}
 						cpu.Acc = (ushort)(work & Mask16);
 						cpu.Carry = (shiftInfo.ShiftCount != 0);
-						cpu.Xr[cpu.Tag] = shiftInfo.ShiftCount;
+						cpu.Xr[cpu.Tag] = (ushort)((cpu.Xr[cpu.Tag] & 0xFF00) | shiftInfo.ShiftCount);
 						break;
 					case 2: // SLT
 						work <<= shiftInfo.ShiftCount;
@@ -53,7 +53,7 @@ namespace S1130.SystemObjects.Instructions
 						}
 						cpu.AccExt = (uint)(work & Mask32);
 						cpu.Carry = (shiftInfo.ShiftCount != 0);
-						cpu.Xr[cpu.Tag] = shiftInfo.ShiftCount;
+						cpu.Xr[cpu.Tag] = (ushort)((cpu.Xr[cpu.Tag] & 0xFF00) | shiftInfo.ShiftCount);
 						break;
 				}
 			}

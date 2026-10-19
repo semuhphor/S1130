@@ -19,9 +19,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRT_XR1()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 1, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 1, 0x80, InsCpu);
 			
-			InsCpu.Xr[1] = 0x85;
+			InsCpu.Xr[1] = 0x05;
 			ExecAndTest(initialAccExt: 0x10210000, expectedAccExt: 0x00810800);
 		}
 
@@ -29,9 +29,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRT_XR1_31bits_PropagatesSign()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x80, InsCpu);
 			
-			InsCpu.Xr[2] = 0x9f;
+			InsCpu.Xr[2] = 0x1F;
 			ExecAndTest(initialAccExt: 0x80000000, expectedAccExt: 0xffffffff);
 		}
 
@@ -39,9 +39,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRT_XR1_32bits_FillsWithSign()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x80, InsCpu);
 			
-			InsCpu.Xr[2] = 0xbf;
+			InsCpu.Xr[2] = 0x3F;
 			ExecAndTest(initialAccExt: 0x80000000, expectedAccExt: 0xffffffff);
 		}
 
@@ -67,9 +67,9 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		public void Execute_SRT_XR3_0BitsNOP()
 		{
 			BeforeEachTest();
-			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x00, InsCpu);
+			InstructionBuilder.BuildShortAtIar(OpCodes.ShiftRight, 2, 0x80, InsCpu);
 			
-			InsCpu.Xr[2] = 0x80;
+			InsCpu.Xr[2] = 0x00;
 			ExecAndTest(initialAccExt: 0x43121234, expectedAccExt: 0x43121234);
 			Assert.Equal(0x101, InsCpu.Iar);
 		}

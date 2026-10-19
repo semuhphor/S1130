@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
@@ -593,6 +593,7 @@ namespace S1130.SystemObjects
 			AddDevice(new ConsoleEntrySwitches(this));                          // .. add console entry switches
 			AddDevice(new DeviceConsoleKeyboard(this));                         // .. add console printer and keyboard
 			AddDevice(new Device1132(this));                                    // .. add the 1132 printer (device 6)
+			AddDevice(new Device1403(this));                                    // .. add the 1403 printer (device 0x15)
 			AddDevice(new Device1442(this));                                    // .. add the 1442 card read punch (device 2)
 			BuiltInDisk = new Device2310(this);                                 // .. build the 1131's built-in disk drive
 			AddDevice(BuiltInDisk);                                             // .. and add it (device 4)

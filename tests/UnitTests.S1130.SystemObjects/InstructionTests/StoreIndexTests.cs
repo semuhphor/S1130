@@ -30,6 +30,16 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 		}
 
 		[Fact]
+		public void Execute_STX_Short_NoTag_StoresAddressOfNextInstruction()
+		{
+			BeforeEachTest();
+			InstructionBuilder.BuildShortAtIar(OpCodes.StoreIndex, 0, 0x05, InsCpu);
+			InsCpu.ExecuteInstruction();
+			Assert.Equal(0x101, InsCpu[0x106]);
+			Assert.Equal(0x101, InsCpu.Iar);
+		}
+
+		[Fact]
 		public void Execute_STX_Long_NoTag()
 		{
 			BeforeEachTest();

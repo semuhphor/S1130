@@ -1,0 +1,205 @@
+// IBM 1130 stand-alone program: prints A-Z on the 1132 printer (no DMS needed).
+// File: alphabet1132.s1130
+//
+// How the 1132 works: a drum of 48 characters turns under the hammers. Each time a character
+// is in position the printer raises a level-1 interrupt ("emitter response"). The program must
+// then set the print buffer (core words /20-/27, one bit per column) to the columns that want
+// the character that is NEXT under the hammers. Hammers fire for every bit that is set.
+// Word /27 bit 15 must always be 1 (it tells the printer the buffer was set in time).
+//
+// Here the interrupt handler reads the character under the hammers, looks it up in a table of
+// the 26 letters, and sets the bit for that letter's column (A in column 1 ... Z in column 26).
+// After 48 emitter interrupts (one drum revolution) the handler stops the printer; the main
+// program then spaces one line, which flushes the line to the output.
+//
+// BSC/BOSC branch when NONE of the listed conditions is true, so ",Z" means "branch if not zero"
+// and ",+-" means "branch if zero".
+
+       ORG  /0100
+//
+// ---- main program ----
+//
+START: LD   |L| ISADR      // install the level-1 handler: vector /09 holds the handler address
+       STO  |L| /0009
+       LD   |L| ZERO
+       STO  |L| DONE
+       STO  |L| SPDONE
+       STO  |L| CNT
+       STO  |L| /0020       // clear the print buffer ...
+       STO  |L| /0021
+       STO  |L| /0022
+       STO  |L| /0023
+       STO  |L| /0024
+       STO  |L| /0025
+       STO  |L| /0026
+       LD   |L| ONE
+       STO  |L| /0027       // ... but keep "buffer ready" (word /27 bit 15)
+       LD   |L| FIRST
+       STO  |L| /0020       // the drum starts at 'A': column 1 for the first hammer fire
+       XIO  |L| IOSTRT      // start the printer
+LOOP1: LD   |L| DONE        // the handler sets DONE after the 48th emitter
+       BSC  |L| LOOP1,+-
+       XIO  |L| IOSPAC      // space one line: flushes the printed line
+LOOP2: LD   |L| SPDONE      // the handler sets SPDONE on the space response
+       BSC  |L| LOOP2,+-
+HALT:  WAIT
+       BSC  |L| HALT
+//
+// ---- level-1 interrupt handler ----
+//
+ISR:   DC   0               // the CPU stores the return address here
+       STO  |L| SVACC
+       STX  |L1| SVXR1
+       XIO  |L| IOSENR     // sense and reset: ACC = device status word
+       STO  |L| DSWSV
+       BSC  |L| NOTEM,-     // bit 0 (negative) = emitter response; otherwise go on
+       XIO  |L| IORD        // character now under the hammers -> CHAR (EBCDIC in high byte)
+       LD   |L| ZERO
+       STO  |L| /0020       // only columns 1-26 are used, so clear words /20 and /21
+       STO  |L| /0021
+       DC   /6500           // LDX L1 -26: XR1 = -26, counts up to zero through the tables
+       DC   /FFE6           // (raw words: the assembler's address operand cannot be negative)
+CLOOP: LD   |L1| TCHRE
+       S    |L| CHAR
+       BSC  |L| NEXT,Z      // not this letter
+       LD   |L1| TWRDE      // found: set this letter's column bit
+       STO  |L| PTR
+       LD   |I| PTR
+       OR   |L1| TMSKE
+       STO  |I| PTR
+       BSC  |L| COUNT
+NEXT:  MDX  |L1| 1          // next table entry; skips when XR1 reaches zero
+       BSC  |L| CLOOP
+COUNT: LD   |L| CNT
+       A    |L| ONE
+       STO  |L| CNT
+       S    |L| N48
+       BSC  |L| EXIT,Z      // fewer than 48 so far
+       XIO  |L| IOSTOP      // one revolution done: stop the printer
+       LD   |L| ONE
+       STO  |L| DONE
+       BSC  |L| EXIT
+NOTEM: LD   |L| DSWSV
+       AND  |L| SPMSK       // space response?
+       BSC  |L| EXIT,+-
+       LD   |L| ONE
+       STO  |L| SPDONE
+EXIT:  LD   |L| SVACC
+       DC   /6580           // LDX I1 SVXR1: restore XR1 from memory (raw: no assembler form)
+       DC   SVXR1
+       DC   /4CC0           // BOSC I ISR: return and reset the interrupt level (raw: the assembler
+       DC   ISR             // does not yet set the reset bit)
+//
+// ---- data ----
+//
+ISADR: DC   ISR
+ZERO:  DC   0
+ONE:   DC   1
+N48:   DC   48
+FIRST: DC   /8000
+SPMSK: DC   /2000
+DONE:  DC   0
+SPDONE: DC  0
+CNT:   DC   0
+CHAR:  DC   0
+PTR:   DC   0
+DSWSV: DC   0
+SVACC: DC   0
+SVXR1: DC   0
+//
+// IOCC pairs (must start on an even address): word 1 = address, word 2 = device 6 (1132) / function / modifier
+//
+       BSS  |E|
+IOSTRT: DC  0
+       DC   /3480           // control, start printer
+IOSTOP: DC  0
+       DC   /3440           // control, stop printer
+IOSPAC: DC  0
+       DC   /3401           // control, space one line
+IOSENR: DC  0
+       DC   /3701           // sense device, reset responses
+IORD:  DC   CHAR
+       DC   /3200           // read emitter character into CHAR
+//
+// Letter tables: EBCDIC character, buffer word, column bit. Each label marks the END of its table
+// (the handler indexes backwards from it with XR1 = -26 .. -1).
+//
+       DC   /C100           // A
+       DC   /C200           // B
+       DC   /C300           // C
+       DC   /C400           // D
+       DC   /C500           // E
+       DC   /C600           // F
+       DC   /C700           // G
+       DC   /C800           // H
+       DC   /C900           // I
+       DC   /D100           // J
+       DC   /D200           // K
+       DC   /D300           // L
+       DC   /D400           // M
+       DC   /D500           // N
+       DC   /D600           // O
+       DC   /D700           // P
+       DC   /D800           // Q
+       DC   /D900           // R
+       DC   /E200           // S
+       DC   /E300           // T
+       DC   /E400           // U
+       DC   /E500           // V
+       DC   /E600           // W
+       DC   /E700           // X
+       DC   /E800           // Y
+       DC   /E900           // Z
+TCHRE: DC   /0020           // words for A-P are /20 ...
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0020
+       DC   /0021           // ... and for Q-Z /21
+       DC   /0021
+       DC   /0021
+       DC   /0021
+       DC   /0021
+       DC   /0021
+       DC   /0021
+       DC   /0021
+       DC   /0021
+       DC   /0021
+TWRDE: DC   /8000           // column bits for A-P
+       DC   /4000
+       DC   /2000
+       DC   /1000
+       DC   /0800
+       DC   /0400
+       DC   /0200
+       DC   /0100
+       DC   /0080
+       DC   /0040
+       DC   /0020
+       DC   /0010
+       DC   /0008
+       DC   /0004
+       DC   /0002
+       DC   /0001
+       DC   /8000           // Q-Z restart at bit 0 of word /21
+       DC   /4000
+       DC   /2000
+       DC   /1000
+       DC   /0800
+       DC   /0400
+       DC   /0200
+       DC   /0100
+       DC   /0080
+       DC   /0040
+TMSKE: DC   0
