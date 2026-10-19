@@ -13,9 +13,13 @@ namespace S1130.SystemObjects.Instructions
 			{																	// a. yes .. common to all devices, no device code needed
 				cpu.Acc = cpu.SenseInterruptLevelStatusWord();					// .. ILSW of the level being serviced
 			}
+			else if (cpu.IoccDevice == null)									// q. nobody home at that device code?
+			{																	// a. yes .. like the C simulator, XIO does nothing but clear the ACC
+				cpu.Acc = 0;													// .. (DMS probes for drives 1-4 and tests this)
+			}
 			else
 			{
-				cpu.IoccDevice?.ExecuteIocc();									// .. otherwise let the device do what it says
+				cpu.IoccDevice.ExecuteIocc();									// .. otherwise let the device do what it says
 			}
 			SetIarToNextInstruction(cpu);
 		}

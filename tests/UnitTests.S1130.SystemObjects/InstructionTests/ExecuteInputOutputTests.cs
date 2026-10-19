@@ -80,6 +80,19 @@ namespace UnitTests.S1130.SystemObjects.InstructionTests
 			Assert.Equal(0, InsCpu.Acc);
 		}
 
+		[Fact]
+		public void Execute_XIO_AbsentDevice_DoesNothingButClearTheAcc()
+		{
+			BeforeEachTest();
+			InstructionBuilder.BuildShortAtIar(OpCodes.ExecuteInputOutput, 0, 0x11, InsCpu);
+			InsCpu[0x112] = 0x500;
+			InsCpu[0x113] = (ushort)((0x11 << 11) | ((int)DevFunction.SenseDevice << 8));	// device 0x11 is not installed
+			InsCpu.Acc = 0xdead;
+			InsCpu.ExecuteInstruction();
+			Assert.Equal(0, InsCpu.Acc);										// DMS probes for drives and expects a zero DSW
+			Assert.Equal(0x101, InsCpu.Iar);
+		}
+
 		private class SenseDummyDevice : DeviceBase
 		{
 			private readonly byte _code;

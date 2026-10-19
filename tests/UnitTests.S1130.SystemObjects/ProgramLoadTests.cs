@@ -144,20 +144,29 @@ namespace UnitTests.S1130.SystemObjects
 			var path = FindReferenceDisk();
 			if (path == null) return;												// reference files are optional
 
-			var cpu = new Cpu();
-			var disk = DiskImageCartridge.Load(path, readOnly: true);
-			cpu.BuiltInDisk.Mount(disk);
-			using var runner = new DeviceRunner(cpu);
-			runner.Start();
-
-			ProgramLoad.ColdStart(cpu, ColdStartKind.Dms, 0);
-			var deadline = DateTime.UtcNow.AddSeconds(5);
-			while (DateTime.UtcNow < deadline && cpu[0x0E] != 0x4000)
+			var scratch = Path.Combine(Path.GetTempPath(), $"dms-{Guid.NewGuid():N}.dsk");
+			File.Copy(path, scratch);												// DMS writes to the disk while booting, so use a scratch copy
+			try
 			{
-				if (!cpu.Step()) System.Threading.Thread.Sleep(1);					// waiting for a device interrupt
-			}
+				var cpu = new Cpu();
+				var disk = DiskImageCartridge.Load(scratch, readOnly: false);
+				cpu.BuiltInDisk.Mount(disk);
+				using var runner = new DeviceRunner(cpu);
+				runner.Start();
 
-			Assert.True(cpu[0x0E] == 0x4000, $"IAR={cpu.Iar:X4} wait={cpu.Wait} count={cpu.InstructionCount} w0E={cpu[0x0E]:X4}");
+				ProgramLoad.ColdStart(cpu, ColdStartKind.Dms, 0);
+				var deadline = DateTime.UtcNow.AddSeconds(5);
+				while (DateTime.UtcNow < deadline && cpu[0x0E] != 0x4000)
+				{
+					if (!cpu.Step()) System.Threading.Thread.Sleep(1);					// waiting for a device interrupt
+				}
+
+				Assert.True(cpu[0x0E] == 0x4000, $"IAR={cpu.Iar:X4} wait={cpu.Wait} count={cpu.InstructionCount} w0E={cpu[0x0E]:X4}");
+			}
+			finally
+			{
+				File.Delete(scratch);
+			}
 		}
 
 		[Fact]
