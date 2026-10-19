@@ -565,11 +565,19 @@ namespace S1130.SystemObjects
 			}
 		}
 
+		/// <summary>
+		/// The 2310 disk drive built into the 1131 processing cabinet (device code 4).
+		/// Mount a cartridge on it with <see cref="Device2310.Mount"/>.
+		/// </summary>
+		public Device2310 BuiltInDisk { get; private set; }
+
 		private void BuildDefaultDevices()                                  // add default devices to system
 		{
 			Devices = new IDevice[32];                                          // init the device array
 			AddDevice(new ConsoleEntrySwitches(this));                          // .. add console entry switches
 			AddDevice(new DeviceConsoleKeyboard(this));                         // .. add console printer and keyboard
+			BuiltInDisk = new Device2310(this);                                 // .. build the 1131's built-in disk drive
+			AddDevice(BuiltInDisk);                                             // .. and add it (device 4)
 		}
 
 		public void SetDebug(int location, IDebugSetting debugSetting)      // set a particulare memory location to debug mode
