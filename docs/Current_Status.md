@@ -48,7 +48,7 @@ Milestones from the plan:
   - ~~Console switches (device 7) and IPL~~ done. Still to do: level 5 / program stop and device 7 sense; register the 1442 in `BuildDefaultDevices` (done); 1132 printer (done); raw-column 1442 interface with column timing and punch output queue; observable CPU state for the UI.
 - **M2 DMS bring-up:** trace against the reference simulator; confirm the DMS image's device configuration (`ForReferenceOnly\dmsr2v12`).
 - **M3 Web back end:** per-user machine host, SignalR, library API, quota, deck format detection, PDF generation, Identity (TOTP, passkeys), admin invites.
-- **M4 Computer-room UI:** clickable SVG room and zoom views.
+- **M4 Computer-room UI:** clickable SVG room and zoom views. A first room illustration is in `docs/ui/computer-room.svg` (the original sketch is `docs/ui/room-mockup.png`): 1442 on the left, 1131 console with lamp panel and 2310 drive in the centre, 1403 on the right. Add `class="loaded"` to `#disk-drive` to show a cartridge. Lamps are still static and need binding to CPU state.
 - **M5 Packaging:** Dockerfile, volume layout, master DMS disk.
 
 Other open items:
