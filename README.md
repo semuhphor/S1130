@@ -85,8 +85,16 @@ Thanks,
 Bob Flanders and contributors
 
 ## Run locally
+
+The newer DMS web site (boot DMS, submit a deck, get a 1403 printout) needs no Node:
 
-The project includes a backend Web API and an optional React frontend. Here are the steps to run both locally on Windows PowerShell.
+```powershell
+dotnet run --project src\S1130.Site
+```
+
+It runs at http://localhost:5299 and needs `ForReferenceOnly\1130SW\dms.dsk`. See [WEB-FRONTEND-HOWTO.md](WEB-FRONTEND-HOWTO.md).
+
+The project also includes a backend Web API and an optional React frontend. Here are the steps to run both locally on Windows PowerShell.
 
 Prerequisites:
 - .NET 10 SDK (global.json requests 10.0.100 and rolls forward to the latest installed feature band)

@@ -1,14 +1,25 @@
 # Current Status
 
-Keep this file up to date with every change. Last updated: 2026-10-19 (after commit `4d6f9ed`).
+Keep this file up to date with every change. Last updated: 2026-10-19 (after commit `6ffc1ed`).
 
 See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and milestones.
-A separate, simpler web site (boot DMS, submit a deck, get a printout, live lights, cabinet) is planned in [WebSite-Plan.md](./WebSite-Plan.md).
+A separate, simpler web site (boot DMS, submit a deck, get a printout, live lights, cabinet) is planned in [WebSite-Plan.md](./WebSite-Plan.md). How to start it: [WEB-FRONTEND-HOWTO.md](../WEB-FRONTEND-HOWTO.md).
 
-**Web site (`src/S1130.Site`), W1 in progress:** one private machine per browser (HttpOnly session cookie), `MachineHost` (CPU run thread, device runner, working disk copied from the master DMS image, 1403/1132 printout buffer), `MachineManager` (limit, idle stop), `/api/machine` endpoints (boot, deck, start/stop/reset, printout, tear off), and a plain HTML page with register/level/status lamps (polled every 200 ms), a deck box and a greenbar 1403 pane. Real multi-card jobs run: `// JOB` + `// DUP` + `*DUMPLET` prints the LET, and a `// FOR` compile prints its source listing and `END OF COMPILATION`. 14 tests in `tests/UnitTests.S1130.Site`. Run with `dotnet run --project src\S1130.Site`.
+**Web site (`src/S1130.Site`), W1 done (commit `6ffc1ed`):**
+- One private machine per browser (HttpOnly session cookie `s1130_session`).
+- `MachineHost`: CPU run thread that also services the devices, working disk copied from the master DMS image, 1403/1132 printout buffer.
+- `MachineManager`: machine limit (`Site:MaxMachines`, 8) and idle stop (`Site:IdleMinutes`, 30).
+- `/api/machine` endpoints: boot, deck, start/stop/reset, printout, tear off.
+- A plain HTML page: register/level/status lamps (polled every 200 ms), a deck box and a greenbar 1403 pane.
+- Real jobs run:
+  - `// DUP` `*DUMPLET` prints the LET.
+  - A `// FOR` compile prints its listing and `END OF COMPILATION`.
+  - A `// ASM` + `// XEQ` program that calls `PRNT3` prints `HELLORLD.` on the 1403. The job takes 0.2 s from boot. The 1403 chain has no `!` character.
+- 14 tests in `tests/UnitTests.S1130.Site`.
 - **Fixed (1442 timing):** DMS used to stop after the first card. Its card routine issues Start Read and only then increments `$IOCT`. Our 1442 gave every column and the op-complete at once, so the completion decremented `$IOCT` before the increment. The `MDX` then hit zero and skipped into the middle of the next instruction (a WAIT at `/0396`). `Device1442` now delivers responses and operation complete from `Run()` after `EventInterval` instructions (default 100; at once while the CPU waits), like the printers. `EventInterval = 0` keeps the old during-the-XIO behaviour for unit tests.
+- **Fixed (speed):** jobs ran about 100x too slow. `DeviceRunner` sleeps between passes, and on Windows `Thread.Sleep(1)` lasts a ~15.6 ms timer tick. That cost each 1442 column (and each disk/printer step) one tick while DMS spun in its wait loop. `MachineHost` no longer uses a `DeviceRunner`: its run thread calls every device's `Run()` every 32 instructions, and at once when the CPU enters a wait. `Device2310.Run()` no longer blocks (it completes once `OperationDelay` = 10 instructions have run, or while the CPU waits), and `DeviceBase.Run()` no longer yields. A HELLORLD assemble-and-run job went from 32 s to 0.2 s. The emulator now runs faster than a real 1130; there is no real-speed throttle.
 - Note: a DMS boot prints two job pages. The first (`// JOB    000B`) is DMS's own cold-start job, which reads no card. The second is the deck's real `// JOB` card.
-- **Fixed (speed):** jobs ran about 100x too slow because `DeviceRunner` sleeps between passes, and on Windows `Thread.Sleep(1)` lasts a ~15.6 ms timer tick. That cost each 1442 column (and each disk/printer step) one tick while DMS spun in its wait loop. `MachineHost` no longer uses a `DeviceRunner`: its run thread calls every device's `Run()` every 32 instructions, and at once when the CPU enters a wait. `Device2310.Run()` no longer blocks (it completes once 10 instructions have run, or while the CPU waits), and `DeviceBase.Run()` no longer yields. An assemble-and-run HELLORLD job now takes 0.2 s instead of 32 s.
+- The old `S1130.WebApi` still uses `DeviceRunner`, so its device timing still waits for the timer tick.
 
 ## Done
 
@@ -38,7 +49,7 @@ A separate, simpler web site (boot DMS, submit a deck, get a printout, live ligh
 - CPU bugs found by tracing DMS against the reference: shift with an index register (count = XR & 0x3F, type from the displacement; SLCA/SLC keep the XR high byte), and STX with no tag stores the address of the next instruction.
 - Stand-alone A-Z 1132 program (`docs\TestAsm\alphabet1132.s1130`) is work in progress: on the reference SIMH it prints only some letters, on ours nothing; its test is skipped.
 - Assembler limitations found: negative LDX immediates, no indirect LDX, BOSC never sets the reset bit.
-- 561 SystemObjects + 14 1132 tests + 23 WebApi pass with `dotnet test .\S1130.sln --nologo -v q`.
+- 590 SystemObjects (1 skipped) + 23 WebApi + 14 Site tests pass with `dotnet test .\S1130.sln --nologo -v q`.
 - Functional-characteristics audit in `docs\FunctionalCharacteristics-Audit.md` (items 3.1/3.2 detail is stale).
 - Computer-room plan written and committed.
 
@@ -50,8 +61,8 @@ A separate, simpler web site (boot DMS, submit a deck, get a printout, live ligh
 Milestones from the plan:
 - **M1 Emulator foundations:**
   - ~~Device scheduling~~ done: `DeviceRunner` (see above) calls `Run()` on a background thread.
-  - 2310 remaining: seek/rotate timing is still crude (a fixed `LetInstuctionsExecute(10)` before the transfer, which already lets the next instruction run first, as the APL boot card needs); no real seek or rotation delays.
-  - ~~Console switches (device 7) and IPL~~ done. Still to do: level 5 / program stop and device 7 sense; register the 1442 in `BuildDefaultDevices` (done); 1132 printer (done); raw-column 1442 interface with column timing and punch output queue; observable CPU state for the UI.
+  - 2310 remaining: seek/rotate timing is still crude (a fixed `OperationDelay` of 10 instructions before the operation completes, which already lets the next instruction run first, as the APL boot card needs); no real seek or rotation delays.
+  - ~~Console switches (device 7) and IPL~~ done. Still to do: level 5 / program stop and device 7 sense; register the 1442 in `BuildDefaultDevices` (done); 1132 printer (done); 1442 column timing (done, `EventInterval`); 1442 punch output queue; observable CPU state for the UI (done for the site: `MachineSnapshot`).
 - **M2 DMS bring-up:** trace against the reference simulator; confirm the DMS image's device configuration (`ForReferenceOnly\dmsr2v12`).
 - **M3 Web back end:** per-user machine host, SignalR, library API, quota, deck format detection, PDF generation, Identity (TOTP, passkeys), admin invites.
 - **M4 Computer-room UI:** clickable SVG room and zoom views. A first room illustration is in `docs/ui/computer-room.svg` (the original sketch is `docs/ui/room-mockup.png`): 1442 on the left, 1131 console with lamp panel and 2310 drive in the centre, 1403 on the right. Add `class="loaded"` to `#disk-drive` to show a cartridge. Lamps are still static and need binding to CPU state.
@@ -65,5 +76,7 @@ Other open items:
 
 ## Next steps
 
-1. Run the DMS boot further with the 1442 and 1132 registered and check output appears on the 1132.
-2. Run the DMS boot further (monitor prompt / a DUP job) as a console test.
+1. Web site W2: SignalR live lights and printout streaming (see [WebSite-Plan.md](./WebSite-Plan.md)).
+2. Try more real jobs on the site: FORTRAN compile-and-run with output, larger assembler programs, `// DUP` store/delete.
+3. Optional: a "real speed" throttle so the site can run at roughly the original instruction rate.
+4. Optional: move `S1130.WebApi` to the same in-thread device servicing as `MachineHost`.

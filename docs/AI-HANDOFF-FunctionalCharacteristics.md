@@ -1,7 +1,7 @@
 # AI Handoff: Reading the IBM 1130 Functional Characteristics Manual
 
 **Audience:** a future AI (or human) working on the S1130 emulator who needs the authoritative hardware behavior.
-**Written:** 2026-10-10, after a full review of `ForReferenceOnly/functional/`.
+**Written:** 2026-10-10, after a full review of `ForReferenceOnly/functional/`. **Updated:** 2026-10-19 (section 5: running DMS on the emulator).
 **Companion:** [IBM1130-Functional-Characteristics-Summary.md](./IBM1130-Functional-Characteristics-Summary.md) — the verified structured summary.
 
 ---
@@ -98,10 +98,45 @@ Spec points still worth keeping in mind when extending the code:
 - The IOCC low byte is IBM bits 8–15, so bit *n* is `1 << (15 − n)`: bit 15 = `0x01`, bit 13 = `0x04`, bit 8 = `0x80`. Several past bugs came from reading "bit 13" as `0x20`.
 - Sense Device returns the DSW *and then* applies the reset modifier; it never aborts an operation.
 - Level 0 has no ILSW; levels 1–5 do. `Cpu.SenseInterruptLevelStatusWord()` ORs the pending devices on the level being serviced.
-- Each `DeviceBase` tracks one `ActiveInterrupt`; devices that can have a level-0 response and a level-4 completion outstanding (1442) release the level-0 one before raising level 4.
+- Each `DeviceBase` tracks one `ActiveInterrupt`, except the 1442: it holds its level-0 response and level-4 completion as two separate requests (`HoldsInterrupt` checks both), because both can be outstanding at once.
+- Interrupt timing matters to real software, not just to the manual's response windows. See section 5.
 
 ---
 
-## 5. Still unread in detail
+## 5. Running DMS: what bit us (2026-10-19)
+
+The new web site (`src/S1130.Site`, see [WebSite-Plan.md](./WebSite-Plan.md)) runs real DMS jobs from the 1442 to the 1403. Getting there exposed two problems that the manual alone would not have revealed.
+
+### Device events must not complete during the XIO that starts them
+DMS's resident card routine (`pmondevs.lst`, around `CD110`) does:
+```
+CD110 XIO     CD220     START READER OR PUNCH
+      MDX  L  $IOCT,1   INCREMENT IOCS CNTR
+      STX  L0 $IBSY     SET I/O BUSY SW NON-ZERO
+```
+Our 1442 used to raise every column response and the op-complete *inside* the Start Read XIO. The level-4 handler then decremented `$IOCT` before the `MDX` incremented it. The increment went to zero, which makes `MDX` skip, and execution landed mid-instruction on a word that decodes as WAIT (`/0396`). DMS hung with the rest of the deck unread.
+
+On real hardware the first column arrives milliseconds later. The rule now: **a device schedules its responses and completion and delivers them from `Run()` once N instructions have run (or at once if the CPU is in WAIT)**. `Device1403`, `Device1132` and `Device1442` use `EventInterval`, and `Device2310` uses `OperationDelay`. Unit tests set `EventInterval = 0` (or `IgnoreInstructionCount`) to get synchronous behaviour.
+
+### `Run()` must not block, and must not depend on OS sleeps
+`DeviceRunner` calls `Run()` from a background thread with `Thread.Sleep(1)` between passes. On Windows that sleep is a ~15.6 ms timer tick, so each 1442 column cost a tick and a short assembly took 32 s (357M instructions, almost all of them DMS spinning in its wait loop). `MachineHost` now calls every device's `Run()` on its own CPU thread every 32 instructions, and right away on WAIT. That takes 0.2 s and 0.65M instructions. For that to work:
+- `Device2310.Run()` no longer calls `LetInstuctionsExecute`, which spins until the CPU runs and would deadlock on the CPU thread.
+- `DeviceBase.Run()` no longer calls `Thread.Sleep(0)`.
+
+Keep any new device's `Run()` non-blocking and instruction-count timed.
+
+### Debugging technique that worked
+- Write a throwaway xunit test that boots `dms.dsk` with a real `Cpu`, steps it, and logs every XIO. Detect it with `(cpu[iar] >> 11) == 1` before the step, then read `IoccDeviceCode/Function/Modifiers/Address` after it.
+- Dump core around the hang address.
+- The DMS listings in `ForReferenceOnly\1130SW\dmsr2v12\*.lst` use relocatable addresses, so search them for **instruction word patterns** (e.g. `7401 0032` = `MDX L $IOCT,1`), not addresses.
+- `ForReferenceOnly` is gitignored, so use PowerShell `Select-String`, not the grep tool.
+- The C reference `ForReferenceOnly\ibm1130_cr.c` (`xio_1442_card`, `cr_svc`) is the best cross-check for 1442 semantics.
+
+### Writing programs for DMS on the 1403
+`LIBF PRNT3` with control `/2000` (print, then space) and `/0000` (busy test: returns to LIBF+2 while busy, LIBF+3 when done). The I/O area is a word count followed by 1403 printer codes, two per word, high byte first (`Device1403.Chain` has the table; blank is `/7F`). **There is no `!` on the chain.** Assembler cards: label in column 21, opcode in 27, format/tag in 32-33, operands from 35.
+
+---
+
+## 6. Still unread in detail
 
 I only skimmed headings for: `SCA.html` (comms adapter), `DisplayUnit.html` (2250), `OMPR.html` (1231), `Plotter.html`, `PaperTape.html`, the 1403 half of `Printers.html`, `System7.html`, `AppendixA.html` (character code tables), `Glossary.html`. The summary marks these **[overview only]**. If you need them, read the HTML directly — don't trust a summarizer.

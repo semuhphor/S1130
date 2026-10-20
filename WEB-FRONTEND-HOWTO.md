@@ -1,8 +1,98 @@
-# IBM 1130 Emulator Web Frontend - Quick Start Guide
+# IBM 1130 Emulator Web Sites - Quick Start Guide
 
-## Overview
+There are two web front ends:
 
-This is a complete web-based IBM 1130 emulator with:
+1. **`S1130.Site` (current):** boot DMS, submit a card deck, get a 1403 printout. One private machine per browser. Plain HTML, no Node needed. See [docs/WebSite-Plan.md](docs/WebSite-Plan.md).
+2. **`S1130.WebApi` + React (older):** assemble a small program and step it. Described further down.
+
+## S1130.Site: boot DMS and run a deck
+
+### Requirements
+- .NET 10 SDK (`dotnet --version`).
+- The master DMS disk image `ForReferenceOnly\1130SW\dms.dsk`. It is built for 1403 + 1442 + 32K. `ForReferenceOnly` is gitignored, so copy it in yourself. The site searches upward from its folder for `ForReferenceOnly\1130SW\dms.dsk`, or you can set `Site:MasterDisk` to a full path.
+
+### Start it
+From the repository root:
+```powershell
+dotnet run --project src\S1130.Site
+```
+The site runs at **http://localhost:5299** (the `http` profile in `src\S1130.Site\Properties\launchSettings.json`). To pick another address:
+```powershell
+dotnet run --project src\S1130.Site --urls http://localhost:5299
+```
+Stop it with Ctrl+C. If you rebuild while it runs, the build fails because the DLLs are locked, so stop it first.
+
+### Use it
+1. Type or paste a deck into the **Deck** box. One card per line, cut to 80 columns and upper-cased. You can also use **Load file**.
+2. Click **Load into hopper**. The hopper count goes up.
+3. Click **Boot DMS**. DMS cold-starts from this browser's working disk and reads the deck from the 1442.
+4. The printout appears in the **1403 Printer** pane. Use **Tear off** to clear it and **Download** to save it as text.
+
+The first page of every boot (`// JOB    000B`) is DMS's own start-up job. Your deck's output starts on the next page.
+
+Example deck (assemble and run). Labels start in column 21, opcodes in 27, the format/tag field in 32-33, operands in 35:
+```
+// JOB
+// ASM
+*LIST
+                    START LIBF    PRNT3     PRINT ONE LINE, THEN SPACE
+                          DC      /2000     CONTROL - PRINT
+                          DC      LINE      I/O AREA (WORD COUNT, THEN DATA)
+                          DC      ERR       ERROR ROUTINE
+                    WAIT  LIBF    PRNT3     TEST - IS PRNT3 STILL BUSY
+                          DC      /0000     CONTROL - TEST
+                          MDX     WAIT      BUSY, ASK AGAIN
+                          EXIT              DONE, RETURN TO DMS
+                    ERR   DC      0         ERROR ROUTINE - JUST RETURN
+                          BSC  I  ERR
+                    LINE  DC      5         WORD COUNT (2 CHARS PER WORD)
+                          DC      /6B68     H E   (1403 PRINTER CODE)
+                          DC      /1A1A     L L
+                          DC      /5D20     O R
+                          DC      /1A67     L D
+                          DC      /6E7F     . BLANK
+                          END     START
+// XEQ
+```
+It prints `HELLORLD.`. The 1403 print chain has no `!`.
+
+### Settings (`src\S1130.Site\appsettings.json`, section `Site`)
+| Setting | Default | Meaning |
+|---|---|---|
+| `MasterDisk` | (empty: search for `ForReferenceOnly\1130SW\dms.dsk`) | DMS image copied to each new machine |
+| `DataRoot` | `App_Data` | Per-session folders; each holds `disks\work.dsk` |
+| `MaxMachines` | 8 | Machines that may exist at once (more gives HTTP 503) |
+| `IdleMinutes` | 30 | Idle machines are stopped and removed; the working disk stays and is reused if the browser comes back |
+| `MaxDeckCards` | 2000 | Largest deck accepted (more gives HTTP 413) |
+
+Each browser gets an `s1130_session` cookie and its own machine and working disk. Clearing cookies gives a fresh machine. Delete `src\S1130.Site\App_Data` to throw away all working disks.
+
+### API (used by the page)
+```
+GET    /api/machine                 lamps/registers snapshot
+POST   /api/machine/boot            cold-start DMS
+POST   /api/machine/deck            text/plain deck into the hopper
+POST   /api/machine/start | stop | reset
+GET    /api/machine/printout?since=N
+DELETE /api/machine/printout        tear off
+```
+
+### Tests
+```powershell
+dotnet test tests\UnitTests.S1130.Site
+```
+The DMS tests return early (pass) if `dms.dsk` is missing.
+
+### Troubleshooting
+- **Boot DMS returns 409:** the master disk was not found. Check `ForReferenceOnly\1130SW\dms.dsk` or `Site:MasterDisk`.
+- **503:** too many machines; wait for idle ones to be reaped or raise `MaxMachines`.
+- **Port in use:** pass a different `--urls`.
+
+---
+
+## S1130.WebApi + React (older front end)
+
+This is a web-based IBM 1130 emulator with:
 - ASP.NET Core 8 REST API backend
 - React + TypeScript frontend
 - Real-time CPU visualization with LED-style displays
@@ -12,14 +102,14 @@ This is a complete web-based IBM 1130 emulator with:
 
 ### Terminal 1: Backend API
 ```powershell
-cd F:\Development\S1130
+cd <repository root>
 dotnet run --project src\S1130.WebApi\S1130.WebApi.csproj
 ```
 **Backend will run at:** http://localhost:5000
 
 ### Terminal 2: Frontend
 ```powershell
-cd F:\Development\S1130\web-frontend
+cd <repository root>\web-frontend
 npm start
 ```
 **Frontend will open at:** http://localhost:3000
@@ -104,7 +194,7 @@ POST   /api/execution/stop
 
 All 419 tests passing:
 ```powershell
-cd F:\Development\S1130
+cd <repository root>
 dotnet test
 ```
 
