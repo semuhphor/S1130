@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>IBM 1130</title>
+	<link rel="stylesheet" href="site.css">
+</head>
+<body>
+	<header>
+		<h1>IBM 1130</h1>
+		<span id="status" class="status">Powered off</span>
+	</header>
+
+	<main>
+		<section class="panel console" aria-label="1131 console">
+			<h2>1131 Console</h2>
+			<div id="registers" class="registers"></div>
+			<div class="indicators">
+				<div class="group" id="levels" aria-label="Interrupt levels"></div>
+				<div class="group" id="flags" aria-label="Status"></div>
+			</div>
+			<div class="keys">
+				<button id="boot" class="key boot">Boot DMS</button>
+				<button id="start" class="key">Start</button>
+				<button id="stop" class="key stop">Stop</button>
+				<button id="reset" class="key">Reset</button>
+			</div>
+			<p class="count">Instructions: <span id="count">0</span></p>
+			<p id="error" class="error" hidden></p>
+		</section>
+
+		<section class="panel reader" aria-label="1442 card reader">
+			<h2>1442 Card Read Punch</h2>
+			<p>Hopper: <strong id="hopper">0</strong> cards</p>
+			<label for="deck">Deck (one card per line, 80 columns)</label>
+			<textarea id="deck" rows="8" spellcheck="false" wrap="off">// JOB</textarea>
+			<div class="keys">
+				<button id="load" class="key">Load into hopper</button>
+				<label class="key file">Load file<input id="deckfile" type="file" accept=".txt,.job,.crd,.deck,text/plain" hidden></label>
+			</div>
+		</section>
+
+		<section class="panel printer" aria-label="1403 printer">
+			<h2>1403 Printer</h2>
+			<div class="keys">
+				<button id="tearoff" class="key">Tear off</button>
+				<button id="download" class="key">Download</button>
+			</div>
+			<pre id="paper" class="paper" tabindex="0"></pre>
+		</section>
+	</main>
+
+	<script src="app.js"></script>
+</body>
+</html>

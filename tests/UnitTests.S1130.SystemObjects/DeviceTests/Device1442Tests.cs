@@ -12,7 +12,7 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
         protected override void BeforeEachTest()
         {
             base.BeforeEachTest();
-            _1442 = new Device1442(InsCpu);
+            _1442 = new Device1442(InsCpu) { EventInterval = 0 };       // responses happen during the XIO
             InsCpu.AddDevice(_1442);
         }
 
@@ -158,6 +158,47 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
             Assert.Equal(Device1442.OperationCompleteStatus, InsCpu.Acc);
             Assert.Same(card, _1442.CardAtPunchStation);                          // read card now sits at punch station
             Assert.True(_1442.Stacker.IsEmpty);
+        }
+
+        [Fact]
+        public void TimedMode_ResponseWaitsForInstructionsOrCpuWait()
+        {
+            BeforeEachTest();
+            _1442.EventInterval = 1000;
+            _1442 += new Card();
+            _1442.Start();
+            IssueControl(_1442, 0, Device1442.StartReadBit);
+
+            Assert.True(_1442.IsReading);
+            Assert.False(_1442.ReadResponsePending);                              // not during the XIO
+            _1442.Run();
+            Assert.False(_1442.ReadResponsePending);                              // no instructions ran yet
+            InsCpu.Wait = true;                                                   // a waiting CPU cannot race the reader
+            _1442.Run();
+            Assert.True(_1442.ReadResponsePending);
+            Assert.Equal(Device1442.ResponseInterruptLevel, _1442.ActiveInterrupt.InterruptLevel);
+        }
+
+        [Fact]
+        public void TimedMode_OperationCompleteArrivesFromRun()
+        {
+            BeforeEachTest();
+            _1442.EventInterval = 1000;
+            _1442 += new Card();
+            _1442.Start();
+            InsCpu.Wait = true;
+            IssueControl(_1442, 0, Device1442.StartReadBit);
+            for (int column = 0; column < 80; column++)
+            {
+                _1442.Run();
+                Assert.True(_1442.ReadResponsePending, $"Expected read response for column {column}");
+                IssueRead(0x200 + column);
+            }
+
+            Assert.False(_1442.OperationComplete);                                // scheduled, not yet delivered
+            _1442.Run();
+            Assert.True(_1442.OperationComplete);
+            Assert.Equal(Device1442.CompleteInterruptLevel, _1442.ActiveInterrupt.InterruptLevel);
         }
 
         [Fact]

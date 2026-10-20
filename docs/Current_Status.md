@@ -3,6 +3,12 @@
 Keep this file up to date with every change. Last updated: 2026-10-19 (after commit `4d6f9ed`).
 
 See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and milestones.
+A separate, simpler web site (boot DMS, submit a deck, get a printout, live lights, cabinet) is planned in [WebSite-Plan.md](./WebSite-Plan.md).
+
+**Web site (`src/S1130.Site`), W1 in progress:** one private machine per browser (HttpOnly session cookie), `MachineHost` (CPU run thread, device runner, working disk copied from the master DMS image, 1403/1132 printout buffer), `MachineManager` (limit, idle stop), `/api/machine` endpoints (boot, deck, start/stop/reset, printout, tear off), and a plain HTML page with register/level/status lamps (polled every 200 ms), a deck box and a greenbar 1403 pane. Real multi-card jobs run: `// JOB` + `// DUP` + `*DUMPLET` prints the LET, and a `// FOR` compile prints its source listing and `END OF COMPILATION`. 14 tests in `tests/UnitTests.S1130.Site`. Run with `dotnet run --project src\S1130.Site`.
+- **Fixed (1442 timing):** DMS used to stop after the first card. Its card routine issues Start Read and only then increments `$IOCT`. Our 1442 gave every column and the op-complete at once, so the completion decremented `$IOCT` before the increment. The `MDX` then hit zero and skipped into the middle of the next instruction (a WAIT at `/0396`). `Device1442` now delivers responses and operation complete from `Run()` after `EventInterval` instructions (default 100; at once while the CPU waits), like the printers. `EventInterval = 0` keeps the old during-the-XIO behaviour for unit tests.
+- Note: a DMS boot prints two job pages. The first (`// JOB    000B`) is DMS's own cold-start job, which reads no card. The second is the deck's real `// JOB` card.
+- **Fixed (speed):** jobs ran about 100x too slow because `DeviceRunner` sleeps between passes, and on Windows `Thread.Sleep(1)` lasts a ~15.6 ms timer tick. That cost each 1442 column (and each disk/printer step) one tick while DMS spun in its wait loop. `MachineHost` no longer uses a `DeviceRunner`: its run thread calls every device's `Run()` every 32 instructions, and at once when the CPU enters a wait. `Device2310.Run()` no longer blocks (it completes once 10 instructions have run, or while the CPU waits), and `DeviceBase.Run()` no longer yields. An assemble-and-run HELLORLD job now takes 0.2 s instead of 32 s.
 
 ## Done
 
@@ -15,7 +21,7 @@ See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and mil
 
 **Devices**
 - 2501 card reader (block mode).
-- 1442 card read/punch (character mode). Level 0 (response) and level 4 (operation complete) interrupts are held separately, which fixed a single-slot bug.
+- 1442 card read/punch (character mode). Level 0 (response) and level 4 (operation complete) interrupts are held separately, which fixed a single-slot bug. Column responses and operation complete are timed by instruction count (`EventInterval`, delivered from `Run()`).
 - 2310 disk drive (`Device2310`): drive 0 is the built-in drive (device 4, ILSW `0x8000`); drives 1-4 use devices 0x11-0x14. Audited against `ibm1130_disk.c` (see "To do" for the gaps).
 - `DiskImageCartridge`: in-memory 2315 cartridge whose image file is byte-compatible with the C simulator (203 cyl x 8 sectors x 321 little-endian words = 1,042,608 bytes, no header). Loads/saves files (atomic save, only when changed), creates blank packs (formatted or not), supports read-only. Verified against the real `dms.dsk`.
 - `DeviceRunner`: background thread that calls `Run()` on every device so started operations complete while programs run; a failing device is recorded in `LastError` and does not stop the others. `EmulatorService` starts one per CPU (and replaces it on Reset). Device state flags touched by both threads are `volatile`.

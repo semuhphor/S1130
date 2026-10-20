@@ -59,6 +59,10 @@ namespace S1130.SystemObjects.Devices
 		private volatile bool _hardError;									// permanent error (write to protected cartridge); cleared only by remounting
 		private int _sector;												// sector to read
 		private int _wcAddress;												// word-count address latched from the IOCC
+		private ulong _opStarted;											// instruction count when the current operation started
+
+		/// <summary>Instructions the CPU runs before a started operation completes (immediately while the CPU waits).</summary>
+		public const int OperationDelay = 10;
 
 		public Device2310(ICpu cpu, int driveNumber = 0)					// constructor cpu and drive number (0-4)		
 		{
@@ -170,6 +174,7 @@ namespace S1130.SystemObjects.Devices
 
 			_complete = false;
 			_busy = true;
+			_opStarted = CpuInstance.InstructionCount;
 			_seeking = true;
 		}
 
@@ -189,6 +194,7 @@ namespace S1130.SystemObjects.Devices
 				return;														// a. yes .. the controller hangs, busy forever
 			_busy = true;
 			_seeking = false;
+			_opStarted = CpuInstance.InstructionCount;
 			_reading = true;
 		}
 
@@ -213,6 +219,7 @@ namespace S1130.SystemObjects.Devices
 				return;														// a. yes .. the controller hangs, busy forever
 			_busy = true;
 			_seeking = false;
+			_opStarted = CpuInstance.InstructionCount;
 			_writing = true;
 		}
 
@@ -235,11 +242,15 @@ namespace S1130.SystemObjects.Devices
 			return true;
 		}
 
-		public override void Run()											// do the operation
+		public override void Run()											// do the operation once it is due
 		{
+			if ((_seeking || _reading || _writing) && !OperationIsDue())		// q. started, but the cpu has not run long enough?
+			{																	// a. yes .. come back later (never block: Run may be on the cpu's own thread)
+				base.Run();
+				return;
+			}
 			if (_seeking)														// q. seeking?					
 			{																	// a. yes ..
-				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
 				_cylinder += _seekOffset;										// .. move the heads
 				_cartridge.CurrentCylinder = _cylinder.Current;					// .. let the cartridge know
 				_complete = true;												// .. done with the operation
@@ -249,7 +260,6 @@ namespace S1130.SystemObjects.Devices
 			}
 			else if (_reading)													// q. reading?
 			{																	// a. yes ..
-				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
 				var buffer = _cartridge.Read(_sector);							// .. read the sector to buffer in cart
 				if (!_readCheck)												// q. a real read (not read-check)?
 				{																// a. yes ..
@@ -260,7 +270,6 @@ namespace S1130.SystemObjects.Devices
 			}
 			else if (_writing)													// q. writing?
 			{																	// a. yes ..
-				CpuInstance.LetInstuctionsExecute(10);							// .. let the cpu run a little
 				var wc = _wordCount;											// .. number of words to write (1-321)
 				var data = new ArraySegment<ushort>(CpuInstance.Memory, _wcAddress + 1, wc);
 				SectorAddressMismatch = CpuInstance.Memory[_wcAddress + 1] != ((_cylinder.Current << 3) | _sector);
@@ -270,6 +279,11 @@ namespace S1130.SystemObjects.Devices
 			}
 			base.Run();
 		}
+
+		private bool OperationIsDue() =>
+			CpuInstance.IgnoreInstructionCount
+			|| CpuInstance.Wait
+			|| CpuInstance.InstructionCount - _opStarted >= OperationDelay;
 
 		// Ends a read or write: flags complete (and a data error for a bad word count), then interrupts.
 		private void FinishTransfer()

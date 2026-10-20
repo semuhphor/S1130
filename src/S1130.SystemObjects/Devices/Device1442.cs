@@ -33,6 +33,12 @@ namespace S1130.SystemObjects.Devices
      *
      * Card image: card rows 12,11,0,1..9 occupy word bits 0-11 (0x8000..0x0010). Punch data is in
      * bits 0-11 and a 1 in bit 12 (0x0008) marks the last column to punch (end-punch).
+     *
+     * Timing: column responses and Operation Complete arrive <see cref="EventInterval"/>
+     * instructions after the XIO that caused them (at once while the CPU waits), from
+     * <see cref="Run"/>. Programs depend on this: the DMS card routine issues Start Read and only
+     * then counts the operation in $IOCT, so an interrupt that arrived before the count would
+     * corrupt it. EventInterval 0 makes everything happen during the XIO (for unit tests).
      * ******************************************************************************************/
     public class Device1442 : DeviceBase
     {
@@ -77,11 +83,18 @@ namespace S1130.SystemObjects.Devices
         private bool _lastCard;
         private bool _errorCheck;
         private bool _started;                       // initial feed (operator START) has been done
+        private bool _responseDue;                   // a column response is scheduled (see EventInterval)
+        private bool _completeDue;                   // operation complete is scheduled
+        private ulong _lastEvent;                    // instruction count when the event was scheduled
+        private readonly object _lock = new object();
 
         public Device1442(ICpu cpu)
         {
             CpuInstance = cpu;
         }
+
+        /// <summary>Instructions the CPU runs before a scheduled response or completion (0 = immediately, during the XIO).</summary>
+        public int EventInterval { get; set; } = 100;
 
         public override byte DeviceCode => 0x02;     // 00010
 
@@ -99,10 +112,13 @@ namespace S1130.SystemObjects.Devices
         /// </summary>
         public void Start()
         {
-            _started = true;
-            if (_readStation == null)
+            lock (_lock)
             {
-                FeedOneStation();
+                _started = true;
+                if (_readStation == null)
+                {
+                    FeedOneStation();
+                }
             }
         }
 
@@ -110,21 +126,53 @@ namespace S1130.SystemObjects.Devices
 
         public override void ExecuteIocc()
         {
-            switch (CpuInstance.IoccFunction)
+            lock (_lock)
             {
-                case DevFunction.SenseDevice:
-                    SenseDevice();
-                    break;
-                case DevFunction.Control:
-                    Control();
-                    break;
-                case DevFunction.Read:
-                    ReadColumn();
-                    break;
-                case DevFunction.Write:
-                    PunchColumn();
-                    break;
+                switch (CpuInstance.IoccFunction)
+                {
+                    case DevFunction.SenseDevice:
+                        SenseDevice();
+                        break;
+                    case DevFunction.Control:
+                        Control();
+                        break;
+                    case DevFunction.Read:
+                        ReadColumn();
+                        break;
+                    case DevFunction.Write:
+                        PunchColumn();
+                        break;
+                }
             }
+        }
+
+        /// <summary>Delivers a scheduled column response or operation complete once it is due.</summary>
+        public override void Run()
+        {
+            lock (_lock)
+            {
+                if ((_responseDue || _completeDue)
+                    && (CpuInstance.Wait || CpuInstance.InstructionCount - _lastEvent >= (ulong)EventInterval))
+                {
+                    if (_responseDue)
+                    {
+                        _responseDue = false;
+                        RequestResponseNow(isRead: _reading);
+                    }
+                    else
+                    {
+                        _completeDue = false;
+                        CompleteNow();
+                    }
+                }
+            }
+            base.Run();
+        }
+
+        private bool Schedule()
+        {
+            _lastEvent = CpuInstance.InstructionCount;
+            return EventInterval > 0;
         }
 
         private void SenseDevice()
@@ -253,6 +301,16 @@ namespace S1130.SystemObjects.Devices
 
         private void RequestResponse(bool isRead)
         {
+            if (Schedule())
+            {
+                _responseDue = true;
+                return;
+            }
+            RequestResponseNow(isRead);
+        }
+
+        private void RequestResponseNow(bool isRead)
+        {
             if (isRead) _readResponse = true; else _punchResponse = true;
             _columnReady = true;
             RaiseInterrupt(ResponseInterruptLevel, 0);
@@ -305,6 +363,16 @@ namespace S1130.SystemObjects.Devices
         }
 
         private void Complete()
+        {
+            if (Schedule())
+            {
+                _completeDue = true;
+                return;
+            }
+            CompleteNow();
+        }
+
+        private void CompleteNow()
         {
             _complete = true;
             RaiseInterrupt(CompleteInterruptLevel, Level4Ilsw);

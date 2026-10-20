@@ -11,9 +11,9 @@ namespace S1130.SystemObjects
 
 		public virtual bool HoldsInterrupt(Interrupt interrupt) => ActiveInterrupt == interrupt;
 
+		/// <summary>Finishes any work that is due. Must not block: it may be called on the CPU's own thread.</summary>
 		public virtual void Run()
 		{
-			Thread.Sleep(0);
 		}
 
 		protected ICpu CpuInstance;
