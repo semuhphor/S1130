@@ -139,6 +139,10 @@ function key(id, method, url, body) {
 }
 
 buildPanel();
+call("GET", "/api/machine/config").then(config => {
+	$("printer-title").textContent = config.printerName;
+	$("printer-title").parentElement.setAttribute("aria-label", config.printerName);
+}).catch(report);
 key("boot", "POST", "/api/machine/boot");
 key("start", "POST", "/api/machine/start");
 key("stop", "POST", "/api/machine/stop");

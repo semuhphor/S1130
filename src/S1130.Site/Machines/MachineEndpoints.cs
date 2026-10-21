@@ -10,6 +10,8 @@ public static class MachineEndpoints
 	{
 		var api = app.MapGroup("/api/machine");
 
+		api.MapGet("/config", (MachineManager machines) => new { printerName = machines.PrinterName });
+
 		api.MapGet("", (HttpContext http, MachineManager machines) =>
 			machines.Find(http.GetSessionId())?.Snapshot() ?? MachineSnapshot.Off);
 

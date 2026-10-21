@@ -20,11 +20,18 @@ public class MachineEndpointTests : IClassFixture<MachineEndpointTests.SiteFacto
 		var response = await client.GetAsync("/");
 
 		response.EnsureSuccessStatusCode();
-		Assert.Contains("1403", await response.Content.ReadAsStringAsync());
+		Assert.Contains("Line Printer", await response.Content.ReadAsStringAsync());
 		var cookie = Assert.Single(response.Headers.GetValues("Set-Cookie"));
 		Assert.StartsWith(SessionCookie.Name + "=", cookie);
 		Assert.Contains("httponly", cookie);
 		Assert.Contains("samesite=strict", cookie);
+	}
+
+	[Fact]
+	public async Task Configuration_ReportsThePrinterFromTheMasterDisk()
+	{
+		var config = await _factory.CreateClient().GetFromJsonAsync<MachineConfig>("/api/machine/config");
+		Assert.Equal("1403 Printer", config!.PrinterName);
 	}
 
 	[Fact]
@@ -90,6 +97,7 @@ public class MachineEndpointTests : IClassFixture<MachineEndpointTests.SiteFacto
 	}
 
 	private sealed record DeckResult(int Loaded, int Hopper);
+	private sealed record MachineConfig(string PrinterName);
 
 	public sealed class SiteFactory : WebApplicationFactory<Program>
 	{

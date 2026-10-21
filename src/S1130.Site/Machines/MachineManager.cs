@@ -20,6 +20,10 @@ public sealed class MachineManager : IDisposable
 		DiskLibraryPath = Path.GetFullPath(_options.DiskLibrary, environment.ContentRootPath);
 		var master = string.IsNullOrWhiteSpace(_options.MasterDisk) ? null : Path.GetFullPath(_options.MasterDisk, DiskLibraryPath);
 		MasterDiskPath = master != null && File.Exists(master) ? master : null;
+		var diskParts = Path.GetFileNameWithoutExtension(_options.MasterDisk).Split('-');
+		PrinterName = diskParts.Length > 2 && diskParts[2] is "1132" or "1403"
+			? $"{diskParts[2]} Printer"
+			: "Line Printer";
 	}
 
 	/// <summary>Full path of the folder of genned system disks.</summary>
@@ -27,6 +31,9 @@ public sealed class MachineManager : IDisposable
 
 	/// <summary>Full path of the master DMS disk, or null if it cannot be found.</summary>
 	public string? MasterDiskPath { get; }
+
+	/// <summary>Printer model configured on the master DMS disk.</summary>
+	public string PrinterName { get; }
 
 	public int Count => _machines.Count;
 
