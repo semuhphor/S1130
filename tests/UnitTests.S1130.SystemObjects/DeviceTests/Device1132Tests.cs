@@ -160,6 +160,17 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		}
 
 		[Fact]
+		public void PrintedLine_ShowsWhenThePrinterStops_WithoutWaitingForTheCarriage()
+		{
+			SetBuffer(0);
+			Control(Device1132.StartPrinter);
+			_printer.Run();
+			Control(Device1132.StopPrinter);
+
+			Assert.Equal("A", _printer.PrintedText);
+		}
+
+		[Fact]
 		public void Skip_StopsAtTopOfFormAndReportsTheChannel()
 		{
 			Control(Device1132.StartCarriage);

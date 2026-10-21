@@ -88,6 +88,8 @@ public class Device1403 : DeviceBase
 	private int _maxOverprint;
 	private int _skipTarget;
 	private bool _transferring, _printing, _skipping, _spacing;
+	private bool _lineOpen;                                  // text has been written on the current line
+	private bool _pageHasText;                               // output written since the last form feed
 	private ulong _lastEvent;
 	private bool _online = true;
 
@@ -224,6 +226,7 @@ public class Device1403 : DeviceBase
 		}
 		else if (_printing)
 		{
+			EmitRows();                                      // the line is on the paper now
 			_printing = false;
 			_dsw &= unchecked((ushort)~PrinterBusy);
 			_dsw |= PrintComplete;
@@ -303,27 +306,31 @@ public class Device1403 : DeviceBase
 		}
 	}
 
-	/// <summary>Writes any pending line, then a form feed (unless the page is already fresh), and returns to the top of form.</summary>
+	/// <summary>Ends the current line, then writes a form feed (unless the page is already fresh), and returns to the top of form.</summary>
 	private void NewPage()
 	{
-		if (_maxOverprint != 0) FlushLine(spacing: false, skipping: false);
+		EmitRows();
+		_lineOpen = false;
 		_queuedNewlines = 0;
-		if (_output.Length > 0 && _output[_output.Length - 1] != '\f') _output.Append('\f');
+		if (_pageHasText) _output.Append('\f');
+		_pageHasText = false;
 		_row = 1;                                            // channel 1 = line 2
 	}
 
-	/// <summary>Writes the collected line (if any) to the output and advances the carriage one line.</summary>
+	/// <summary>Ends the current line (writing any collected rows) and advances the carriage one line.</summary>
 	private void FlushLine(bool spacing, bool skipping)
 	{
-		if (!(spacing || _maxOverprint != 0)) return;
+		EmitRows();
+		if (!(spacing || _lineOpen)) return;
 
 		_row = (_row + 1) % PageLength;
 
-		if (spacing && _maxOverprint == 0)                   // spacing only
+		if (!_lineOpen)                                      // spacing only
 		{
 			if (_row == 0 && _queuedNewlines != 0)
 			{
 				_output.Append('\n');
+				_pageHasText = !skipping;
 				if (skipping) _output.Append('\f');          // crossed a page boundary while skipping
 				_queuedNewlines = 0;
 			}
@@ -334,7 +341,20 @@ public class Device1403 : DeviceBase
 			return;
 		}
 
-		for (; _queuedNewlines > 0; _queuedNewlines--) _output.Append('\n');
+		_lineOpen = false;
+		_queuedNewlines++;
+	}
+
+	/// <summary>
+	/// Writes the rows collected since the last write to the output, so a printed line shows at
+	/// once even if the carriage never moves again. Later prints on the same line follow after CR.
+	/// </summary>
+	private void EmitRows()
+	{
+		if (_maxOverprint == 0) return;
+
+		if (_lineOpen) _output.Append('\r');
+		else for (; _queuedNewlines > 0; _queuedNewlines--) _output.Append('\n');
 
 		for (var r = 0; r < _maxOverprint; r++)
 		{
@@ -345,6 +365,7 @@ public class Device1403 : DeviceBase
 		Array.Clear(_overprints);
 		Array.Clear(_rowLength);
 		_maxOverprint = 0;
-		_queuedNewlines++;
+		_lineOpen = true;
+		_pageHasText = true;
 	}
 }

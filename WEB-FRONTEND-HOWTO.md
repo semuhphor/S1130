@@ -9,7 +9,7 @@ There are two web front ends:
 
 ### Requirements
 - .NET 10 SDK (`dotnet --version`).
-- The master DMS disk image `ForReferenceOnly\1130SW\dms.dsk`. It is built for 1403 + 1442 + 32K. `ForReferenceOnly` is gitignored, so copy it in yourself. The site searches upward from its folder for `ForReferenceOnly\1130SW\dms.dsk`, or you can set `Site:MasterDisk` to a full path.
+- Nothing else: the master DMS disk ships with the site in its disk library, [src/S1130.Site/Disks](src/S1130.Site/Disks/README.md). The default is `dms-r2v12-1403-1442-32k.dsk` (1403 + 1442 + 32K). To boot a different disk, put it in that folder, add it to the README, and set `Site:MasterDisk` to its file name.
 
 ### Start it
 From the repository root:
@@ -59,7 +59,8 @@ It prints `HELLORLD.`. The 1403 print chain has no `!`.
 ### Settings (`src\S1130.Site\appsettings.json`, section `Site`)
 | Setting | Default | Meaning |
 |---|---|---|
-| `MasterDisk` | (empty: search for `ForReferenceOnly\1130SW\dms.dsk`) | DMS image copied to each new machine |
+| `DiskLibrary` | `Disks` | Folder of genned system disks (relative to the site folder) |
+| `MasterDisk` | `dms-r2v12-1403-1442-32k.dsk` | DMS image copied to each new machine (relative to `DiskLibrary`, or a full path) |
 | `DataRoot` | `App_Data` | Per-session folders; each holds `disks\work.dsk` |
 | `MaxMachines` | 8 | Machines that may exist at once (more gives HTTP 503) |
 | `IdleMinutes` | 30 | Idle machines are stopped and removed; the working disk stays and is reused if the browser comes back |
@@ -84,7 +85,7 @@ dotnet test tests\UnitTests.S1130.Site
 The DMS tests return early (pass) if `dms.dsk` is missing.
 
 ### Troubleshooting
-- **Boot DMS returns 409:** the master disk was not found. Check `ForReferenceOnly\1130SW\dms.dsk` or `Site:MasterDisk`.
+- **Boot DMS returns 409:** the master disk was not found. Check `Site:DiskLibrary` and `Site:MasterDisk`.
 - **503:** too many machines; wait for idle ones to be reaped or raise `MaxMachines`.
 - **Port in use:** pass a different `--urls`.
 

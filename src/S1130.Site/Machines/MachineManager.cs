@@ -17,8 +17,13 @@ public sealed class MachineManager : IDisposable
 		_options = options.Value;
 		_logger = logger;
 		_dataRoot = Path.GetFullPath(_options.DataRoot, environment.ContentRootPath);
-		MasterDiskPath = ResolveMasterDisk(_options.MasterDisk, environment.ContentRootPath);
+		DiskLibraryPath = Path.GetFullPath(_options.DiskLibrary, environment.ContentRootPath);
+		var master = string.IsNullOrWhiteSpace(_options.MasterDisk) ? null : Path.GetFullPath(_options.MasterDisk, DiskLibraryPath);
+		MasterDiskPath = master != null && File.Exists(master) ? master : null;
 	}
+
+	/// <summary>Full path of the folder of genned system disks.</summary>
+	public string DiskLibraryPath { get; }
 
 	/// <summary>Full path of the master DMS disk, or null if it cannot be found.</summary>
 	public string? MasterDiskPath { get; }
@@ -74,21 +79,6 @@ public sealed class MachineManager : IDisposable
 	private string SessionDirectory(string sessionId) => Path.Combine(_dataRoot, "sessions", sessionId);
 
 	private static string Abbrev(string sessionId) => sessionId[..8];
-
-	private static string? ResolveMasterDisk(string configured, string contentRoot)
-	{
-		if (!string.IsNullOrWhiteSpace(configured))
-		{
-			var path = Path.GetFullPath(configured, contentRoot);
-			return File.Exists(path) ? path : null;
-		}
-		for (var dir = new DirectoryInfo(contentRoot); dir != null; dir = dir.Parent)
-		{
-			var candidate = Path.Combine(dir.FullName, "ForReferenceOnly", "1130SW", "dms.dsk");
-			if (File.Exists(candidate)) return candidate;
-		}
-		return null;
-	}
 }
 
 public sealed class MachineLimitException() : Exception("All machines are busy. Try again later.");

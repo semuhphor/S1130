@@ -134,6 +134,27 @@ namespace UnitTests.S1130.SystemObjects.DeviceTests
 		}
 
 		[Fact]
+		public void PrintedLine_ShowsWithoutWaitingForTheCarriageToMove()
+		{
+			PrintLine("A1");
+
+			Assert.Equal("A1", _printer.PrintedText);
+		}
+
+		[Fact]
+		public void Skip_AfterTheOutputWasTaken_StillWritesAFormFeed()
+		{
+			PrintLine("A");
+			Assert.Equal("A", _printer.TakePrintedText());
+			InsCpu[0x200] = Device1403.TapeChannel1;
+			Exec(DevFunction.Write, 0x200);
+			_printer.Run();
+			PrintLine("B");
+
+			Assert.Equal("\fB", _printer.PrintedText);
+		}
+
+		[Fact]
 		public void Skip_WritesThePendingLineAndAFormFeed()
 		{
 			PrintLine("A");

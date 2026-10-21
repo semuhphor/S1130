@@ -1,6 +1,6 @@
 # Current Status
 
-Keep this file up to date with every change. Last updated: 2026-10-19 (after commit `6ffc1ed`).
+Keep this file up to date with every change. Last updated: 2026-10-20 (printer last-line fix, disk library).
 
 See [ComputerRoom-Plan.md](./ComputerRoom-Plan.md) for the target design and milestones.
 A separate, simpler web site (boot DMS, submit a deck, get a printout, live lights, cabinet) is planned in [WebSite-Plan.md](./WebSite-Plan.md). How to start it: [WEB-FRONTEND-HOWTO.md](../WEB-FRONTEND-HOWTO.md).
@@ -15,7 +15,10 @@ A separate, simpler web site (boot DMS, submit a deck, get a printout, live ligh
   - `// DUP` `*DUMPLET` prints the LET.
   - A `// FOR` compile prints its listing and `END OF COMPILATION`.
   - A `// ASM` + `// XEQ` program that calls `PRNT3` prints `HELLORLD.` on the 1403. The job takes 0.2 s from boot. The 1403 chain has no `!` character.
-- 14 tests in `tests/UnitTests.S1130.Site`.
+  - A `// FOR` + `// XEQ` program with `*IOCS(1403 PRINTER)` prints its `WRITE` output, including page skips (`1` carriage control).
+- 15 tests in `tests/UnitTests.S1130.Site`.
+- **Disk library:** `src/S1130.Site/Disks` holds the genned system disks, committed with the site and copied to its output. Names say how each disk was genned (`<system>-<release>-<printer>-<card device>-<core>.dsk`), and its [README](../src/S1130.Site/Disks/README.md) lists them. The master disk is `Site:DiskLibrary` + `Site:MasterDisk`, by default `dms-r2v12-1403-1442-32k.dsk` (the former `ForReferenceOnly/1130SW/dms.dsk`). A DMS disk for the 1132 is still to be made.
+- **Fixed (last printed line missing):** both printers held a printed line until the carriage next moved, so a final line printed after a page skip never showed up. The 1403 now writes a line out as soon as Print Complete happens. The 1132 does it when the program stops the printer, or when the print is cancelled by a print check or forms check. Space and skip just end the line, and overprints follow the line after CR. The 1403 now tracks whether the current page already has text, instead of looking at the end of its output (which the host may have taken), so page breaks are never lost.
 - **Fixed (1442 timing):** DMS used to stop after the first card. Its card routine issues Start Read and only then increments `$IOCT`. Our 1442 gave every column and the op-complete at once, so the completion decremented `$IOCT` before the increment. The `MDX` then hit zero and skipped into the middle of the next instruction (a WAIT at `/0396`). `Device1442` now delivers responses and operation complete from `Run()` after `EventInterval` instructions (default 100; at once while the CPU waits), like the printers. `EventInterval = 0` keeps the old during-the-XIO behaviour for unit tests.
 - **Fixed (speed):** jobs ran about 100x too slow. `DeviceRunner` sleeps between passes, and on Windows `Thread.Sleep(1)` lasts a ~15.6 ms timer tick. That cost each 1442 column (and each disk/printer step) one tick while DMS spun in its wait loop. `MachineHost` no longer uses a `DeviceRunner`: its run thread calls every device's `Run()` every 32 instructions, and at once when the CPU enters a wait. `Device2310.Run()` no longer blocks (it completes once `OperationDelay` = 10 instructions have run, or while the CPU waits), and `DeviceBase.Run()` no longer yields. A HELLORLD assemble-and-run job went from 32 s to 0.2 s. The emulator now runs faster than a real 1130; there is no real-speed throttle.
 - Note: a DMS boot prints two job pages. The first (`// JOB    000B`) is DMS's own cold-start job, which reads no card. The second is the deck's real `// JOB` card.
@@ -66,7 +69,7 @@ Milestones from the plan:
 - **M2 DMS bring-up:** trace against the reference simulator; confirm the DMS image's device configuration (`ForReferenceOnly\dmsr2v12`).
 - **M3 Web back end:** per-user machine host, SignalR, library API, quota, deck format detection, PDF generation, Identity (TOTP, passkeys), admin invites.
 - **M4 Computer-room UI:** clickable SVG room and zoom views. A first room illustration is in `docs/ui/computer-room.svg` (the original sketch is `docs/ui/room-mockup.png`): 1442 on the left, 1131 console with lamp panel and 2310 drive in the centre, 1403 on the right. Add `class="loaded"` to `#disk-drive` to show a cartridge. Lamps are still static and need binding to CPU state.
-- **M5 Packaging:** Dockerfile, volume layout, master DMS disk.
+- **M5 Packaging:** Dockerfile, volume layout. The master DMS disk now ships in `src/S1130.Site/Disks`.
 
 Other open items:
 - Update the stale 3.1/3.2 detail in `FunctionalCharacteristics-Audit.md`.
@@ -76,7 +79,8 @@ Other open items:
 
 ## Next steps
 
-1. Web site W2: SignalR live lights and printout streaming (see [WebSite-Plan.md](./WebSite-Plan.md)).
-2. Try more real jobs on the site: FORTRAN compile-and-run with output, larger assembler programs, `// DUP` store/delete.
-3. Optional: a "real speed" throttle so the site can run at roughly the original instruction rate.
-4. Optional: move `S1130.WebApi` to the same in-thread device servicing as `MachineHost`.
+1. Add the user's DMS disk for the 1132 to the disk library (`dms-r2v12-1132-1442-32k.dsk`), then run a FORTRAN deck on it to check the 1132 last-line fix end to end. The site will probably need a way to choose the disk and printer per machine.
+2. Web site W2: SignalR live lights and printout streaming (see [WebSite-Plan.md](./WebSite-Plan.md)).
+3. Try more real jobs on the site: larger FORTRAN and assembler programs, `// DUP` store/delete. (FORTRAN compile-and-run with 1403 output works.)
+4. Optional: a "real speed" throttle so the site can run at roughly the original instruction rate.
+5. Optional: move `S1130.WebApi` to the same in-thread device servicing as `MachineHost`.

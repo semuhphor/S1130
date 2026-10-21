@@ -14,7 +14,7 @@ This is a separate project from the [Computer Room plan](./ComputerRoom-Plan.md)
 | Sessions | No accounts. An HttpOnly, SameSite=Strict cookie holds a random session id. Each session owns one private machine and one cabinet. |
 | Machine life | The machine is created on first use. It is stopped after an idle period with no connected browser (default 30 min). On stop the mounted disk is saved and core state is lost. The user boots again on return. |
 | Cabinet | Server side, under `Data/sessions/{id}/` (`decks/`, `disks/`, `printouts/`, `cabinet.json`). It is deleted after a longer inactivity period (default 7 days). Per-session quota (default 50 MB). |
-| Master disk | A read-only DMS image set in configuration (`Site:MasterDisk`, default `ForReferenceOnly/1130SW/dms.dsk`). "New DMS disk" copies it into the cabinet. "New blank disk" uses `DiskImageCartridge.CreateBlank`. |
+| Master disk | A read-only DMS image from the site's disk library, `src/S1130.Site/Disks` (`Site:DiskLibrary`, `Site:MasterDisk`; names say how each disk was genned, e.g. `dms-r2v12-1403-1442-32k.dsk`). "New DMS disk" copies it into the cabinet. "New blank disk" uses `DiskImageCartridge.CreateBlank`. |
 | Devices | The default `Cpu` devices: 1442 reader (decks go to its hopper), 1403 printer (printout), built-in 2310 (device 4) and console. |
 | Decks | First release: text decks, one line per card, truncated to 80 columns, converted with `ConversionCodes.ToCard`. Binary decks come later. |
 | Printout | Lines are pushed live as the 1403 prints (`Device1403.TakePrintedText`). "Tear off" saves the printout so far to the cabinet as text and clears the pane. Download as `.txt`. PDF/greenbar comes later. |

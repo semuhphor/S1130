@@ -92,7 +92,7 @@ The newer DMS web site (boot DMS, submit a deck, get a 1403 printout) needs no N
 dotnet run --project src\S1130.Site
 ```
 
-It runs at http://localhost:5299 and needs `ForReferenceOnly\1130SW\dms.dsk`. See [WEB-FRONTEND-HOWTO.md](WEB-FRONTEND-HOWTO.md).
+It runs at http://localhost:5299 and boots the DMS disk in [src/S1130.Site/Disks](src/S1130.Site/Disks/README.md). See [WEB-FRONTEND-HOWTO.md](WEB-FRONTEND-HOWTO.md).
 
 The project also includes a backend Web API and an optional React frontend. Here are the steps to run both locally on Windows PowerShell.
 

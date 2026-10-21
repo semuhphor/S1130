@@ -5,9 +5,11 @@ public sealed class SiteOptions
 {
 	public const string Section = "Site";
 
-	/// <summary>Read-only DMS image copied for each session. Relative paths are resolved against the content root.
-	/// When empty, the first <c>ForReferenceOnly/1130SW/dms.dsk</c> found above the content root is used.</summary>
-	public string MasterDisk { get; set; } = "";
+	/// <summary>Folder of genned system disks (see <c>Disks/README.md</c>). Relative paths are resolved against the content root.</summary>
+	public string DiskLibrary { get; set; } = "Disks";
+
+	/// <summary>Read-only DMS image copied for each session. Relative paths are resolved against <see cref="DiskLibrary"/>.</summary>
+	public string MasterDisk { get; set; } = "dms-r2v12-1403-1442-32k.dsk";
 
 	/// <summary>Folder that holds per-session data (working disks and, later, the cabinet).</summary>
 	public string DataRoot { get; set; } = "App_Data";

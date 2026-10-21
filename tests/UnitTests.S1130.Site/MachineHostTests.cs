@@ -52,6 +52,39 @@ public class MachineHostTests
 	}
 
 	[Fact]
+	public void Fortran_LastLineAfterAPageSkip_IsPrinted()
+	{
+		var master = TestFiles.FindMasterDisk();
+		if (master == null) return;
+		var folder = TestFiles.NewScratchDirectory();
+		try
+		{
+			using var host = new MachineHost(folder);
+			host.LoadDeck(TextDeck.Parse(string.Join("\n",
+				"// JOB",
+				"// FOR",
+				"*IOCS(1403 PRINTER)",
+				"      WRITE(5,10)",
+				"      WRITE(5,11)",
+				"   10 FORMAT(10H HELLORLD.)",
+				"   11 FORMAT(11H1LAST LINE.)",
+				"      STOP",
+				"      END",
+				"// XEQ",
+				"/*") + "\n", 20));
+			host.Boot(master);
+
+			var text = TestFiles.WaitForPrintout(host, "LAST LINE.", TimeSpan.FromSeconds(20));
+
+			Assert.Matches(@"HELLORLD\.\n*\fLAST LINE\.", text.Replace("\r", ""));
+		}
+		finally
+		{
+			Directory.Delete(folder, true);
+		}
+	}
+
+	[Fact]
 	public void ReadPrintout_Since_ReturnsOnlyNewText_AndClearMovesThePosition()
 	{
 		var master = TestFiles.FindMasterDisk();

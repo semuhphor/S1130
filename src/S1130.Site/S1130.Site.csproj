@@ -4,6 +4,10 @@
     <ProjectReference Include="..\S1130.SystemObjects\S1130.SystemObjects.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Disks\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>

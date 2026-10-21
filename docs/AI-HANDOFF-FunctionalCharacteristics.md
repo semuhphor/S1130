@@ -135,6 +135,17 @@ Keep any new device's `Run()` non-blocking and instruction-count timed.
 ### Writing programs for DMS on the 1403
 `LIBF PRNT3` with control `/2000` (print, then space) and `/0000` (busy test: returns to LIBF+2 while busy, LIBF+3 when done). The I/O area is a word count followed by 1403 printer codes, two per word, high byte first (`Device1403.Chain` has the table; blank is `/7F`). **There is no `!` on the chain.** Assembler cards: label in column 21, opcode in 27, format/tag in 32-33, operands from 35.
 
+FORTRAN works too: `*IOCS(1403 PRINTER)`, then `WRITE(5,n)`. The first character of a FORMAT's output is carriage control (`1` = skip to a new page, blank = space, `0` = double space, `+` = overprint). The FORTRAN runtime turns it into the printer's space and skip commands; the printer itself only prints lines and moves paper. Count `nH` Hollerith fields exactly. One character short gives `C 27 ERROR` and `COMPILATION DISCONTINUED`.
+
+### Printers write each line out as soon as it is printed (2026-10-20)
+`Device1403` and `Device1132` are ports of `ibm1130_prt.c`, which kept the printed line in a buffer until the carriage moved, so overprints could be merged into it. A job whose last action was "skip, then print" (FORTRAN `1` carriage control on the last WRITE) therefore never showed its last line. Printers are unit-record equipment: once a line is printed, it is on the paper. So now:
+- The 1403 writes the line out at Print Complete. The 1132 does it when the program stops the printer, and also on a print check or forms check.
+- Space and skip just end the line. A second print without spacing is written after CR (the same `A\rB` text as before).
+- The 1403 keeps a `_pageHasText` flag to decide whether a skip needs a form feed. Never decide that by looking at `_output`, because the host takes the text out of it as it goes.
+
+### Disk library
+The genned system disks are in `src/S1130.Site/Disks`, committed and copied to the build output. Names say how each disk was genned: `<system>-<release>-<printer>-<card device>-<core>[-<extra>].dsk`. The README there lists each disk and how it was built; never change a listed disk, make a new one instead. The site boots `Site:DiskLibrary` + `Site:MasterDisk` (default `dms-r2v12-1403-1442-32k.dsk`, the former `ForReferenceOnly/1130SW/dms.dsk`). Site tests find it through `TestFiles.FindMasterDisk()`. `tests/UnitTests.S1130.SystemObjects/disk/dms.dsk` is a different, older image. There is no DMS disk for the 1132 yet (the user is making one), so the 1132 changes are covered only by unit tests.
+
 ---
 
 ## 6. Still unread in detail

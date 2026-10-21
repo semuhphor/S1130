@@ -5,11 +5,16 @@ namespace UnitTests.S1130.Site;
 /// <summary>Helpers shared by tests that need the reference DMS disk and a scratch folder.</summary>
 internal static class TestFiles
 {
+	public const string MasterDiskName = "dms-r2v12-1403-1442-32k.dsk";
+
+	/// <summary>The site's DMS disk from its disk library (copied next to the test assembly by the build).</summary>
 	public static string? FindMasterDisk()
 	{
+		var copied = Path.Combine(AppContext.BaseDirectory, "Disks", MasterDiskName);
+		if (File.Exists(copied)) return copied;
 		for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir != null; dir = dir.Parent)
 		{
-			var candidate = Path.Combine(dir.FullName, "ForReferenceOnly", "1130SW", "dms.dsk");
+			var candidate = Path.Combine(dir.FullName, "src", "S1130.Site", "Disks", MasterDiskName);
 			if (File.Exists(candidate)) return candidate;
 		}
 		return null;
